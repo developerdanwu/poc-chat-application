@@ -4,10 +4,18 @@ import Link from "next/link";
 import { signIn, signOut, useSession } from "next-auth/react";
 
 import { api } from "@/utils/api";
+import {invoke} from "@tauri-apps/api/tauri";
+import {useEffect} from "react";
+
+const isClient = typeof window !== 'undefined'
 
 const Home: NextPage = () => {
   const hello = api.example.hello.useQuery({ text: "from tRPC" });
-
+  useEffect(() => {
+    invoke('greet', { name: 'World' })
+        .then(console.log)
+        .catch(console.error)
+  }, []);
   return (
     <>
       <Head>
