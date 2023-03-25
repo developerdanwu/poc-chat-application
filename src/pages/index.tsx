@@ -7,6 +7,8 @@ import { create } from "zustand";
 import { type ChatMessage } from "chatgpt";
 import { v4 as uuidv4 } from "uuid";
 import { useForm } from "react-hook-form";
+import { BaseDirectory, writeFile } from "@tauri-apps/api/fs";
+import { useEffect } from "react";
 
 type UserMessage = {
   id: string;
@@ -33,6 +35,26 @@ const Home: NextPage = () => {
       textPrompt: "",
     },
   });
+  useEffect(() => {
+    const test = async () => {
+      try {
+        const testing = await writeFile(
+          {
+            contents: "[]",
+            path: "data.json",
+          },
+          {
+            dir: BaseDirectory.Desktop,
+          }
+        );
+
+        console.log(testing);
+      } catch (e) {
+        console.log("ERROR", e);
+      }
+    };
+    test();
+  }, []);
 
   const sendApiPrompt = api.chatGpt.sendAiPrompt.useMutation({
     onMutate: (variables) => {
