@@ -7,8 +7,9 @@ import { create } from "zustand";
 import { type ChatMessage } from "chatgpt";
 import { v4 as uuidv4 } from "uuid";
 import { useForm } from "react-hook-form";
-import { BaseDirectory, writeFile } from "@tauri-apps/api/fs";
+import { BaseDirectory, readTextFile, writeFile } from "@tauri-apps/api/fs";
 import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 type UserMessage = {
   id: string;
@@ -30,6 +31,17 @@ const useChatStore = create<{
 
 const Home: NextPage = () => {
   const chatStore = useChatStore();
+  const textFile = useQuery({
+    queryKey: ["textFile"],
+    queryFn: async () => {
+      const text = await readTextFile("data.json", {
+        dir: BaseDirectory.Desktop,
+      });
+      return JSON.parse(text) as string[];
+    },
+  });
+
+  console.log("DATA", textFile.data);
   const chatForm = useForm({
     defaultValues: {
       textPrompt: "",
