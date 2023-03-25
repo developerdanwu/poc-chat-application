@@ -15,7 +15,7 @@ const ChatBubble = ({
         "chat-end": direction === "end",
       })}
     >
-      <div className="chat-bubble">{children}</div>
+      <div className="chat-bubble h-full">{children}</div>
     </div>
   );
 };

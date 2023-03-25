@@ -10,6 +10,7 @@ import { useForm } from "react-hook-form";
 import { BaseDirectory, readTextFile, writeFile } from "@tauri-apps/api/fs";
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import Button from "@/components/Button";
 
 type UserMessage = {
   id: string;
@@ -82,44 +83,81 @@ const Home: NextPage = () => {
   });
   const messages = chatStore.messages;
   return (
-    <div className={"flex h-screen w-screen flex-row"}>
-      <div className={"h-full w-72 bg-black"}></div>
-      <div
-        className={"flex h-full w-full flex-col items-center justify-center"}
-      >
-        <div className={"flex h-full w-full flex-col p-7"}>
-          {chatStore.messages.map((m) => {
-            return (
-              <ChatBubble
-                key={m.id}
-                direction={m.role === "user" ? "end" : "start"}
-              >
-                {m.text}
-              </ChatBubble>
-            );
-          })}
-        </div>
-        <form
-          className={"flex w-full justify-center p-5"}
-          onSubmit={chatForm.handleSubmit((data) => {
-            console.log("HELLO??", data.textPrompt);
-            sendApiPrompt.mutate({
-              textPrompt: data.textPrompt,
-              ...(messages.length > 1 && {
-                parentMessageId: messages[messages.length - 1]?.id,
-              }),
-            });
-          })}
+    <div
+      className={
+        "flex h-screen w-screen flex-row items-center justify-center bg-neutral"
+      }
+    >
+      <div className={"flex h-full w-full max-w-[1600px] flex-row"}>
+        <div className={"h-full max-w-[30%] flex-[0_0_30%] "}></div>
+        <div
+          className={
+            "flex h-full w-full flex-col items-center justify-center bg-neutral-focus"
+          }
         >
-          <Input {...chatForm.register("textPrompt")} />
-          <button
-            disabled={sendApiPrompt.status === "loading"}
-            className={"btn-primary btn"}
-            type={"submit"}
+          <div className={"flex h-full w-full flex-col space-y-2 p-7"}>
+            {chatStore.messages.map((m) => {
+              return (
+                <ChatBubble
+                  key={m.id}
+                  direction={m.role === "user" ? "end" : "start"}
+                >
+                  {m.text}
+                </ChatBubble>
+              );
+            })}
+            {sendApiPrompt.status === "loading" && (
+              <ChatBubble direction={"start"}>
+                <div
+                  className={"flex h-full w-max w-full items-center space-x-2"}
+                >
+                  <div
+                    className={
+                      "my-0 h-2 w-2 animate-typing-dot rounded-full bg-white"
+                    }
+                  />
+                  <div
+                    className={
+                      "my-0  h-2 w-2 animate-typing-dot rounded-full bg-white animation-delay-100"
+                    }
+                  />
+                  <div
+                    className={
+                      "my-0 h-2 w-2 animate-typing-dot rounded-full bg-white animation-delay-400"
+                    }
+                  />
+                </div>
+              </ChatBubble>
+            )}
+          </div>
+          <form
+            className={
+              "flex h-full w-full flex-[0_0_50px] justify-between bg-neutral-content p-5"
+            }
+            onSubmit={chatForm.handleSubmit((data) => {
+              console.log("HELLO??", data.textPrompt);
+              sendApiPrompt.mutate({
+                textPrompt: data.textPrompt,
+                ...(messages.length > 1 && {
+                  parentMessageId: messages[messages.length - 1]?.id,
+                }),
+              });
+              chatForm.reset();
+            })}
           >
-            hello
-          </button>
-        </form>
+            <Input
+              {...chatForm.register("textPrompt")}
+              className={"h-full p-2"}
+            />
+            <Button
+              disabled={sendApiPrompt.status === "loading"}
+              className={"btn-primary btn"}
+              type={"submit"}
+            >
+              send message
+            </Button>
+          </form>
+        </div>
       </div>
     </div>
   );
