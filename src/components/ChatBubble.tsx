@@ -4,7 +4,9 @@ import clsx from "clsx";
 const ChatBubble = ({
   children,
   direction,
+  variant,
 }: {
+  variant?: "primary" | "secondary" | "accent";
   children: React.ReactNode;
   direction: "start" | "end";
 }) => {
@@ -15,7 +17,15 @@ const ChatBubble = ({
         "chat-end": direction === "end",
       })}
     >
-      <div className="chat-bubble h-full">{children}</div>
+      <div
+        className={clsx("chat-bubble h-full", {
+          "chat-bubble-accent": variant === "accent",
+          "chat-bubble-secondary": variant === "secondary",
+          "chat-bubble-primary": variant === "primary",
+        })}
+      >
+        {children}
+      </div>
     </div>
   );
 };

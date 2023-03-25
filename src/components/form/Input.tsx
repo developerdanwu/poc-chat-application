@@ -12,7 +12,7 @@ const Input = forwardRef<
       ref={ref}
       type="text"
       placeholder="Type here"
-      className={clsx("input h-auto w-full max-w-2xl self-center", className)}
+      className={clsx("input h-auto w-full py-2", className)}
       {...restProps}
     />
   );

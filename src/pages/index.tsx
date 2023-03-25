@@ -10,7 +10,7 @@ import { useForm } from "react-hook-form";
 import { BaseDirectory, readTextFile, writeFile } from "@tauri-apps/api/fs";
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import Button from "@/components/Button";
+import Avatar from "@/components/Avatar";
 
 type UserMessage = {
   id: string;
@@ -29,6 +29,18 @@ const useChatStore = create<{
   addUserMessage: (message: UserMessage) =>
     set((state) => ({ ...state, messages: [...state.messages, message] })),
 }));
+
+const ChatWindowWrapper = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <div
+      className={
+        "flex h-full w-full flex-col space-y-2 overflow-auto bg-black p-7"
+      }
+    >
+      {children}
+    </div>
+  );
+};
 
 const Home: NextPage = () => {
   const chatStore = useChatStore();
@@ -82,23 +94,39 @@ const Home: NextPage = () => {
     },
   });
   const messages = chatStore.messages;
+
+  console.log(messages);
   return (
     <div
       className={
-        "flex h-screen w-screen flex-row items-center justify-center bg-neutral"
+        "flex h-screen w-screen flex-row items-center justify-center bg-neutral-focus"
       }
     >
-      <div className={"flex h-full w-full max-w-[1600px] flex-row"}>
-        <div className={"h-full max-w-[30%] flex-[0_0_30%] "}></div>
+      <div
+        className={
+          "flex h-full w-full max-w-[1600px] flex-row divide-x divide-neutral-content p-5"
+        }
+      >
+        <div className={"flex h-full max-w-[30%] flex-[0_0_30%] flex-col "}>
+          <div className={"flex  w-full w-full bg-neutral px-4 py-2"}>
+            <Avatar alt={"C"} />
+          </div>
+          <div></div>
+        </div>
         <div
-          className={
-            "flex h-full w-full flex-col items-center justify-center bg-neutral-focus"
-          }
+          className={"flex h-full w-full flex-col items-center justify-center"}
         >
-          <div className={"flex h-full w-full flex-col space-y-2 p-7"}>
+          <div className={"flex  w-full w-full bg-neutral px-4 py-2"}>
+            <div className={"flex items-center space-x-4"}>
+              <Avatar alt={"C"} />
+              <p>Chat GPT</p>
+            </div>
+          </div>
+          <ChatWindowWrapper>
             {chatStore.messages.map((m) => {
               return (
                 <ChatBubble
+                  variant={m.role === "user" ? "accent" : "secondary"}
                   key={m.id}
                   direction={m.role === "user" ? "end" : "start"}
                 >
@@ -129,10 +157,10 @@ const Home: NextPage = () => {
                 </div>
               </ChatBubble>
             )}
-          </div>
+          </ChatWindowWrapper>
           <form
             className={
-              "flex h-full w-full flex-[0_0_50px] justify-between bg-neutral-content p-5"
+              "flex h-16 w-full items-center justify-between space-x-4 bg-neutral px-4"
             }
             onSubmit={chatForm.handleSubmit((data) => {
               console.log("HELLO??", data.textPrompt);
@@ -145,17 +173,7 @@ const Home: NextPage = () => {
               chatForm.reset();
             })}
           >
-            <Input
-              {...chatForm.register("textPrompt")}
-              className={"h-full p-2"}
-            />
-            <Button
-              disabled={sendApiPrompt.status === "loading"}
-              className={"btn-primary btn"}
-              type={"submit"}
-            >
-              send message
-            </Button>
+            <Input {...chatForm.register("textPrompt")} className={"flex-1"} />
           </form>
         </div>
       </div>
