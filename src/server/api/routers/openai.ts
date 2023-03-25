@@ -1,0 +1,30 @@
+import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { Configuration, OpenAIApi } from "openai";
+import { z } from "zod";
+
+const openaiConfig = new Configuration({
+  apiKey: "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",
+});
+const openaiApi = new OpenAIApi(openaiConfig);
+
+export const openai = createTRPCRouter({
+  createCompletion: publicProcedure
+    .input(
+      z.object({
+        model: z.literal("text-davinci-003"),
+        prompt: z.string(),
+      })
+    )
+    .mutation(async ({ input: { model, prompt } }) => {
+      const res = await openaiApi.createCompletion({
+        model,
+        prompt,
+      });
+
+      return res.data?.choices?.[0]?.text;
+    }),
+  getModels: publicProcedure.query(async () => {
+    const res = await openaiApi.listModels();
+    return res.data;
+  }),
+});
