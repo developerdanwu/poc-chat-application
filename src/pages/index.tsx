@@ -1,12 +1,12 @@
 import { type NextPage } from "next";
 
 import { api } from "@/utils/api";
-import { useState } from "react";
 import Input from "@/components/form/Input";
 import ChatBubble from "@/components/ChatBubble";
 import { create } from "zustand";
 import { type ChatMessage } from "chatgpt";
 import { v4 as uuidv4 } from "uuid";
+import { useForm } from "react-hook-form";
 
 type UserMessage = {
   id: string;
@@ -28,7 +28,12 @@ const useChatStore = create<{
 
 const Home: NextPage = () => {
   const chatStore = useChatStore();
-  const [text, setText] = useState("");
+  const chatForm = useForm({
+    defaultValues: {
+      textPrompt: "",
+    },
+  });
+
   const sendApiPrompt = api.chatGpt.sendAiPrompt.useMutation({
     onMutate: (variables) => {
       chatStore.addUserMessage({
@@ -41,12 +46,6 @@ const Home: NextPage = () => {
       chatStore.addAiMessage(message);
     },
   });
-
-  console.log(chatStore.messages);
-  const completionApi = api.openai.createCompletion.useMutation({
-    onMutate: (variables) => {},
-  });
-  const models = api.openai.getModels.useQuery();
   const messages = chatStore.messages;
   return (
     <div className={"flex h-screen w-screen flex-row"}>
@@ -66,29 +65,27 @@ const Home: NextPage = () => {
             );
           })}
         </div>
-        <div className={"flex w-full justify-center p-5"}>
-          <form>
-            <Input
-              value={text}
-              onChange={(e) => {
-                setText(e.target.value);
-              }}
-            />
-            <button
-              className={"btn-primary btn"}
-              onClick={() => {
-                sendApiPrompt.mutate({
-                  textPrompt: text,
-                  ...(messages.length > 1 && {
-                    parentMessageId: messages[messages.length - 1]?.id,
-                  }),
-                });
-              }}
-            >
-              hello
-            </button>
-          </form>
-        </div>
+        <form
+          className={"flex w-full justify-center p-5"}
+          onSubmit={chatForm.handleSubmit((data) => {
+            console.log("HELLO??", data.textPrompt);
+            sendApiPrompt.mutate({
+              textPrompt: data.textPrompt,
+              ...(messages.length > 1 && {
+                parentMessageId: messages[messages.length - 1]?.id,
+              }),
+            });
+          })}
+        >
+          <Input {...chatForm.register("textPrompt")} />
+          <button
+            disabled={sendApiPrompt.status === "loading"}
+            className={"btn-primary btn"}
+            type={"submit"}
+          >
+            hello
+          </button>
+        </form>
       </div>
     </div>
   );
