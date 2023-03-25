@@ -113,10 +113,10 @@ const Home: NextPage = () => {
         }
       >
         <ChatSidebarWrapper>
-          <div className={"flex  w-full w-full bg-neutral px-4 py-2"}>
+          <div className={"flex  w-full w-full bg-neutral px-2 py-2"}>
             <Avatar alt={"C"} />
           </div>
-          <div className={"flex w-full flex-col overflow-auto py-4 pr-2"}>
+          <div className={"flex w-full flex-col overflow-auto py-4"}>
             {aiModels.data?.data?.map((m) => {
               return (
                 <ThreadListItem

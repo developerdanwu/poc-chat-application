@@ -4,6 +4,10 @@ import { useChatStore } from "@/pages";
 
 const ChatWindow = ({ aiTyping }: { aiTyping: boolean }) => {
   const chatStore = useChatStore();
+  const test =
+    "Here's an example function in Python that takes in two numbers and multiplies them: ```python def multiply(num1, num2): result = num1 * num2 return result ``` You can call this function by passing in two numbers as arguments: ```python result = multiply(2, 3) print(result) # Output: 6 ``` This function multiplies `num1` and `num2` and returns the result.";
+  const splitTest = test.split("```");
+  console.log(splitTest);
   return (
     <div
       className={
@@ -11,6 +15,7 @@ const ChatWindow = ({ aiTyping }: { aiTyping: boolean }) => {
       }
     >
       {chatStore.messages.map((m) => {
+        console.log(m);
         return (
           <ChatBubble
             variant={m.role === "user" ? "accent" : "secondary"}
