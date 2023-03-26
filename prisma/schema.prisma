@@ -44,13 +44,14 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String     @id @default(cuid())
   name          String?
-  email         String?   @unique
+  email         String?    @unique
   emailVerified DateTime?
   image         String?
   accounts      Account[]
   sessions      Session[]
+  chatrooms     Chatroom[]
 }
 
 model VerificationToken {
@@ -69,7 +70,25 @@ model Messages {
   chatroom   Chatroom @relation(fields: [chatroomId], references: [id], onDelete: Cascade)
 }
 
+model AiUser {
+  id        String     @id @default(cuid())
+  name      String
+  created   DateTime
+  owned_by  String
+  chatrooms Chatroom[]
+  aiModels  AiModel[]
+}
+
+model AiModel {
+  id       String @id @default(cuid())
+  aiUser   AiUser @relation(fields: [aiUserId], references: [id], onDelete: Cascade)
+  aiUserId String
+}
+
 model Chatroom {
   id       String     @id @default(cuid())
   messages Messages[]
+  users    User[]
+  aiUser   AiUser     @relation(fields: [aiUserId], references: [id], onDelete: Cascade)
+  aiUserId String
 }
