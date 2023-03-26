@@ -18,7 +18,7 @@ datasource db {
 model Messages {
   id         String   @id @default(cuid())
   message    String
-  timestamp  DateTime
+  timestamp  DateTime @default(now())
   chatroomId String
   chatroom   Chatroom @relation(fields: [chatroomId], references: [id], onDelete: Cascade)
 }
@@ -26,7 +26,7 @@ model Messages {
 model AiUser {
   id        String     @id @default(cuid())
   name      String
-  created   DateTime
+  created   DateTime   @default(now())
   chatrooms Chatroom[]
   aiModels  AiModel[]
 }

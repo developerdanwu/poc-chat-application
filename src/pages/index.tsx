@@ -58,7 +58,7 @@ const Home: NextPage = () => {
       return JSON.parse(text) as string[];
     },
   });
-  const test = api.messaging.getUserId.useQuery();
+  const test = api.messaging.getMessages.useQuery();
   const aiModels = api.openai.getModels.useQuery();
 
   console.log("DATA", textFile.data);
