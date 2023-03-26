@@ -74,13 +74,12 @@ model AiUser {
   id        String     @id @default(cuid())
   name      String
   created   DateTime
-  owned_by  String
   chatrooms Chatroom[]
   aiModels  AiModel[]
 }
 
 model AiModel {
-  id       String @id @default(cuid())
+  id       String @id
   aiUser   AiUser @relation(fields: [aiUserId], references: [id], onDelete: Cascade)
   aiUserId String
 }

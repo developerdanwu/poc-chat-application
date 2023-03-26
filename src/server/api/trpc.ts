@@ -7,6 +7,7 @@
  * need to use are documented accordingly near the end.
  */
 
+import type * as trpcNext from "@trpc/server/adapters/next";
 /**
  * 1. CONTEXT
  *
@@ -14,11 +15,25 @@
  *
  * These allow you to access things when processing a request, like the database, the session, etc.
  */
-import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 import { type Session } from "next-auth";
 
-import { getServerAuthSession } from "@/server/auth";
 import { prisma } from "@/server/db";
+import type * as trpc from "@trpc/server";
+/**
+ * 2. INITIALIZATION
+ *
+ * This is where the tRPC API is initialized, connecting the context and transformer. We also parse
+ * ZodErrors so that you get typesafety on the frontend if your procedure fails due to validation
+ * errors on the backend.
+ */
+import { initTRPC, TRPCError } from "@trpc/server";
+import { getAuth } from "@clerk/nextjs/server";
+import type {
+  SignedInAuthObject,
+  SignedOutAuthObject,
+} from "@clerk/nextjs/dist/api";
+import superjson from "superjson";
+import { ZodError } from "zod";
 
 type CreateContextOptions = {
   session: Session | null;
@@ -34,40 +49,25 @@ type CreateContextOptions = {
  *
  * @see https://create.t3.gg/en/usage/trpc#-servertrpccontextts
  */
-const createInnerTRPCContext = (opts: CreateContextOptions) => {
+
+interface AuthContext {
+  auth: SignedInAuthObject | SignedOutAuthObject;
+}
+
+export const createInnerTRPCContext = async ({ auth }: AuthContext) => {
   return {
-    session: opts.session,
+    auth,
     prisma,
   };
 };
 
-/**
- * This is the actual context you will use in your router. It will be used to process every request
- * that goes through your tRPC endpoint.
- *
- * @see https://trpc.io/docs/context
- */
-export const createTRPCContext = async (opts: CreateNextContextOptions) => {
-  const { req, res } = opts;
-
-  // Get the session from the server using the getServerSession wrapper function
-  const session = await getServerAuthSession({ req, res });
-
-  return createInnerTRPCContext({
-    session,
-  });
+export const createTRPCContext = async (
+  opts: trpcNext.CreateNextContextOptions
+) => {
+  return await createInnerTRPCContext({ auth: getAuth(opts.req) });
 };
 
-/**
- * 2. INITIALIZATION
- *
- * This is where the tRPC API is initialized, connecting the context and transformer. We also parse
- * ZodErrors so that you get typesafety on the frontend if your procedure fails due to validation
- * errors on the backend.
- */
-import { initTRPC, TRPCError } from "@trpc/server";
-import superjson from "superjson";
-import { ZodError } from "zod";
+export type Context = trpc.inferAsyncReturnType<typeof createTRPCContext>;
 
 const t = initTRPC.context<typeof createTRPCContext>().create({
   transformer: superjson,
@@ -107,14 +107,14 @@ export const createTRPCRouter = t.router;
 export const publicProcedure = t.procedure;
 
 /** Reusable middleware that enforces users are logged in before running the procedure. */
-const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
-  if (!ctx.session || !ctx.session.user) {
+const enforceUserIsAuthed = t.middleware(({ next, ctx }) => {
+  console.log("HELLO", ctx.auth.userId);
+  if (!ctx.auth.userId) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
   return next({
     ctx: {
-      // infers the `session` as non-nullable
-      session: { ...ctx.session, user: ctx.session.user },
+      auth: ctx.auth,
     },
   });
 });
