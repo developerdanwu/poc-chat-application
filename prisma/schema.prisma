@@ -2,8 +2,7 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["referentialIntegrity"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -39,14 +38,14 @@ model AiModel {
 }
 
 model Chatroom {
-  id       String          @id @default(cuid())
+  id       String         @id @default(cuid())
   messages Messages[]
-  users    ChatroomUsers[]
-  aiUser   AiUser          @relation(fields: [aiUserId], references: [id], onDelete: Cascade)
+  users    ChatroomUser[]
+  aiUser   AiUser         @relation(fields: [aiUserId], references: [id], onDelete: Cascade)
   aiUserId String
 }
 
-model ChatroomUsers {
+model ChatroomUser {
   id         String   @id @default(cuid())
   chatroomId String
   userId     String
