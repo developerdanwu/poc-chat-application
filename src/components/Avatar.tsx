@@ -10,7 +10,7 @@ const Avatar = ({ alt, size = "sm" }: { alt: string; size?: "sm" | "md" }) => {
           "h-12 w-12": size === "md",
         })}
       >
-        <span className="text-md uppercase">{alt}</span>
+        <span className="text-md select-none uppercase">{alt}</span>
       </div>
     </div>
   );

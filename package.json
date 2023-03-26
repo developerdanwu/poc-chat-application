@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "db:prisma-studio": "npx prisma studio",
+    "db:start-db": " pscale connect chat-gpt-demo develop --port 3309",
+    "db:push": "npx prisma db push",
+    "db:migrate": "npx prisma migrate dev --name init",
     "build": "next build",
     "tauri": "tauri",
     "export": "next export",
