@@ -1,6 +1,8 @@
 import { createTRPCRouter } from "@/server/api/trpc";
 import { chatGpt } from "@/server/api/routers/chatGpt";
 import { openai } from "@/server/api/routers/openai";
+import { messaging } from "@/server/api/routers/messaging";
+
 /**
  * This is the primary router for your server.
  *
@@ -9,6 +11,7 @@ import { openai } from "@/server/api/routers/openai";
 export const appRouter = createTRPCRouter({
   chatGpt,
   openai,
+  messaging,
 });
 
 // export type definition of API

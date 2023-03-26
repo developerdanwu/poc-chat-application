@@ -15,8 +15,6 @@ import type * as trpcNext from "@trpc/server/adapters/next";
  *
  * These allow you to access things when processing a request, like the database, the session, etc.
  */
-import { type Session } from "next-auth";
-
 import { prisma } from "@/server/db";
 import type * as trpc from "@trpc/server";
 /**
@@ -35,10 +33,6 @@ import type {
 import superjson from "superjson";
 import { ZodError } from "zod";
 
-type CreateContextOptions = {
-  session: Session | null;
-};
-
 /**
  * This helper generates the "internals" for a tRPC context. If you need to use it, you can export
  * it from here.
@@ -54,17 +48,15 @@ interface AuthContext {
   auth: SignedInAuthObject | SignedOutAuthObject;
 }
 
-export const createInnerTRPCContext = async ({ auth }: AuthContext) => {
+export const createInnerTRPCContext = ({ auth }: AuthContext) => {
   return {
     auth,
     prisma,
   };
 };
 
-export const createTRPCContext = async (
-  opts: trpcNext.CreateNextContextOptions
-) => {
-  return await createInnerTRPCContext({ auth: getAuth(opts.req) });
+export const createTRPCContext = (opts: trpcNext.CreateNextContextOptions) => {
+  return createInnerTRPCContext({ auth: getAuth(opts.req) });
 };
 
 export type Context = trpc.inferAsyncReturnType<typeof createTRPCContext>;
