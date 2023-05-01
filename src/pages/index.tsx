@@ -12,7 +12,11 @@ import { getQueryKey } from "@trpc/react-query";
 
 const ChatSidebarWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className={"flex h-full max-w-[30%] flex-[0_0_30%] flex-col "}>
+    <div
+      className={
+        "flex h-full max-w-[30%] flex-[0_0_30%] flex-col overflow-hidden rounded-3xl "
+      }
+    >
       {children}
     </div>
   );
@@ -20,7 +24,11 @@ const ChatSidebarWrapper = ({ children }: { children: React.ReactNode }) => {
 
 const MainChatWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className={"flex h-full w-full flex-col items-center justify-center"}>
+    <div
+      className={
+        "flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-3xl bg-neutral px-4"
+      }
+    >
       {children}
     </div>
   );
@@ -56,7 +64,7 @@ const Home: NextPage = () => {
     >
       <div
         className={
-          "flex h-full w-full max-w-[1600px] flex-row divide-x divide-neutral p-5"
+          "flex h-full w-full max-w-[1600px] flex-row space-x-3 divide-neutral p-5"
         }
       >
         <ChatSidebarWrapper>
@@ -76,7 +84,7 @@ const Home: NextPage = () => {
           </div>
         </ChatSidebarWrapper>
         <MainChatWrapper>
-          <div className={"flex  w-full w-full bg-neutral px-4 py-2"}>
+          <div className={"flex w-full rounded-3xl px-4 py-8"}>
             <div className={"flex items-center space-x-4"}>
               <Avatar alt={"C"} />
               <p>Chat GPT</p>
@@ -90,7 +98,7 @@ const Home: NextPage = () => {
             onSubmit={chatForm.handleSubmit((data) => {
               sendMessageToAi.mutate({
                 textPrompt: data.textPrompt,
-                chatroomId: "clfpepzy10000e6rgzrnq8ggc",
+                chatroomId: "clh4sfne50000e6b7s4764us2",
               });
 
               chatForm.reset();
