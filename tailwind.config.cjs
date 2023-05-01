@@ -23,7 +23,14 @@ const config = {
         }
     },
     daisyui: {
-        themes: ['dark']
+        themes: [{
+            default:{
+                primary: '#2A6EFF',
+                neutral:'#FFF',
+                secondary: '#F6F8FC',
+
+            }
+        }]
     },
     // @ts-expect-error
     plugins: [require("daisyui"), require("tailwindcss-animation-delay"),

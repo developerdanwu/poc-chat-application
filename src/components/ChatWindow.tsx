@@ -1,28 +1,29 @@
 import React from "react";
 import ChatBubble from "@/components/ChatBubble";
-import { useChatStore } from "@/pages";
+import { api } from "@/utils/api";
+import { useUser } from "@clerk/nextjs";
 
 const ChatWindow = ({ aiTyping }: { aiTyping: boolean }) => {
-  const chatStore = useChatStore();
-  const test =
-    "Here's an example function in Python that takes in two numbers and multiplies them: ```python def multiply(num1, num2): result = num1 * num2 return result ``` You can call this function by passing in two numbers as arguments: ```python result = multiply(2, 3) print(result) # Output: 6 ``` This function multiplies `num1` and `num2` and returns the result.";
-  const splitTest = test.split("```");
-  console.log(splitTest);
+  const user = useUser();
+  const messages = api.messaging.getMessages.useQuery({
+    chatroomId: "clfr09kr00000e65bh3f38lmt",
+  });
   return (
     <div
       className={
-        "flex h-full w-full flex-col space-y-2 overflow-auto bg-black p-7"
+        "flex h-full w-full flex-col space-y-2 overflow-auto bg-secondary p-7"
       }
     >
-      {chatStore.messages.map((m) => {
-        console.log(m);
+      {messages.data?.messages.map((m) => {
+        const isSentByMe = m.senderId === user.user?.id;
         return (
           <ChatBubble
-            variant={m.role === "user" ? "accent" : "secondary"}
+            sendDate={m.timestamp.toDateString()}
+            variant={isSentByMe ? "primary" : "secondary"}
             key={m.id}
-            direction={m.role === "user" ? "end" : "start"}
+            direction={isSentByMe ? "end" : "start"}
           >
-            {m.text}
+            {m.message}
           </ChatBubble>
         );
       })}

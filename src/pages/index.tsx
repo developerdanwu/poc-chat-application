@@ -2,34 +2,13 @@ import { type NextPage } from "next";
 
 import { api } from "@/utils/api";
 import Input from "@/components/form/Input";
-import { create } from "zustand";
-import { type ChatMessage } from "chatgpt";
-import { v4 as uuidv4 } from "uuid";
 import { useForm } from "react-hook-form";
-import { BaseDirectory, readTextFile, writeFile } from "@tauri-apps/api/fs";
-import React, { useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import React from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import Avatar from "@/components/Avatar";
 import ChatWindow from "@/components/ChatWindow";
 import ThreadListItem from "@/components/ThreadListItem";
-
-type UserMessage = {
-  id: string;
-  text: string;
-  role: "user";
-};
-
-export const useChatStore = create<{
-  messages: (ChatMessage | UserMessage)[];
-  addAiMessage: (message: ChatMessage) => void;
-  addUserMessage: (message: UserMessage) => void;
-}>((set) => ({
-  messages: [],
-  addAiMessage: (message: ChatMessage) =>
-    set((state) => ({ ...state, messages: [...state.messages, message] })),
-  addUserMessage: (message: UserMessage) =>
-    set((state) => ({ ...state, messages: [...state.messages, message] })),
-}));
+import { getQueryKey } from "@trpc/react-query";
 
 const ChatSidebarWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -48,59 +27,26 @@ const MainChatWrapper = ({ children }: { children: React.ReactNode }) => {
 };
 
 const Home: NextPage = () => {
-  const chatStore = useChatStore();
-  const textFile = useQuery({
-    queryKey: ["textFile"],
-    queryFn: async () => {
-      const text = await readTextFile("data.json", {
-        dir: BaseDirectory.Desktop,
-      });
-      return JSON.parse(text) as string[];
+  const queryClient = useQueryClient();
+
+  const aiModels = api.openai.getModels.useQuery();
+  const sendMessageToAi = api.messaging.sendMessageToAi.useMutation({
+    onSettled: () => {
+      queryClient.invalidateQueries(
+        getQueryKey(api.messaging.getMessages, {
+          chatroomId: "clfpepzy10000e6rgzrnq8ggc",
+        })
+      );
     },
   });
-  const test = api.messaging.getMessages.useQuery();
-  const aiModels = api.openai.getModels.useQuery();
 
-  console.log("DATA", textFile.data);
   const chatForm = useForm({
     defaultValues: {
       textPrompt: "",
     },
   });
-  useEffect(() => {
-    const test = async () => {
-      try {
-        const testing = await writeFile(
-          {
-            contents: "[]",
-            path: "data.json",
-          },
-          {
-            dir: BaseDirectory.Desktop,
-          }
-        );
 
-        console.log(testing);
-      } catch (e) {
-        console.log("ERROR", e);
-      }
-    };
-    test();
-  }, []);
-
-  const sendApiPrompt = api.chatGpt.sendAiPrompt.useMutation({
-    onMutate: (variables) => {
-      chatStore.addUserMessage({
-        id: uuidv4(),
-        text: variables.textPrompt,
-        role: "user",
-      });
-    },
-    onSuccess: (message) => {
-      chatStore.addAiMessage(message);
-    },
-  });
-  const messages = chatStore.messages;
+  const sendApiPrompt = api.messaging.sendMessageToAi.useMutation();
 
   return (
     <div
@@ -142,12 +88,11 @@ const Home: NextPage = () => {
               "flex h-16 w-full items-center justify-between space-x-4 bg-neutral px-4"
             }
             onSubmit={chatForm.handleSubmit((data) => {
-              sendApiPrompt.mutate({
+              sendMessageToAi.mutate({
                 textPrompt: data.textPrompt,
-                ...(messages.length > 1 && {
-                  parentMessageId: messages[messages.length - 1]?.id,
-                }),
+                chatroomId: "clfpepzy10000e6rgzrnq8ggc",
               });
+
               chatForm.reset();
             })}
           >

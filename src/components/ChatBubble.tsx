@@ -5,8 +5,10 @@ const ChatBubble = ({
   children,
   direction,
   variant,
+  sendDate,
 }: {
-  variant?: "primary" | "secondary" | "accent";
+  sendDate: string;
+  variant?: "primary" | "secondary";
   children: React.ReactNode;
   direction: "start" | "end";
 }) => {
@@ -19,12 +21,18 @@ const ChatBubble = ({
     >
       <div
         className={clsx("chat-bubble h-full", {
-          "chat-bubble-accent": variant === "accent",
-          "chat-bubble-secondary": variant === "secondary",
+          "chat-bubble-secondary bg-white": variant === "secondary",
           "chat-bubble-primary": variant === "primary",
         })}
       >
         {children}
+        <div
+          className={
+            "float-right ml-[10px] mt-[15px] whitespace-nowrap text-xs"
+          }
+        >
+          {sendDate}
+        </div>
       </div>
     </div>
   );

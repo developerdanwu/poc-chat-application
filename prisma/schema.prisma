@@ -16,11 +16,14 @@ datasource db {
 }
 
 model Messages {
-  id         String   @id @default(cuid())
-  message    String
-  timestamp  DateTime @default(now())
-  chatroomId String
-  chatroom   Chatroom @relation(fields: [chatroomId], references: [id], onDelete: Cascade)
+  id           String   @id @default(cuid())
+  message      String
+  senderId     String?
+  aiUserSender AiUser?  @relation(fields: [aiUserId], references: [id], onDelete: Cascade)
+  aiUserId     String?
+  timestamp    DateTime @default(now())
+  chatroomId   String
+  chatroom     Chatroom @relation(fields: [chatroomId], references: [id], onDelete: Cascade)
 }
 
 model AiUser {
@@ -29,6 +32,7 @@ model AiUser {
   created   DateTime   @default(now())
   chatrooms Chatroom[]
   aiModels  AiModel[]
+  messages  Messages[]
 }
 
 model AiModel {
