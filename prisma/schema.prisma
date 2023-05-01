@@ -15,15 +15,28 @@ datasource db {
   relationMode = "prisma"
 }
 
-model Messages {
-  id           String   @id @default(cuid())
-  message      String
-  senderId     String?
-  aiUserSender AiUser?  @relation(fields: [aiUserId], references: [id], onDelete: Cascade)
-  aiUserId     String?
-  timestamp    DateTime @default(now())
-  chatroomId   String
-  chatroom     Chatroom @relation(fields: [chatroomId], references: [id], onDelete: Cascade)
+model ChatGptAiResponse {
+  id              String   @id @default(cuid())
+  text            String
+  role            String
+  name            String?
+  delta           String?
+  parentMessageId String?
+  conversationId  String?
+  Message         Message?
+}
+
+model Message {
+  id                  String             @id @default(cuid())
+  message             String
+  senderId            String?
+  aiUserSender        AiUser?            @relation(fields: [aiUserId], references: [id], onDelete: Cascade)
+  chatGptAiResponse   ChatGptAiResponse? @relation(fields: [chatGptAiResponseId], references: [id])
+  chatGptAiResponseId String?            @unique
+  aiUserId            String?
+  timestamp           DateTime           @default(now())
+  chatroomId          String
+  chatroom            Chatroom           @relation(fields: [chatroomId], references: [id], onDelete: Cascade)
 }
 
 model AiUser {
@@ -32,7 +45,7 @@ model AiUser {
   created   DateTime   @default(now())
   chatrooms Chatroom[]
   aiModels  AiModel[]
-  messages  Messages[]
+  messages  Message[]
 }
 
 model AiModel {
@@ -43,7 +56,7 @@ model AiModel {
 
 model Chatroom {
   id       String         @id @default(cuid())
-  messages Messages[]
+  messages Message[]
   users    ChatroomUser[]
   aiUser   AiUser         @relation(fields: [aiUserId], references: [id], onDelete: Cascade)
   aiUserId String

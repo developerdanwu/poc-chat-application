@@ -1,15 +1,19 @@
 import React from "react";
 import Avatar from "@/components/Avatar";
+import Link from "next/link";
 
 const ThreadListItem = ({
   name,
   lastMessage,
+  chatroomId,
 }: {
+  chatroomId: string;
   name: string;
   lastMessage: string;
 }) => {
   return (
-    <div
+    <Link
+      href={`/?chatroomId=${chatroomId}`}
       className={
         "group flex w-full cursor-pointer items-start space-x-3  hover:bg-neutral-700"
       }
@@ -21,7 +25,7 @@ const ThreadListItem = ({
           {lastMessage}
         </p>
       </div>
-    </div>
+    </Link>
   );
 };
 

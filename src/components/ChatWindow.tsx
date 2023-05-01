@@ -4,11 +4,16 @@ import { api } from "@/utils/api";
 import { useUser } from "@clerk/nextjs";
 import ScrollArea from "@/components/elements/ScrollArea";
 
-const ChatWindow = ({ aiTyping }: { aiTyping: boolean }) => {
+const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
   const user = useUser();
-  const messages = api.messaging.getMessages.useQuery({
-    chatroomId: "clh4sfne50000e6b7s4764us2",
-  });
+  const messages = api.messaging.getMessages.useQuery(
+    {
+      chatroomId: chatroomId ?? "",
+    },
+    {
+      enabled: !!chatroomId,
+    }
+  );
   return (
     <ScrollArea
       componentProps={{

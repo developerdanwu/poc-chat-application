@@ -6,9 +6,10 @@ import { useForm } from "react-hook-form";
 import React from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import Avatar from "@/components/Avatar";
-import ChatWindow from "@/components/ChatWindow";
 import ThreadListItem from "@/components/ThreadListItem";
 import { getQueryKey } from "@trpc/react-query";
+import ChatWindow from "@/components/ChatWindow";
+import { useRouter } from "next/router";
 
 const ChatSidebarWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -36,25 +37,25 @@ const MainChatWrapper = ({ children }: { children: React.ReactNode }) => {
 
 const Home: NextPage = () => {
   const queryClient = useQueryClient();
-
-  const aiModels = api.openai.getModels.useQuery();
+  const router = useRouter();
+  console.log("QUERY", router.query);
   const sendMessageToAi = api.messaging.sendMessageToAi.useMutation({
     onSettled: () => {
       queryClient.invalidateQueries(
         getQueryKey(api.messaging.getMessages, {
-          chatroomId: "clfpepzy10000e6rgzrnq8ggc",
+          chatroomId: router.query.chatroomId ?? "",
         })
       );
     },
   });
+
+  const chatrooms = api.messaging.getAllChatrooms.useQuery();
 
   const chatForm = useForm({
     defaultValues: {
       textPrompt: "",
     },
   });
-
-  const sendApiPrompt = api.messaging.sendMessageToAi.useMutation();
 
   return (
     <div
@@ -78,36 +79,46 @@ const Home: NextPage = () => {
           </div>
 
           <div className={"flex w-full flex-col overflow-auto py-4 px-5"}>
-            <ThreadListItem name={"Penis"} />
+            {chatrooms.data?.map((chatroom) => {
+              return (
+                <ThreadListItem
+                  chatroomId={chatroom.id}
+                  key={chatroom.id}
+                  name={chatroom.id}
+                />
+              );
+            })}
           </div>
         </ChatSidebarWrapper>
-        <MainChatWrapper>
-          <div className={"flex w-full rounded-3xl px-3 py-8"}>
-            <div className={"flex items-start space-x-4"}>
-              <Avatar alt={"C"} />
-              <p className={"text-md text-black"}>Chat GPT</p>
+        {typeof router.query.chatroomId === "string" && (
+          <MainChatWrapper>
+            <div className={"flex w-full rounded-3xl px-3 py-8"}>
+              <div className={"flex items-start space-x-4"}>
+                <Avatar alt={"C"} />
+                <p className={"text-md text-black"}>Chat GPT</p>
+              </div>
             </div>
-          </div>
-          <ChatWindow aiTyping={sendApiPrompt.status === "loading"} />
-          <form
-            className={
-              "flex  w-full items-center justify-between space-x-4 bg-transparent bg-secondary py-3"
-            }
-            onSubmit={chatForm.handleSubmit((data) => {
-              sendMessageToAi.mutate({
-                textPrompt: data.textPrompt,
-                chatroomId: "clh4sfne50000e6b7s4764us2",
-              });
+            <ChatWindow chatroomId={router.query.chatroomId} />
+            <form
+              className={
+                "flex  w-full items-center justify-between space-x-4 bg-transparent bg-secondary py-3"
+              }
+              onSubmit={chatForm.handleSubmit((data) => {
+                sendMessageToAi.mutate({
+                  textPrompt: data.textPrompt,
+                  chatroomId: "clh4sfne50000e6b7s4764us2",
+                });
 
-              chatForm.reset();
-            })}
-          >
-            <Input
-              {...chatForm.register("textPrompt")}
-              className={"flex-1 bg-secondary py-4 text-black"}
-            />
-          </form>
-        </MainChatWrapper>
+                chatForm.reset();
+              })}
+            >
+              <Input
+                {...chatForm.register("textPrompt")}
+                className={"flex-1 bg-secondary py-4 text-black"}
+              />
+            </form>
+          </MainChatWrapper>
+        )}
       </div>
     </div>
   );
