@@ -26,9 +26,10 @@ const config = {
         themes: [{
             default:{
                 primary: '#2A6EFF',
-                neutral:'#FFF',
+                'base-100':'#F8F8F8',
+                'base-200':"#A8A8A8",
+                "base-300":"#212121",
                 secondary: '#F6F8FC',
-
             }
         }]
     },

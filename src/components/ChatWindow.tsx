@@ -14,23 +14,27 @@ const ChatWindow = ({ aiTyping }: { aiTyping: boolean }) => {
       componentProps={{
         root: {
           className:
-            "flex h-full w-full flex-col space-y-2 overflow-hidden rounded-xl bg-secondary p-7",
+            "flex overflow-hidden h-full w-full rounded-xl bg-base-100",
+        },
+        viewport: {
+          className: "h-full w-full",
         },
       }}
     >
-      {messages.data?.messages.map((m) => {
-        const isSentByMe = m.senderId === user.user?.id;
-        return (
-          <ChatBubble
-            sendDate={m.timestamp.toDateString()}
-            variant={isSentByMe ? "primary" : "secondary"}
-            key={m.id}
-            direction={isSentByMe ? "end" : "start"}
-          >
-            {m.message}
-          </ChatBubble>
-        );
-      })}
+      <div className={"flex flex-col space-y-4 px-6"}>
+        {messages.data?.messages.map((m) => {
+          const isSentByMe = m.senderId === user.user?.id;
+          return (
+            <ChatBubble
+              sendDate={m.timestamp.toDateString()}
+              variant={isSentByMe ? "sender" : "receiver"}
+              key={m.id}
+            >
+              {m.message}
+            </ChatBubble>
+          );
+        })}
+      </div>
     </ScrollArea>
   );
 };

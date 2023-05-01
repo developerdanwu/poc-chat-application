@@ -11,16 +11,12 @@ const ThreadListItem = ({
   return (
     <div
       className={
-        "group flex w-full cursor-pointer items-center space-x-3 px-2  hover:bg-neutral-700"
+        "group flex w-full cursor-pointer items-start space-x-3  hover:bg-neutral-700"
       }
     >
       <Avatar size={"md"} alt={name.slice(0, 2)} />
-      <div
-        className={
-          "flex flex-1 flex-col border-t border-neutral py-3 group-hover:border-t-0"
-        }
-      >
-        <p className={"select-none"}>{name}</p>
+      <div className={"flex flex-1 flex-col"}>
+        <p className={"select-none font-semibold"}>{name}</p>
         <p className={"select-none overflow-ellipsis text-sm text-neutral-500"}>
           {lastMessage}
         </p>
