@@ -30,6 +30,9 @@ const config = {
                 'base-200':"#A8A8A8",
                 "base-300":"#212121",
                 secondary: '#F6F8FC',
+                neutral:'#DBDADA',
+                'neutral-focus':'#BFBFBF',
+                'neutral-content':'#F2F1F1',
             }
         }]
     },

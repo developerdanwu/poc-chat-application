@@ -19,14 +19,14 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
       componentProps={{
         root: {
           className:
-            "flex overflow-hidden h-full w-full rounded-xl bg-base-100",
+            "flex overflow-hidden h-full w-full rounded-xl  bg-base-100",
         },
         viewport: {
           className: "h-full w-full",
         },
       }}
     >
-      <div className={"flex flex-col space-y-4 px-6"}>
+      <div className={"flex flex-col space-y-4 px-6 py-3"}>
         {messages.data?.messages.map((m) => {
           const isSentByMe = m.senderId === user.user?.id;
           return (

@@ -10,6 +10,7 @@ import ThreadListItem from "@/components/ThreadListItem";
 import { getQueryKey } from "@trpc/react-query";
 import ChatWindow from "@/components/ChatWindow";
 import { useRouter } from "next/router";
+import TextEditor from "@/components/elements/TextEditor";
 
 const ChatSidebarWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -38,17 +39,17 @@ const MainChatWrapper = ({ children }: { children: React.ReactNode }) => {
 const Home: NextPage = () => {
   const queryClient = useQueryClient();
   const router = useRouter();
-  console.log("QUERY", router.query);
+  const chatroomId =
+    typeof router.query.chatroomId === "string" ? router.query.chatroomId : "";
   const sendMessageToAi = api.messaging.sendMessageToAi.useMutation({
     onSettled: () => {
       queryClient.invalidateQueries(
         getQueryKey(api.messaging.getMessages, {
-          chatroomId: router.query.chatroomId ?? "",
+          chatroomId,
         })
       );
     },
   });
-
   const chatrooms = api.messaging.getAllChatrooms.useQuery();
 
   const chatForm = useForm({
@@ -69,11 +70,7 @@ const Home: NextPage = () => {
         }
       >
         <ChatSidebarWrapper>
-          <div
-            className={
-              "flex w-full w-full flex-col space-y-7 bg-neutral px-5 py-8"
-            }
-          >
+          <div className={"flex w-full w-full flex-col space-y-7  px-5 py-8"}>
             <p className={"text-3xl font-semibold text-primary"}>Messages</p>
             <Input className={""} />
           </div>
@@ -106,16 +103,17 @@ const Home: NextPage = () => {
               onSubmit={chatForm.handleSubmit((data) => {
                 sendMessageToAi.mutate({
                   textPrompt: data.textPrompt,
-                  chatroomId: "clh4sfne50000e6b7s4764us2",
+                  chatroomId,
                 });
 
                 chatForm.reset();
               })}
             >
-              <Input
-                {...chatForm.register("textPrompt")}
-                className={"flex-1 bg-secondary py-4 text-black"}
-              />
+              <TextEditor />
+              {/*<Input*/}
+              {/*  {...chatForm.register("textPrompt")}*/}
+              {/*  className={"flex-1 bg-secondary py-4 text-black"}*/}
+              {/*/>*/}
             </form>
           </MainChatWrapper>
         )}

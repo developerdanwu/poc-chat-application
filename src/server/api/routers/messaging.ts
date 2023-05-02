@@ -107,7 +107,6 @@ export const messaging = createTRPCRouter({
             senderId: ctx.auth.userId,
           },
         });
-        console.log("RESSSS", aiResponse);
       } catch (e) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
