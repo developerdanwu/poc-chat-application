@@ -56,28 +56,11 @@ async function main() {
       .map(() => getMessage(fakeAiUser.id))
   );
 
-  const aiUser = await prisma.aiUser.upsert({
+  const aiUser = await prisma.chatroom.upsert({
     where: { id: "chat-gpt" },
     update: {},
     create: {
-      ...fakeAiUser,
-      chatrooms: {
-        create: {
-          messages: {
-            createMany: {
-              data: Array(20)
-                .fill(1)
-                .map(() => getMessage(fakeAiUser.id)),
-            },
-          },
-          users: {
-            create: {
-              userId: "user_2NXj59TddnODr5H17Vi1wYo5Zvf",
-            },
-          },
-        },
-      },
-    },
+
   });
 }
 

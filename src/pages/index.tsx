@@ -2,7 +2,7 @@ import { type NextPage } from "next";
 
 import { api } from "@/utils/api";
 import Input from "@/components/form/Input";
-import { useForm } from "react-hook-form";
+import { Controller, FormProvider, useForm } from "react-hook-form";
 import React from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import Avatar from "@/components/Avatar";
@@ -54,7 +54,8 @@ const Home: NextPage = () => {
 
   const chatForm = useForm({
     defaultValues: {
-      textPrompt: "",
+      text: "",
+      content: "",
     },
   });
 
@@ -96,25 +97,29 @@ const Home: NextPage = () => {
               </div>
             </div>
             <ChatWindow chatroomId={router.query.chatroomId} />
-            <form
-              className={
-                "flex  w-full items-center justify-between space-x-4 bg-transparent bg-secondary py-3"
-              }
-              onSubmit={chatForm.handleSubmit((data) => {
-                sendMessageToAi.mutate({
-                  textPrompt: data.textPrompt,
-                  chatroomId,
-                });
+            <FormProvider {...chatForm}>
+              <form
+                className={
+                  "flex  w-full items-center justify-between space-x-4 bg-transparent bg-secondary py-3"
+                }
+                onSubmit={chatForm.handleSubmit((data) => {
+                  sendMessageToAi.mutate({
+                    textPrompt: data.text,
+                    chatroomId,
+                  });
 
-                chatForm.reset();
-              })}
-            >
-              <TextEditor />
-              {/*<Input*/}
-              {/*  {...chatForm.register("textPrompt")}*/}
-              {/*  className={"flex-1 bg-secondary py-4 text-black"}*/}
-              {/*/>*/}
-            </form>
+                  chatForm.reset();
+                })}
+              >
+                <Controller
+                  control={chatForm.control}
+                  render={({ field: { onChange, value } }) => {
+                    return <TextEditor onChange={onChange} content={value} />;
+                  }}
+                  name={"content"}
+                />
+              </form>
+            </FormProvider>
           </MainChatWrapper>
         )}
       </div>

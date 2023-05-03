@@ -43,6 +43,7 @@ export const messaging = createTRPCRouter({
     .input(
       z.object({
         chatroomId: z.string().min(1),
+        orderBy: z.enum(["asc", "desc"]).optional(),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -54,6 +55,9 @@ export const messaging = createTRPCRouter({
           include: {
             _count: true,
             messages: {
+              orderBy: {
+                timestamp: input.orderBy ?? "asc",
+              },
               include: {
                 aiUserSender: {
                   select: {
@@ -99,7 +103,7 @@ export const messaging = createTRPCRouter({
             senderId: ctx.auth.userId,
           },
         });
-        const aiResponse = await gpt.sendMessage(input.textPrompt);
+        // const aiResponse = await gpt.sendMessage(input.textPrompt);
         await ctx.prisma.message.create({
           data: {
             message: input.textPrompt,
