@@ -19,20 +19,20 @@ export const messaging = createTRPCRouter({
       where: {
         users: {
           some: {
-            userId: ctx.auth?.userId,
+            userId: ctx.auth.userId,
           },
         },
       },
       include: {
         users: {
           select: {
-            id: true,
+            authorId: true,
             userId: true,
           },
         },
         messages: {
           select: {
-            message: true,
+            text: true,
           },
         },
       },
@@ -53,19 +53,14 @@ export const messaging = createTRPCRouter({
             id: input.chatroomId,
           },
           include: {
-            _count: true,
             messages: {
-              orderBy: {
-                timestamp: input.orderBy ?? "asc",
-              },
-              include: {
-                aiUserSender: {
-                  select: {
-                    id: true,
-                    name: true,
-                    created: true,
-                  },
-                },
+              select: {
+                author: true,
+                clientMessageId: true,
+                text: true,
+                content: true,
+                createdAt: true,
+                updatedAt: true,
               },
             },
           },

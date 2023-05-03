@@ -15,53 +15,67 @@ const aiUserBuilder = build({
 
 const messagesBuilder = build({
   fields: {
-    id: perBuild(() => uuid()),
-    message: perBuild(() => faker.lorem.lines(2)),
+    clientMessageId: perBuild(() => uuid()),
+    text: perBuild(() => faker.lorem.lines(2)),
     timestamp: perBuild(() => faker.date.past()),
-    senderId: perBuild(() => uuid()),
-    aiUserId: perBuild(() => uuid()),
-  },
-  traits: {
-    user: {
-      overrides: {
-        senderId: "user_2NXj59TddnODr5H17Vi1wYo5Zvf",
-        aiUserId: undefined,
-      },
-    },
-    ai: {
-      overrides: {
-        senderId: undefined,
-        aiUserId: perBuild(() => uuid()),
-      },
-    },
+    type: "message",
+    content: {},
   },
 });
 
 async function main() {
-  const fakeAiUser = aiUserBuilder.one();
-  const getMessage = (aiUserId: string) => {
-    const isAi = Math.random() < 0.5;
-    const trait = isAi ? "ai" : "user";
-    return messagesBuilder.one({
-      traits: trait,
-      overrides: {
-        aiUserId: isAi ? aiUserId : undefined,
+  // Create two authors
+  const author1 = await prisma.author.create({
+    data: {
+      role: "user",
+      userId: "user_2NXj59TddnODr5H17Vi1wYo5Zvf",
+    },
+  });
+
+  const author2 = await prisma.author.create({
+    data: {
+      role: "user",
+      userId: uuid(),
+    },
+  });
+
+  // Create a chatroom
+  const chatroom = await prisma.chatroom.create({
+    data: {
+      users: {
+        connect: [
+          { authorId: author1.authorId },
+          { authorId: author2.authorId },
+        ],
+      },
+    },
+  });
+
+  // Create 20 messages sent by author1 in the chatroom
+  for (let i = 0; i < 20; i++) {
+    await prisma.message.create({
+      data: {
+        content: {},
+        text: `Message ${i + 1}`,
+        type: "text",
+        authorId: author1.authorId,
+        author: {
+          connect: {
+            authorId: author1.authorId,
+          },
+        },
+        chatroom: {
+          connect: {
+            id: chatroom.id,
+          },
+        },
       },
     });
-  };
+  }
 
-  console.log(
-    Array(20)
-      .fill(1)
-      .map(() => getMessage(fakeAiUser.id))
-  );
+  // console.log("SEEDED", test);
 
-  const aiUser = await prisma.chatroom.upsert({
-    where: { id: "chat-gpt" },
-    update: {},
-    create: {
-
-  });
+  // insert random messages with these authors and link to chatroom
 }
 
 main()

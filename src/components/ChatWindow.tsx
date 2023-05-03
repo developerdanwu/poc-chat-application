@@ -1,8 +1,8 @@
 import React from "react";
-import ChatBubble from "@/components/ChatBubble";
 import { api } from "@/utils/api";
 import { useUser } from "@clerk/nextjs";
 import ScrollArea from "@/components/elements/ScrollArea";
+import ChatBubble from "@/components/ChatBubble";
 
 const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
   const user = useUser();
@@ -14,6 +14,7 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
       enabled: !!chatroomId,
     }
   );
+
   return (
     <ScrollArea
       componentProps={{
@@ -28,14 +29,14 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
     >
       <div className={"flex flex-col space-y-4 px-6 py-3"}>
         {messages.data?.messages.map((m) => {
-          const isSentByMe = m.senderId === user.user?.id;
+          const isSentByMe = false;
           return (
             <ChatBubble
-              sendDate={m.timestamp.toDateString()}
+              sendDate={m.createdAt.toDateString()}
               variant={isSentByMe ? "sender" : "receiver"}
-              key={m.id}
+              key={m.clientMessageId}
             >
-              {m.message}
+              {m.text}
             </ChatBubble>
           );
         })}

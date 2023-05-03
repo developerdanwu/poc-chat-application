@@ -16,19 +16,17 @@ datasource db {
 }
 
 model Message {
-  clientMessageId  String   @id @default(cuid()) @map("client_message_id")
-  text             String
-  timestamp        DateTime @default(now())
-  type             String
-  content          Json
-  contentId        String   @unique @map("content_id")
-  messageContentId String   @map("message_content_id")
-  authorId         String   @map("author_id")
-  author           Author   @relation(fields: [clientMessageId], references: [authorId])
-  chatroomId       String   @map("chatroom_id")
-  chatroom         Chatroom @relation(fields: [chatroomId], references: [id], onDelete: Cascade)
-  createdAt        DateTime @default(now()) @map("created_at")
-  updatedAt        DateTime @updatedAt @map("updated_at")
+  clientMessageId String   @id @default(cuid()) @map("client_message_id")
+  text            String
+  timestamp       DateTime @default(now())
+  type            String
+  content         Json
+  authorId        String   @map("author_id")
+  author          Author   @relation(fields: [clientMessageId], references: [authorId])
+  chatroomId      String   @map("chatroom_id")
+  chatroom        Chatroom @relation(fields: [chatroomId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
 
   @@map("message")
 }
