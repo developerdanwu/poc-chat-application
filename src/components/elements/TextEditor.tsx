@@ -1,14 +1,19 @@
-import { useEditor, EditorContent, type Editor } from "@tiptap/react";
+import { type Editor, EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import cn from "clsx";
 import {
   RiBold,
   RiItalic,
-  RiStrikethrough,
   RiSendPlane2Fill,
+  RiStrikethrough,
 } from "react-icons/ri";
 import { useFormContext } from "react-hook-form";
 import { useEffect } from "react";
+import { Paragraph } from "@tiptap/extension-paragraph";
+import { api } from "@/utils/api";
+import { getQueryKey } from "@trpc/react-query";
+import { useRouter } from "next/router";
+import { useQueryClient } from "@tanstack/react-query";
 
 const MenuBar = ({ editor }: { editor: Editor }) => {
   return (
@@ -46,7 +51,7 @@ const MenuBar = ({ editor }: { editor: Editor }) => {
 };
 
 const SendBar = () => {
-  const { formState } = useFormContext();
+  const { formState, handleSubmit } = useFormContext();
   return (
     <div className={"flex justify-between"}>
       <div></div>
@@ -61,6 +66,46 @@ const SendBar = () => {
   );
 };
 
+const CustomParagraph = () => {
+  const chatForm = useFormContext<{
+    text: string;
+    content: any;
+  }>();
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const chatroomId =
+    typeof router.query.chatroomId === "string" ? router.query.chatroomId : "";
+  const sendMessageToAi = api.messaging.sendMessageToAi.useMutation({
+    onSettled: () => {
+      queryClient.invalidateQueries(
+        getQueryKey(api.messaging.getMessages, {
+          chatroomId,
+        })
+      );
+    },
+    onMutate: () => {
+      console.log("MUTATE");
+      chatForm.reset();
+    },
+  });
+
+  return Paragraph.extend({
+    addKeyboardShortcuts() {
+      return {
+        Enter: () =>
+          this.editor.commands.command(() => {
+            chatForm.handleSubmit((data) => {
+              sendMessageToAi.mutate({
+                ...data,
+                chatroomId,
+              });
+            })();
+            return true;
+          }),
+      };
+    },
+  });
+};
 const TextEditor = ({
   onChange,
   content,
@@ -70,15 +115,16 @@ const TextEditor = ({
 }) => {
   const { setValue } = useFormContext();
   const editor = useEditor({
-    extensions: [StarterKit],
+    extensions: [StarterKit, CustomParagraph()],
     editorProps: {
       attributes: {
+        form: "chatForm",
         class: "border-0 max-h-[100px] overflow-auto w-full py-3",
       },
     },
-    content: content,
+    content: <p>{content}</p>,
     onUpdate: ({ editor }) => {
-        editor.getJSON()
+      editor.getJSON();
       setValue("text", editor.getText());
       onChange(editor.getJSON());
     },

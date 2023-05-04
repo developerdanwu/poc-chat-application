@@ -102,13 +102,13 @@ const Home: NextPage = () => {
             <ChatWindow chatroomId={router.query.chatroomId} />
             <FormProvider {...chatForm}>
               <form
+                id={"chatForm"}
                 className={
                   "flex  w-full items-center justify-between space-x-4 bg-transparent bg-secondary py-3"
                 }
                 onSubmit={chatForm.handleSubmit((data) => {
                   sendMessageToAi.mutate({
-                    text: data.text,
-                    content: data.content,
+                    ...data,
                     chatroomId,
                   });
                 })}
