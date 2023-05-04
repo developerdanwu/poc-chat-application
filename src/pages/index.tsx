@@ -1,5 +1,5 @@
 import { type NextPage } from "next";
-
+import { zodResolver } from "@hookform/resolvers/zod";
 import { api } from "@/utils/api";
 import Input from "@/components/form/Input";
 import { Controller, FormProvider, useForm } from "react-hook-form";
@@ -11,6 +11,7 @@ import { getQueryKey } from "@trpc/react-query";
 import ChatWindow from "@/components/ChatWindow";
 import { useRouter } from "next/router";
 import TextEditor from "@/components/elements/TextEditor";
+import z from "zod";
 
 const ChatSidebarWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -56,6 +57,12 @@ const Home: NextPage = () => {
   const chatrooms = api.messaging.getAllChatrooms.useQuery();
 
   const chatForm = useForm({
+    resolver: zodResolver(
+      z.object({
+        text: z.string().min(1),
+        content: z.any(),
+      })
+    ),
     defaultValues: {
       text: "",
       content: "",
@@ -102,7 +109,7 @@ const Home: NextPage = () => {
             <ChatWindow chatroomId={router.query.chatroomId} />
             <FormProvider {...chatForm}>
               <form
-                id={"chatForm"}
+                id={"message-text-input-form"}
                 className={
                   "flex  w-full items-center justify-between space-x-4 bg-transparent bg-secondary py-3"
                 }

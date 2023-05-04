@@ -51,11 +51,12 @@ const MenuBar = ({ editor }: { editor: Editor }) => {
 };
 
 const SendBar = () => {
-  const { formState, handleSubmit } = useFormContext();
+  const { formState } = useFormContext();
   return (
     <div className={"flex justify-between"}>
       <div></div>
       <button
+        disabled={!formState.isValid}
         className={cn("btn-primary btn-sm btn", {
           "btn-disabled": !formState.isValid,
         })}
@@ -83,8 +84,8 @@ const CustomParagraph = () => {
         })
       );
     },
+
     onMutate: () => {
-      console.log("MUTATE");
       chatForm.reset();
     },
   });
