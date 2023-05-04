@@ -53,15 +53,15 @@ async function main() {
 
   // Create 20 messages sent by author1 in the chatroom
   for (let i = 0; i < 20; i++) {
+    const isEven = i % 2 === 0;
     await prisma.message.create({
       data: {
         content: {},
         text: `Message ${i + 1}`,
         type: "text",
-        authorId: author1.authorId,
         author: {
           connect: {
-            authorId: author1.authorId,
+            authorId: isEven ? author1.authorId : author2.authorId,
           },
         },
         chatroom: {

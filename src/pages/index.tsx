@@ -49,6 +49,9 @@ const Home: NextPage = () => {
         })
       );
     },
+    onMutate: () => {
+      chatForm.reset();
+    },
   });
   const chatrooms = api.messaging.getAllChatrooms.useQuery();
 
@@ -104,11 +107,10 @@ const Home: NextPage = () => {
                 }
                 onSubmit={chatForm.handleSubmit((data) => {
                   sendMessageToAi.mutate({
-                    textPrompt: data.text,
+                    text: data.text,
+                    content: data.content,
                     chatroomId,
                   });
-
-                  chatForm.reset();
                 })}
               >
                 <Controller

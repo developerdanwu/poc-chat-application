@@ -29,7 +29,7 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
     >
       <div className={"flex flex-col space-y-4 px-6 py-3"}>
         {messages.data?.messages.map((m) => {
-          const isSentByMe = false;
+          const isSentByMe = m.author.userId === user.user?.id;
           return (
             <ChatBubble
               sendDate={m.createdAt.toDateString()}

@@ -84,26 +84,33 @@ export const messaging = createTRPCRouter({
   sendMessageToAi: protectedProcedure
     .input(
       z.object({
-        textPrompt: z.string().min(1),
+        text: z.string().min(1),
         chatroomId: z.string().min(1),
+        content: z.any(),
         // TODO: add Ai model
       })
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        await ctx.prisma.message.create({
-          data: {
-            message: input.textPrompt,
-            chatroomId: input.chatroomId,
-            senderId: ctx.auth.userId,
+        const author = await ctx.prisma.author.upsert({
+          where: {
+            userId: ctx.auth.userId,
           },
+          create: {
+            userId: ctx.auth.userId,
+            role: "user",
+          },
+          update: {},
         });
-        // const aiResponse = await gpt.sendMessage(input.textPrompt);
         await ctx.prisma.message.create({
           data: {
-            message: input.textPrompt,
-            chatroomId: input.chatroomId,
-            senderId: ctx.auth.userId,
+            type: "message",
+            content: input.content,
+            text: input.text,
+            chatroom: { connect: { id: input.chatroomId } },
+            author: {
+              connect: { authorId: author.authorId },
+            },
           },
         });
       } catch (e) {

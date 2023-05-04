@@ -22,12 +22,14 @@ model Message {
   type            String
   content         Json
   authorId        String   @map("author_id")
-  author          Author   @relation(fields: [clientMessageId], references: [authorId])
+  author          Author   @relation(fields: [authorId], references: [authorId])
   chatroomId      String   @map("chatroom_id")
   chatroom        Chatroom @relation(fields: [chatroomId], references: [id], onDelete: Cascade)
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
+  @@index([authorId])
+  @@index([chatroomId])
   @@map("message")
 }
 
@@ -50,5 +52,6 @@ model Chatroom {
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
 
+  @@index([id])
   @@map("chatroom")
 }
