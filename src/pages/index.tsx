@@ -56,6 +56,14 @@ const Home: NextPage = () => {
   });
   const chatrooms = api.messaging.getAllChatrooms.useQuery();
 
+  api.messaging.onNewMessage.useSubscription(undefined, {
+    onData: (message) => {
+      console.log("MESSAGE", message);
+    },
+    onError: (err) => {
+      console.log("ERROR", err);
+    },
+  });
   const chatForm = useForm({
     resolver: zodResolver(
       z.object({

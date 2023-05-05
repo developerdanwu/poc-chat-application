@@ -12,6 +12,7 @@ const ChatBubble = ({
 }) => {
   return (
     <div
+      data-communicator={variant === "sender" ? "sender" : "receiver"}
       className={clsx("chat", {
         "chat-start": variant === "receiver",
         "chat-end": variant === "sender",
