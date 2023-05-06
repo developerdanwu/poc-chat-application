@@ -23,6 +23,8 @@ pre code {
     color: inherit;
     font-size: 0.8rem;
     padding: 0;
+    white-space: pre-wrap;
+    word-break: break-all;
 }
 
 .hljs-comment,

@@ -25,12 +25,12 @@ import { lowlight } from "lowlight";
 
 const MenuBar = ({ editor }: { editor: Editor }) => {
   return (
-    <div className={"flex space-x-2"}>
+    <div className={"flex h-full w-full items-center space-x-2"}>
       <button
         type={"button"}
         disabled={editor.isActive("codeBlock")}
         onClick={() => editor.commands.toggleBold()}
-        className={cn("btn-outline btn-square btn-xs btn border-0", {
+        className={cn("btn-outline btn-square btn-xs btn grid border-0", {
           "btn-active": editor.isActive("bold"),
           "btn-disabled": editor.isActive("codeBlock"),
         })}
@@ -41,7 +41,7 @@ const MenuBar = ({ editor }: { editor: Editor }) => {
         type={"button"}
         disabled={editor.isActive("codeBlock")}
         onClick={() => editor.commands.toggleItalic()}
-        className={cn("btn-outline btn-square btn-xs btn border-0", {
+        className={cn("btn-outline btn-square btn-xs btn grid border-0", {
           "btn-active": editor.isActive("italic"),
           "btn-disabled": editor.isActive("codeBlock"),
         })}
@@ -52,34 +52,39 @@ const MenuBar = ({ editor }: { editor: Editor }) => {
         type={"button"}
         disabled={editor.isActive("codeBlock")}
         onClick={() => editor.commands.toggleStrike()}
-        className={cn("btn-outline btn-square btn-xs btn border-0", {
+        className={cn("btn-outline btn-square btn-xs btn grid border-0", {
           "btn-active": editor.isActive("strike"),
           "btn-disabled": editor.isActive("codeBlock"),
         })}
       >
         <RiStrikethrough size={"18px"} />
       </button>
+      <div
+        className={
+          "divider divider-horizontal before:bg-neutral after:bg-neutral"
+        }
+      />
       <button
         type={"button"}
         disabled={editor.isActive("codeBlock")}
         onClick={() => editor.commands.toggleCode()}
-        className={cn("btn-outline btn-square btn-xs btn border-0", {
+        className={cn("btn-outline btn-square btn-xs btn grid border-0", {
           "btn-active": editor.isActive("code"),
           "btn-disabled": editor.isActive("codeBlock"),
         })}
       >
         <RiCodeLine size={"18px"} />
       </button>
+
       <button
         type={"button"}
         onClick={() => editor.commands.toggleCodeBlock()}
-        className={cn("btn-outline btn-square btn-xs btn border-0", {
+        className={cn("btn-outline btn-square btn-xs btn grid border-0", {
           "btn-active": editor.isActive("codeBlock"),
         })}
       >
         <RiCodeBoxLine size={"18px"} />
       </button>
-      <button></button>
     </div>
   );
 };
@@ -192,7 +197,9 @@ const TextEditor = ({
   const { setValue } = useFormContext();
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        codeBlock: false,
+      }),
       CustomParagraph(),
       CodeBlockLowlight.configure({
         HTMLAttributes: {
@@ -203,7 +210,6 @@ const TextEditor = ({
         lowlight,
       }),
     ],
-
     editorProps: {
       attributes: {
         form: "chatForm",

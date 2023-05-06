@@ -1,14 +1,14 @@
 import { type NextPage } from "next";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { api } from "@/utils/api";
-import Input from "@/components/form/Input";
+import Input from "@/components/elements/Input";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import React from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import Avatar from "@/components/Avatar";
-import ThreadListItem from "@/components/ThreadListItem";
+import Avatar from "@/components/elements/Avatar";
+import ThreadListItem from "@/components/templates/root/ThreadListItem";
 import { getQueryKey } from "@trpc/react-query";
-import ChatWindow from "@/components/ChatWindow";
+import ChatWindow from "@/components/templates/root/ChatWindow";
 import { useRouter } from "next/router";
 import TextEditor from "@/components/elements/TextEditor";
 import z from "zod";
