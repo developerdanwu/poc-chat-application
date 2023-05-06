@@ -1,23 +1,14 @@
-import {
-  createTRPCRouter,
-  protectedProcedure,
-  publicProcedure,
-} from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { ChatGPTAPI } from "chatgpt";
 import { env } from "@/env.mjs";
-import { observable } from "@trpc/server/observable";
-import { EventEmitter } from "events";
 
 const gpt = new ChatGPTAPI({
   apiKey: env.OPENAI_ACCESS_TOKEN as string,
 });
 
-class MyEventEmitter extends EventEmitter {}
-
 // In a real app, you'd probably use Redis or something
-const ee = new MyEventEmitter();
 
 export const messaging = createTRPCRouter({
   getUserId: protectedProcedure.query(({ ctx }) => {
@@ -124,7 +115,6 @@ export const messaging = createTRPCRouter({
             },
           },
         });
-        ee.emit("onMessage", message);
       } catch (e) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -133,13 +123,4 @@ export const messaging = createTRPCRouter({
         });
       }
     }),
-  onNewMessage: publicProcedure.subscription(() => {
-    return observable((emit) => {
-      const onMessage = (data: any) => emit.next(data);
-      ee.on("onMessage", onMessage);
-      return () => {
-        ee.off("onMessage", onMessage);
-      };
-    });
-  }),
 });

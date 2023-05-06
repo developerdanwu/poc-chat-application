@@ -27,10 +27,8 @@ import type * as trpc from "@trpc/server";
 import { initTRPC, TRPCError } from "@trpc/server";
 import { getAuth } from "@clerk/nextjs/server";
 import superjson from "superjson";
+
 import { ZodError } from "zod";
-import ws from "ws";
-import { NodeHTTPCreateContextFnOptions } from "@trpc/server/src/adapters/node-http";
-import { IncomingMessage } from "connect";
 
 /**
  * This helper generates the "internals" for a tRPC context. If you need to use it, you can export
@@ -43,11 +41,7 @@ import { IncomingMessage } from "connect";
  * @see https://create.t3.gg/en/usage/trpc#-servertrpccontextts
  */
 
-export const createTRPCContext = (
-  opts:
-    | trpcNext.CreateNextContextOptions
-    | NodeHTTPCreateContextFnOptions<IncomingMessage, ws>
-) => {
+export const createTRPCContext = (opts: trpcNext.CreateNextContextOptions) => {
   return {
     auth: getAuth(opts.req),
     prisma,

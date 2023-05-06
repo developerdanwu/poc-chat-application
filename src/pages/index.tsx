@@ -42,7 +42,7 @@ const Home: NextPage = () => {
   const router = useRouter();
   const chatroomId =
     typeof router.query.chatroomId === "string" ? router.query.chatroomId : "";
-  const sendMessageToAi = api.messaging.sendMessageToAi.useMutation({
+  const sendMessageToAi = api.messaging.sendMessage.useMutation({
     onSettled: () => {
       queryClient.invalidateQueries(
         getQueryKey(api.messaging.getMessages, {
@@ -58,7 +58,7 @@ const Home: NextPage = () => {
 
   api.messaging.onNewMessage.useSubscription(undefined, {
     onData: (message) => {
-      console.log("MESSAGE", message);
+      console.log("MESSAGESSSS", message);
     },
     onError: (err) => {
       console.log("ERROR", err);
