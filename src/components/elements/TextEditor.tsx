@@ -116,7 +116,7 @@ const CustomParagraph = () => {
   const user = useUser();
   const chatroomId =
     typeof router.query.chatroomId === "string" ? router.query.chatroomId : "";
-  const sendMessageToAi = api.messaging.sendMessage.useMutation({
+  const sendMessage = api.messaging.sendMessage.useMutation({
     onSettled: () => {
       queryClient.invalidateQueries(
         getQueryKey(
@@ -175,7 +175,7 @@ const CustomParagraph = () => {
         Enter: () =>
           this.editor.commands.command(() => {
             chatForm.handleSubmit((data) => {
-              sendMessageToAi.mutate({
+              sendMessage.mutate({
                 ...data,
                 chatroomId,
               });
@@ -210,6 +210,7 @@ const TextEditor = ({
         lowlight,
       }),
     ],
+    content,
     editorProps: {
       attributes: {
         form: "chatForm",

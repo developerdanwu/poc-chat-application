@@ -29,6 +29,10 @@ import { getAuth } from "@clerk/nextjs/server";
 import superjson from "superjson";
 
 import { ZodError } from "zod";
+import Ably from "ably/promises";
+import { env } from "@/env.mjs";
+
+export const ablyRest = new Ably.Rest({ key: env.ABLY_API_KEY });
 
 /**
  * This helper generates the "internals" for a tRPC context. If you need to use it, you can export

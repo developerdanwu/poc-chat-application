@@ -3,6 +3,7 @@ import { chatGpt } from "@/server/api/routers/chatGpt";
 import { openai } from "@/server/api/routers/openai";
 import { messaging } from "@/server/api/routers/messaging";
 import { type inferRouterInputs, type inferRouterOutputs } from "@trpc/server";
+import { ably } from "@/server/api/routers/ably";
 
 /**
  * This is the primary router for your server.
@@ -13,6 +14,7 @@ export const appRouter = createTRPCRouter({
   chatGpt,
   openai,
   messaging,
+  ably,
 });
 
 export type RouterInput = inferRouterInputs<AppRouter>;

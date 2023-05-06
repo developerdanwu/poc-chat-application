@@ -1,4 +1,8 @@
-import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import {
+  ablyRest,
+  createTRPCRouter,
+  protectedProcedure,
+} from "@/server/api/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { ChatGPTAPI } from "chatgpt";
@@ -16,6 +20,7 @@ export const messaging = createTRPCRouter({
       secret: `${ctx.auth?.userId} is using a protected prodedure`,
     };
   }),
+
   getAllChatrooms: protectedProcedure.query(async ({ ctx }) => {
     const chatrooms = await ctx.prisma.chatroom.findMany({
       where: {
@@ -113,6 +118,22 @@ export const messaging = createTRPCRouter({
             author: {
               connect: { authorId: author.authorId },
             },
+          },
+        });
+        console.log("MESSAGE", message);
+        const channel = ablyRest.channels.get("greeting");
+        channel.publish("greeting", {
+          clientMessageId: message.clientMessageId,
+          text: message.text,
+          content: message.content,
+          createdAt: message.createdAt,
+          updatedAt: message.updatedAt,
+          author: {
+            authorId: message.authorId,
+            userId: author.userId,
+            role: "user",
+            createdAt: author.createdAt,
+            updatedAt: author.updatedAt,
           },
         });
       } catch (e) {

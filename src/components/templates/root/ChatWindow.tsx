@@ -7,6 +7,7 @@ import { generateHTML } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
 import { CodeBlockLowlight } from "@tiptap/extension-code-block-lowlight";
 import { lowlight } from "lowlight";
+import dayjs from "dayjs";
 
 const safeGenerateMessageContent = (content: any) => {
   try {
@@ -35,6 +36,7 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
       chatroomId: chatroomId ?? "",
     },
     {
+      staleTime: Infinity,
       enabled: !!chatroomId,
     }
   );
@@ -46,12 +48,11 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
         event.target instanceof HTMLElement
       ) {
         const sentBy = event.target.getAttribute("data-communicator");
-        if (sentBy === "sender") {
-          event.currentTarget.scroll({
-            top: event.currentTarget.scrollHeight,
-            behavior: "smooth",
-          });
-        }
+
+        event.currentTarget.scroll({
+          top: event.currentTarget.scrollHeight,
+          behavior: "smooth",
+        });
       }
     };
     if (scrollAreaRef.current) {
@@ -89,7 +90,7 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
 
           return (
             <ChatBubble
-              sendDate={m.createdAt.toDateString()}
+              sendDate={dayjs(m.createdAt).toISOString()}
               variant={isSentByMe ? "sender" : "receiver"}
               key={m.clientMessageId}
             >

@@ -12,11 +12,10 @@ import ChatWindow from "@/components/templates/root/ChatWindow";
 import { useRouter } from "next/router";
 import TextEditor from "@/components/elements/TextEditor";
 import z from "zod";
-import { configureAbly, useChannel } from "@ably-labs/react-hooks";
-
-configureAbly({
-  key: "LNFMHQ.kQB1Wg:EiotKBYnuEXUmOjwt70-to-QYNlRJTnc3PL1ebKKxY0",
-});
+import { useChannel } from "@ably-labs/react-hooks";
+import useAblyWebsocket from "@/utils/useAblyWebsocket";
+import { RouterOutput } from "@/server/api/root";
+import produce from "immer";
 
 const ChatSidebarWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -44,21 +43,33 @@ const MainChatWrapper = ({ children }: { children: React.ReactNode }) => {
 
 const Home: NextPage = () => {
   const queryClient = useQueryClient();
+  useAblyWebsocket();
 
   const [channel] = useChannel("greeting", (message) => {
-    console.log(message);
+    queryClient.setQueryData<RouterOutput["messaging"]["getMessages"]>(
+      getQueryKey(
+        api.messaging.getMessages,
+        {
+          chatroomId,
+        },
+        "query"
+      ),
+      (old) => {
+        if (old) {
+          const newState = produce(old, (draft) => {
+            draft.messages.push(message.data);
+          });
+          return newState;
+        }
+
+        return old;
+      }
+    );
   });
   const router = useRouter();
   const chatroomId =
     typeof router.query.chatroomId === "string" ? router.query.chatroomId : "";
   const sendMessageToAi = api.messaging.sendMessage.useMutation({
-    onSettled: () => {
-      queryClient.invalidateQueries(
-        getQueryKey(api.messaging.getMessages, {
-          chatroomId,
-        })
-      );
-    },
     onMutate: () => {
       chatForm.reset();
     },
@@ -84,13 +95,6 @@ const Home: NextPage = () => {
         "flex h-screen w-screen flex-row items-center justify-center bg-secondary"
       }
     >
-      <button
-        onClick={async () => {
-          await channel.publish("greeting", "PENIS");
-        }}
-      >
-        test
-      </button>
       <div
         className={
           "flex h-full w-full max-w-[1600px] flex-row space-x-3 divide-neutral p-5"
