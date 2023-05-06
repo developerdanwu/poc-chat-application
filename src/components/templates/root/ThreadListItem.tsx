@@ -4,12 +4,10 @@ import Link from "next/link";
 
 const ThreadListItem = ({
   name,
-  lastMessage,
   chatroomId,
 }: {
   chatroomId: string;
   name: string;
-  lastMessage: string;
 }) => {
   return (
     <Link
@@ -21,9 +19,6 @@ const ThreadListItem = ({
       <Avatar size={"md"} alt={name.slice(0, 2)} />
       <div className={"flex flex-1 flex-col"}>
         <p className={"select-none font-semibold"}>{name}</p>
-        <p className={"select-none overflow-ellipsis text-sm text-neutral-500"}>
-          {lastMessage}
-        </p>
       </div>
     </Link>
   );
