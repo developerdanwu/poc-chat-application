@@ -12,6 +12,11 @@ import ChatWindow from "@/components/templates/root/ChatWindow";
 import { useRouter } from "next/router";
 import TextEditor from "@/components/elements/TextEditor";
 import z from "zod";
+import { configureAbly, useChannel } from "@ably-labs/react-hooks";
+
+configureAbly({
+  key: "LNFMHQ.kQB1Wg:EiotKBYnuEXUmOjwt70-to-QYNlRJTnc3PL1ebKKxY0",
+});
 
 const ChatSidebarWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -39,6 +44,10 @@ const MainChatWrapper = ({ children }: { children: React.ReactNode }) => {
 
 const Home: NextPage = () => {
   const queryClient = useQueryClient();
+
+  const [channel] = useChannel("greeting", (message) => {
+    console.log(message);
+  });
   const router = useRouter();
   const chatroomId =
     typeof router.query.chatroomId === "string" ? router.query.chatroomId : "";
@@ -56,14 +65,6 @@ const Home: NextPage = () => {
   });
   const chatrooms = api.messaging.getAllChatrooms.useQuery();
 
-  api.messaging.onNewMessage.useSubscription(undefined, {
-    onData: (message) => {
-      console.log("MESSAGESSSS", message);
-    },
-    onError: (err) => {
-      console.log("ERROR", err);
-    },
-  });
   const chatForm = useForm({
     resolver: zodResolver(
       z.object({
@@ -83,6 +84,13 @@ const Home: NextPage = () => {
         "flex h-screen w-screen flex-row items-center justify-center bg-secondary"
       }
     >
+      <button
+        onClick={async () => {
+          await channel.publish("greeting", "PENIS");
+        }}
+      >
+        test
+      </button>
       <div
         className={
           "flex h-full w-full max-w-[1600px] flex-row space-x-3 divide-neutral p-5"
