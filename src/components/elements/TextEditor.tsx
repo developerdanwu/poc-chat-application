@@ -137,47 +137,32 @@ const CustomParagraph = () => {
           };
         }
 
+        const newMessage = {
+          clientMessageId: uuid(),
+          text: variables.text,
+          content: variables.content,
+          createdAt: dayjs().toDate(),
+          updatedAt: dayjs().toDate(),
+          author: {
+            authorId: 999,
+            userId: user?.user?.id || null,
+            role: "user",
+            createdAt: dayjs().toDate(),
+            updatedAt: dayjs().toDate(),
+            firstName: user?.user?.firstName || "",
+            lastName: user?.user?.lastName || "",
+          },
+        };
+
         if (old.pages.length === 0) {
           return {
-            pages: [
-              {
-                clientMessageId: uuid(),
-                text: variables.text,
-                content: variables.content,
-                createdAt: dayjs().toDate(),
-                updatedAt: dayjs().toDate(),
-                author: {
-                  authorId: 999,
-                  userId: user?.user?.id || null,
-                  role: "user",
-                  createdAt: dayjs().toDate(),
-                  updatedAt: dayjs().toDate(),
-                  firstName: user?.user?.firstName || "",
-                  lastName: user?.user?.lastName || "",
-                },
-              },
-            ],
+            pages: [newMessage],
             pageParams: [],
           };
         }
 
         const newState = produce(old.pages, (draft) => {
-          draft[0]?.messages.unshift({
-            clientMessageId: uuid(),
-            text: variables.text,
-            content: variables.content,
-            createdAt: dayjs().toDate(),
-            updatedAt: dayjs().toDate(),
-            author: {
-              authorId: 999,
-              userId: user?.user?.id || null,
-              role: "user",
-              createdAt: dayjs().toDate(),
-              updatedAt: dayjs().toDate(),
-              firstName: user?.user?.firstName || "",
-              lastName: user?.user?.lastName || "",
-            },
-          });
+          draft[0]?.messages.unshift(newMessage);
         });
 
         return {
