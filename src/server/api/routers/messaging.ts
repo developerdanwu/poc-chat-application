@@ -10,6 +10,7 @@ import { env } from "@/env.mjs";
 import { clerkClient } from "@clerk/nextjs/api";
 import { notEmpty } from "@/utils/ts-utils";
 import { ablyChannelKeyStore } from "@/utils/useAblyWebsocket";
+import produce from "immer";
 
 const gpt = new ChatGPTAPI({
   apiKey: env.OPENAI_ACCESS_TOKEN as string,
@@ -66,6 +67,56 @@ export const messaging = createTRPCRouter({
       };
     });
   }),
+
+  getChatroom: protectedProcedure
+    .input(
+      z.object({
+        chatroomId: z.string().min(1),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const chatroom = await ctx.prisma.chatroom.findUnique({
+        where: {
+          id: input.chatroomId,
+        },
+        include: {
+          users: {
+            select: {
+              authorId: true,
+              userId: true,
+            },
+          },
+        },
+      });
+
+      if (chatroom) {
+        const authors = chatroom.users
+          .map((author) => author.userId)
+          .filter(notEmpty);
+
+        const users = await clerkClient.users.getUserList({
+          userId: authors,
+        });
+
+        return {
+          ...chatroom,
+          users: chatroom.users.map((author) => {
+            const user = users.find((user) => user.id === author.userId);
+            return {
+              ...author,
+              firstName: user?.firstName,
+              lastName: user?.lastName,
+              emailAddresses: user?.emailAddresses,
+            };
+          }),
+        };
+      }
+
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Chatroom not found",
+      });
+    }),
   getMessages: protectedProcedure
     .input(
       z.object({
@@ -74,35 +125,75 @@ export const messaging = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      const chatroom = await ctx.prisma.chatroom
-        .findUnique({
-          where: {
-            id: input.chatroomId,
-          },
-          include: {
-            messages: {
-              select: {
-                author: true,
-                clientMessageId: true,
-                text: true,
-                content: true,
-                createdAt: true,
-                updatedAt: true,
+      try {
+        const chatroom = await ctx.prisma.chatroom
+          .findUnique({
+            where: {
+              id: input.chatroomId,
+            },
+            include: {
+              users: true,
+              messages: {
+                select: {
+                  author: true,
+                  clientMessageId: true,
+                  text: true,
+                  content: true,
+                  createdAt: true,
+                  updatedAt: true,
+                },
               },
             },
-          },
-        })
-        .catch((e) => {
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: "An unexpected error occurred, please try again later.",
-            cause: e,
+          })
+          .catch((e) => {
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: "An unexpected error occurred, please try again later.",
+              cause: e,
+            });
           });
-        });
 
-      if (chatroom) {
-        return chatroom;
+        if (chatroom) {
+          const chatroomUsers = await clerkClient.users.getUserList({
+            userId: chatroom.users
+              .map((user) => {
+                return user.userId;
+              })
+              .filter(notEmpty),
+          });
+          const result = produce(chatroom, (draft) => {
+            draft.messages = draft.messages.map((message) => {
+              return {
+                ...message,
+                author: {
+                  firstName: chatroomUsers.find(
+                    (user) => user.id === message.author.userId
+                  )?.firstName,
+                  lastName: chatroomUsers.find(
+                    (user) => user.id === message.author.userId
+                  )?.lastName,
+                  ...message.author,
+                },
+              };
+            });
+          }) as Omit<typeof chatroom, "messages"> & {
+            messages: ((typeof chatroom)["messages"][number] & {
+              author: (typeof chatroom)["messages"][number]["author"] & {
+                firstName: string | undefined | null;
+                lastName: string | undefined | null;
+              };
+            })[];
+          };
+          return result;
+        }
+      } catch (e) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "An unexpected error occurred, please try again later.",
+          cause: e,
+        });
       }
+
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: `unable to locate chatroom with provided id of ${input.chatroomId}`,

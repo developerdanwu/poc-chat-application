@@ -1,11 +1,16 @@
 import React from "react";
-import clsx from "clsx";
+import Avatar from "@/components/elements/Avatar";
+import dayjs from "dayjs";
+import { RouterOutput } from "@/server/api/root";
+import { getFullName } from "@/utils/utils";
 
 const ChatBubble = ({
   children,
+  author,
   variant = "sender",
   sendDate,
 }: {
+  author: RouterOutput["messaging"]["getMessages"]["messages"][number]["author"];
   sendDate: string;
   variant?: "sender" | "receiver";
   children: React.ReactNode;
@@ -15,20 +20,23 @@ const ChatBubble = ({
       data-communicator={variant === "sender" ? "sender" : "receiver"}
       className={"chat chat-start"}
     >
-      <div
-        className={clsx("chat-bubble h-max", {
-          "chat-bubble-secondary bg-white": variant === "receiver",
-          "chat-bubble-primary": variant === "sender",
-        })}
-      >
-        {children}
-        <div
-          className={
-            "float-right ml-[10px] mt-[15px] whitespace-nowrap text-xs"
+      <Avatar alt={"CE"} />
+      <div className={"flex flex-col space-y-2"}>
+        <div className={"flex items-center space-x-2 text-sm font-semibold"}>
+          {
+            <p>
+              {getFullName({
+                firstName: author.firstName,
+                lastName: author.lastName,
+                fallback: "Untitled",
+              })}
+            </p>
           }
-        >
-          {sendDate}
+          <div className={"text-xs font-normal text-warm-gray-400"}>
+            {dayjs(sendDate).format("hh:mm a")}
+          </div>
         </div>
+        <div>{children}</div>
       </div>
     </div>
   );

@@ -21,7 +21,7 @@ model Message {
   timestamp       DateTime @default(now())
   type            String
   content         Json
-  authorId        String   @map("author_id")
+  authorId        Int      @map("author_id")
   author          Author   @relation(fields: [authorId], references: [authorId])
   chatroomId      String   @map("chatroom_id")
   chatroom        Chatroom @relation(fields: [chatroomId], references: [id], onDelete: Cascade)
@@ -34,7 +34,7 @@ model Message {
 }
 
 model Author {
-  authorId  String     @id @default(cuid()) @map("author_id")
+  authorId  Int        @id @default(autoincrement()) @map("author_id")
   role      String     @map("role")
   userId    String?    @unique @map("user_id")
   messages  Message[]

@@ -4,19 +4,20 @@ import { api } from "@/utils/api";
 import Input from "@/components/elements/Input";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import React from "react";
-import Avatar from "@/components/elements/Avatar";
 import ThreadListItem from "@/components/templates/root/ThreadListItem";
 import ChatWindow from "@/components/templates/root/ChatWindow/ChatWindow";
 import { useRouter } from "next/router";
 import TextEditor from "@/components/elements/TextEditor";
 import z from "zod";
 import { notEmpty } from "@/utils/ts-utils";
+import ChatTopControls from "@/components/templates/root/ChatTopControls";
+import { RiPencilLine } from "react-icons/ri";
 
 const ChatSidebarWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
     <div
       className={
-        "flex h-full max-w-[30%] flex-[0_0_30%] flex-col overflow-hidden rounded-3xl bg-white"
+        "flex h-full flex-[0_0_256px] flex-col overflow-hidden border-r-2 border-black bg-warm-gray-200 "
       }
     >
       {children}
@@ -28,7 +29,7 @@ const MainChatWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
     <div
       className={
-        "flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-3xl bg-white px-4"
+        "flex h-full w-full flex-col items-center justify-center overflow-hidden bg-warm-gray-50 "
       }
     >
       {children}
@@ -64,31 +65,34 @@ const Home: NextPage = () => {
   return (
     <div
       className={
-        "flex h-screen w-screen flex-row items-center justify-center bg-secondary"
+        "flex h-screen w-screen flex-row items-center justify-center bg-warm-gray-50"
       }
     >
-      <div
-        className={
-          "flex h-full w-full max-w-[1600px] flex-row space-x-3 divide-neutral p-5"
-        }
-      >
+      <div className={"flex h-full w-full  flex-row"}>
         <ChatSidebarWrapper>
-          <div className={"flex w-full w-full flex-col space-y-7  px-5 py-8"}>
-            <p className={"text-3xl font-semibold text-primary"}>Messages</p>
+          <div
+            className={
+              "mb-4 flex w-full flex-[0_0_60px] items-center space-x-2 border-b-2 border-black px-3"
+            }
+          >
             <Input className={""} />
+            <button className={"btn-outline btn-sm btn-circle btn"}>
+              <RiPencilLine />
+            </button>
           </div>
 
-          <div className={"flex w-full flex-col overflow-auto py-4 px-5"}>
+          <div className={"flex w-full flex-col overflow-auto p-3"}>
             {chatrooms.data?.map((chatroom) => {
               return (
                 <ThreadListItem
                   chatroomId={chatroom.id}
                   key={chatroom.id}
+                  selected={chatroomId === chatroom.id}
                   // TODO: setup page to let user fill in important details
                   name={chatroom.users
                     .map((author) => author?.firstName)
                     .filter(notEmpty)
-                    .join(",")}
+                    .join(", ")}
                 />
               );
             })}
@@ -96,18 +100,13 @@ const Home: NextPage = () => {
         </ChatSidebarWrapper>
         {typeof router.query.chatroomId === "string" && (
           <MainChatWrapper>
-            <div className={"flex w-full rounded-3xl px-3 py-8"}>
-              <div className={"flex items-start space-x-4"}>
-                <Avatar alt={"C"} />
-                <p className={"text-md text-black"}>Chat GPT</p>
-              </div>
-            </div>
+            <ChatTopControls chatroomId={chatroomId} />
             <ChatWindow chatroomId={router.query.chatroomId} />
             <FormProvider {...chatForm}>
               <form
                 id={"message-text-input-form"}
                 className={
-                  "flex  w-full items-center justify-between space-x-4 bg-transparent bg-secondary py-3"
+                  "flex w-full items-center justify-between space-x-4 bg-transparent bg-secondary px-3 py-3"
                 }
                 onSubmit={chatForm.handleSubmit((data) => {
                   sendMessage.mutate({
