@@ -176,6 +176,7 @@ export const messaging = createTRPCRouter({
                 },
               };
             });
+            // TODO: prune ugly type?
           }) as Omit<typeof chatroom, "messages"> & {
             messages: ((typeof chatroom)["messages"][number] & {
               author: (typeof chatroom)["messages"][number]["author"] & {

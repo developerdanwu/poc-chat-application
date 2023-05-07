@@ -15,23 +15,20 @@ const ChatBubble = ({
   variant?: "sender" | "receiver";
   children: React.ReactNode;
 }) => {
+  const fullName = getFullName({
+    firstName: author.firstName,
+    lastName: author.lastName,
+    fallback: "Untitled",
+  });
   return (
     <div
       data-communicator={variant === "sender" ? "sender" : "receiver"}
       className={"chat chat-start"}
     >
-      <Avatar alt={"CE"} />
+      <Avatar alt={fullName.slice(0, 2)} />
       <div className={"flex flex-col space-y-2"}>
         <div className={"flex items-center space-x-2 text-sm font-semibold"}>
-          {
-            <p>
-              {getFullName({
-                firstName: author.firstName,
-                lastName: author.lastName,
-                fallback: "Untitled",
-              })}
-            </p>
-          }
+          {<p>{fullName}</p>}
           <div className={"text-xs font-normal text-warm-gray-400"}>
             {dayjs(sendDate).format("hh:mm a")}
           </div>
