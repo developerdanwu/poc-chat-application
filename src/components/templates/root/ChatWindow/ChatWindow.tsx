@@ -15,6 +15,7 @@ import dayjs from "dayjs";
 import { RouterOutput } from "@/server/api/root";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import ChatBubble from "@/components/templates/root/ChatBubble";
+import { cn } from "@/utils/utils";
 
 dayjs.extend(advancedFormat);
 
@@ -108,42 +109,44 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
           loader={<div>LOADING</div>}
           useWindow={false}
         >
-          {Object.entries(formattedMessages || {}).map(([date, messages]) => {
-            return (
-              <div key={date} className={"flex flex-col space-y-4"}>
-                <div
-                  className={
-                    "divider text-center text-sm font-semibold before:bg-warm-gray-400 after:bg-warm-gray-400"
-                  }
-                >
-                  {date}
-                </div>
-                {messages.reverse().map((m) => {
-                  const isSentByMe = m.author.userId === user.user?.id;
-                  const content = safeGenerateMessageContent(m.content);
+          {Object.entries(formattedMessages || {})
+            .sort((a, b) => (dayjs(a[0]).isBefore(dayjs(b[0])) ? 1 : -1))
+            .map(([date, messages]) => {
+              return (
+                <div key={date} className={cn("flex flex-col space-y-4")}>
+                  <div
+                    className={cn(
+                      "divider text-center text-sm font-semibold before:bg-warm-gray-400 after:bg-warm-gray-400"
+                    )}
+                  >
+                    {date}
+                  </div>
+                  {messages.reverse().map((m) => {
+                    const isSentByMe = m.author.userId === user.user?.id;
+                    const content = safeGenerateMessageContent(m.content);
 
-                  return (
-                    <ChatBubble
-                      sendDate={dayjs(m.createdAt).toISOString()}
-                      variant={isSentByMe ? "sender" : "receiver"}
-                      author={m.author}
-                      key={m.clientMessageId}
-                    >
-                      {content ? (
-                        <div
-                          dangerouslySetInnerHTML={{
-                            __html: content,
-                          }}
-                        />
-                      ) : (
-                        m.text
-                      )}
-                    </ChatBubble>
-                  );
-                })}
-              </div>
-            );
-          })}
+                    return (
+                      <ChatBubble
+                        sendDate={dayjs(m.createdAt).toISOString()}
+                        variant={isSentByMe ? "sender" : "receiver"}
+                        author={m.author}
+                        key={m.clientMessageId}
+                      >
+                        {content ? (
+                          <div
+                            dangerouslySetInnerHTML={{
+                              __html: content,
+                            }}
+                          />
+                        ) : (
+                          m.text
+                        )}
+                      </ChatBubble>
+                    );
+                  })}
+                </div>
+              );
+            })}
         </InfiniteScroll>
       </ScrollArea>
     </>
