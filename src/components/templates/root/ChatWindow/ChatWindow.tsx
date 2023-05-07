@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useRef } from "react";
 import { api } from "@/utils/api";
 import { useUser } from "@clerk/nextjs";
 import ScrollArea from "@/components/elements/ScrollArea";
@@ -8,6 +8,10 @@ import StarterKit from "@tiptap/starter-kit";
 import { CodeBlockLowlight } from "@tiptap/extension-code-block-lowlight";
 import { lowlight } from "lowlight";
 import dayjs from "dayjs";
+import {
+  useChatWindowScroll,
+  useMessageUpdate,
+} from "@/components/templates/root/ChatWindow/hooks";
 
 const safeGenerateMessageContent = (content: any) => {
   try {
@@ -31,44 +35,17 @@ const safeGenerateMessageContent = (content: any) => {
 
 const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
   const user = useUser();
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messages = api.messaging.getMessages.useQuery(
     {
-      chatroomId: chatroomId ?? "",
+      chatroomId: chatroomId,
     },
     {
       staleTime: Infinity,
-      enabled: !!chatroomId,
     }
   );
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const listener = (event: Event) => {
-      if (
-        event.currentTarget instanceof HTMLElement &&
-        event.target instanceof HTMLElement
-      ) {
-        const sentBy = event.target.getAttribute("data-communicator");
-
-        event.currentTarget.scroll({
-          top: event.currentTarget.scrollHeight,
-          behavior: "smooth",
-        });
-      }
-    };
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.addEventListener("DOMNodeInserted", listener);
-    }
-
-    return () => {
-      if (scrollAreaRef.current) {
-        scrollAreaRef.current.removeEventListener(
-          "DOMNodeInserted",
-          listener,
-          false
-        );
-      }
-    };
-  }, []);
+  useMessageUpdate(chatroomId);
+  useChatWindowScroll(scrollAreaRef);
 
   return (
     <ScrollArea

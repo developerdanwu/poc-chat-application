@@ -4,20 +4,12 @@ import { api } from "@/utils/api";
 import Input from "@/components/elements/Input";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import React from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import Avatar from "@/components/elements/Avatar";
 import ThreadListItem from "@/components/templates/root/ThreadListItem";
-import { getQueryKey } from "@trpc/react-query";
-import ChatWindow from "@/components/templates/root/ChatWindow";
+import ChatWindow from "@/components/templates/root/ChatWindow/ChatWindow";
 import { useRouter } from "next/router";
 import TextEditor from "@/components/elements/TextEditor";
 import z from "zod";
-import { useChannel, usePresence } from "@ably-labs/react-hooks";
-import useAblyWebsocket, {
-  ablyChannelKeyStore,
-} from "@/utils/useAblyWebsocket";
-import { RouterOutput } from "@/server/api/root";
-import produce from "immer";
 import { notEmpty } from "@/utils/ts-utils";
 
 const ChatSidebarWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -45,41 +37,9 @@ const MainChatWrapper = ({ children }: { children: React.ReactNode }) => {
 };
 
 const Home: NextPage = () => {
-  const queryClient = useQueryClient();
   const router = useRouter();
   const chatroomId =
     typeof router.query.chatroomId === "string" ? router.query.chatroomId : "";
-  useAblyWebsocket();
-  const channelPrescence = usePresence(
-    ablyChannelKeyStore.chatroom(chatroomId)
-  );
-  console.log("LOGGY", channelPrescence);
-  const [channel] = useChannel(
-    ablyChannelKeyStore.chatroom(chatroomId),
-    (message) => {
-      console.log("MESSAGE", message.data);
-
-      queryClient.setQueryData<RouterOutput["messaging"]["getMessages"]>(
-        getQueryKey(
-          api.messaging.getMessages,
-          {
-            chatroomId,
-          },
-          "query"
-        ),
-        (old) => {
-          if (old) {
-            const newState = produce(old, (draft) => {
-              draft.messages.push(message.data);
-            });
-            return newState;
-          }
-
-          return old;
-        }
-      );
-    }
-  );
 
   const sendMessage = api.messaging.sendMessage.useMutation({
     onMutate: () => {
