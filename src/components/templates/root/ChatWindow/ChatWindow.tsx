@@ -41,14 +41,12 @@ const safeGenerateMessageContent = (content: any) => {
 const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
   const user = useUser();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const infiniteScrollRef = useRef<HTMLDivElement>(null);
   const messages = api.messaging.getMessages.useInfiniteQuery(
     {
       chatroomId: chatroomId,
     },
     {
       getNextPageParam: (lastPage) => {
-        console.log(lastPage.nextCursor);
         return lastPage.nextCursor;
       },
       staleTime: Infinity,
@@ -99,6 +97,10 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
           pageStart={0}
           className={"flex flex-col space-y-4 px-6 py-3"}
           hasMore={messages.hasNextPage}
+          reversed={true}
+          getScrollParent={() => {
+            return scrollAreaRef.current;
+          }}
           loadMore={() => {
             messages.fetchNextPage();
           }}
@@ -116,7 +118,7 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
                 >
                   {date}
                 </div>
-                {messages.map((m) => {
+                {messages.reverse().map((m) => {
                   const isSentByMe = m.author.userId === user.user?.id;
                   const content = safeGenerateMessageContent(m.content);
 

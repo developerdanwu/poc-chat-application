@@ -1,3 +1,6 @@
+import origCN, { ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+
 export const getFullName = ({
   firstName,
   lastName,
@@ -20,4 +23,8 @@ export const getFullName = ({
   }
 
   return fullName;
+};
+
+export const cn = (...inputs: ClassValue[]) => {
+  return twMerge(origCN(inputs));
 };

@@ -1,7 +1,7 @@
 import React from "react";
 import Avatar from "@/components/elements/Avatar";
 import Link from "next/link";
-import cn from "clsx";
+import { cn } from "@/utils/utils";
 
 const ThreadListItem = ({
   name,

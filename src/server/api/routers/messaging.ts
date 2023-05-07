@@ -126,7 +126,7 @@ export const messaging = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      const limit = input.take || 5;
+      const limit = input.take || 10;
       try {
         const chatroom = await ctx.prisma.chatroom.findUnique({
           where: {
@@ -148,6 +148,9 @@ export const messaging = createTRPCRouter({
               : undefined,
             take: limit + 1,
             skip: input.skip || 0,
+            orderBy: {
+              createdAt: input.orderBy || "desc",
+            },
             select: {
               author: true,
               clientMessageId: true,
@@ -251,6 +254,10 @@ export const messaging = createTRPCRouter({
         const channel = ablyRest.channels.get(
           ablyChannelKeyStore.chatroom(input.chatroomId)
         );
+
+        // TODO: can get user from context?
+        const user = await clerkClient.users.getUser(ctx.auth.userId);
+
         channel.publish("message", {
           clientMessageId: message.clientMessageId,
           text: message.text,
@@ -263,6 +270,8 @@ export const messaging = createTRPCRouter({
             role: "user",
             createdAt: author.createdAt,
             updatedAt: author.updatedAt,
+            firstName: user.firstName,
+            lastName: user.lastName,
           },
         });
       } catch (e) {

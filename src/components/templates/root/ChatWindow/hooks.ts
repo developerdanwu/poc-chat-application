@@ -43,6 +43,7 @@ export const useChatWindowScroll = (
 export const useMessageUpdate = (chatroomId: string) => {
   const queryClient = useQueryClient();
   useChannel(ablyChannelKeyStore.chatroom(chatroomId), (message) => {
+    console.log("MESSAGE", message);
     queryClient.setQueryData<RouterOutput["messaging"]["getMessages"]>(
       getQueryKey(
         api.messaging.getMessages,

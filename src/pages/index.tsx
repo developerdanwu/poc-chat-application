@@ -12,6 +12,8 @@ import z from "zod";
 import { notEmpty } from "@/utils/ts-utils";
 import ChatTopControls from "@/components/templates/root/ChatTopControls";
 import { RiPencilLine } from "react-icons/ri";
+import useAblyWebsocket from "@/utils/useAblyWebsocket";
+import { cn } from "@/utils/utils";
 
 const ChatSidebarWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -41,6 +43,7 @@ const Home: NextPage = () => {
   const router = useRouter();
   const chatroomId =
     typeof router.query.chatroomId === "string" ? router.query.chatroomId : "";
+  useAblyWebsocket();
 
   const sendMessage = api.messaging.sendMessage.useMutation({
     onMutate: () => {
@@ -64,19 +67,19 @@ const Home: NextPage = () => {
 
   return (
     <div
-      className={
+      className={cn(
         "flex h-screen w-screen flex-row items-center justify-center bg-warm-gray-50"
-      }
+      )}
     >
-      <div className={"flex h-full w-full  flex-row"}>
+      <div className={cn("flex h-full w-full flex-row")}>
         <ChatSidebarWrapper>
           <div
             className={
               "mb-4 flex w-full flex-[0_0_60px] items-center space-x-2 border-b-2 border-black px-3"
             }
           >
-            <Input className={""} />
-            <button className={"btn-outline btn-sm btn-circle btn"}>
+            <Input />
+            <button className={cn("btn-outline btn-sm btn-circle btn")}>
               <RiPencilLine />
             </button>
           </div>
