@@ -13,9 +13,10 @@ import { useRouter } from "next/router";
 import TextEditor from "@/components/elements/TextEditor";
 import z from "zod";
 import { useChannel } from "@ably-labs/react-hooks";
-import useAblyWebsocket from "@/utils/useAblyWebsocket";
+import { ablyChannelKeyStore } from "@/utils/useAblyWebsocket";
 import { RouterOutput } from "@/server/api/root";
 import produce from "immer";
+import { notEmpty } from "@/utils/ts-utils";
 
 const ChatSidebarWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -43,32 +44,34 @@ const MainChatWrapper = ({ children }: { children: React.ReactNode }) => {
 
 const Home: NextPage = () => {
   const queryClient = useQueryClient();
-  useAblyWebsocket();
-
-  const [channel] = useChannel("greeting", (message) => {
-    queryClient.setQueryData<RouterOutput["messaging"]["getMessages"]>(
-      getQueryKey(
-        api.messaging.getMessages,
-        {
-          chatroomId,
-        },
-        "query"
-      ),
-      (old) => {
-        if (old) {
-          const newState = produce(old, (draft) => {
-            draft.messages.push(message.data);
-          });
-          return newState;
-        }
-
-        return old;
-      }
-    );
-  });
   const router = useRouter();
   const chatroomId =
     typeof router.query.chatroomId === "string" ? router.query.chatroomId : "";
+  const [channel] = useChannel(
+    ablyChannelKeyStore.chatroom(chatroomId),
+    (message) => {
+      queryClient.setQueryData<RouterOutput["messaging"]["getMessages"]>(
+        getQueryKey(
+          api.messaging.getMessages,
+          {
+            chatroomId,
+          },
+          "query"
+        ),
+        (old) => {
+          if (old) {
+            const newState = produce(old, (draft) => {
+              draft.messages.push(message.data);
+            });
+            return newState;
+          }
+
+          return old;
+        }
+      );
+    }
+  );
+
   const sendMessageToAi = api.messaging.sendMessage.useMutation({
     onMutate: () => {
       chatForm.reset();
@@ -112,7 +115,11 @@ const Home: NextPage = () => {
                 <ThreadListItem
                   chatroomId={chatroom.id}
                   key={chatroom.id}
-                  name={chatroom.id}
+                  // TODO: setup page to let user fill in important details
+                  name={chatroom.users
+                    .map((author) => author?.firstName)
+                    .filter(notEmpty)
+                    .join(",")}
                 />
               );
             })}

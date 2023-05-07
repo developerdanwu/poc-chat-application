@@ -7,6 +7,9 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { ChatGPTAPI } from "chatgpt";
 import { env } from "@/env.mjs";
+import { clerkClient } from "@clerk/nextjs/api";
+import { notEmpty } from "@/utils/ts-utils";
+import { ablyChannelKeyStore } from "@/utils/useAblyWebsocket";
 
 const gpt = new ChatGPTAPI({
   apiKey: env.OPENAI_ACCESS_TOKEN as string,
@@ -37,14 +40,31 @@ export const messaging = createTRPCRouter({
             userId: true,
           },
         },
-        messages: {
-          select: {
-            text: true,
-          },
-        },
       },
     });
-    return chatrooms;
+
+    const authors = chatrooms.map((chatroom) => {
+      return chatroom.users.map((author) => author.userId).filter(notEmpty);
+    });
+
+    const users = await clerkClient.users.getUserList({
+      userId: authors.flat(),
+    });
+
+    return chatrooms.map((chatroom) => {
+      return {
+        ...chatroom,
+        users: chatroom.users.map((author) => {
+          const user = users.find((user) => user.id === author.userId);
+          return {
+            ...author,
+            firstName: user?.firstName,
+            lastName: user?.lastName,
+            emailAddresses: user?.emailAddresses,
+          };
+        }),
+      };
+    });
   }),
   getMessages: protectedProcedure
     .input(
@@ -120,9 +140,8 @@ export const messaging = createTRPCRouter({
             },
           },
         });
-        console.log("MESSAGE", message);
         const channel = ablyRest.channels.get("greeting");
-        channel.publish("greeting", {
+        channel.publish(ablyChannelKeyStore.chatroom(input.chatroomId), {
           clientMessageId: message.clientMessageId,
           text: message.text,
           content: message.content,

@@ -1,6 +1,10 @@
 import { api } from "@/utils/api";
 import { configureAbly } from "@ably-labs/react-hooks";
 
+export const ablyChannelKeyStore = {
+  chatroom: (chatroomId: string) => `chatroom-${chatroomId}`,
+};
+
 const useAblyWebsocket = () => {
   const ablyAuthentication = api.ably.auth.useMutation();
   configureAbly({

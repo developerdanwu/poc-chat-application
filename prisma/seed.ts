@@ -1,27 +1,9 @@
 export {};
 
-import { build, perBuild } from "@jackfranklin/test-data-bot";
-import { faker } from "@faker-js/faker";
 import { v4 as uuid } from "uuid";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
-const aiUserBuilder = build({
-  fields: {
-    id: perBuild(() => uuid()),
-    name: perBuild(() => faker.name.fullName()),
-  },
-});
-
-const messagesBuilder = build({
-  fields: {
-    clientMessageId: perBuild(() => uuid()),
-    text: perBuild(() => faker.lorem.lines(2)),
-    timestamp: perBuild(() => faker.date.past()),
-    type: "message",
-    content: {},
-  },
-});
 
 async function main() {
   // Create two authors
@@ -73,14 +55,11 @@ async function main() {
     });
   }
 
-  // console.log("SEEDED", test);
-
   // insert random messages with these authors and link to chatroom
 }
 
 main()
   .then(async () => {
-    console.log("herro??");
     await prisma.$disconnect();
   })
   .catch(async (e) => {
