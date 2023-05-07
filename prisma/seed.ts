@@ -1,6 +1,5 @@
 export {};
 
-import { v4 as uuid } from "uuid";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -17,7 +16,7 @@ async function main() {
   const author2 = await prisma.author.create({
     data: {
       role: "user",
-      userId: uuid(),
+      userId: "user_2PQZ3IUnbmt2eP6WMMEFbr2WrIT",
     },
   });
 

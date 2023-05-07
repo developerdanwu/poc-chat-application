@@ -24,7 +24,6 @@ export const messaging = createTRPCRouter({
       secret: `${ctx.auth?.userId} is using a protected prodedure`,
     };
   }),
-
   getAllChatrooms: protectedProcedure.query(async ({ ctx }) => {
     const chatrooms = await ctx.prisma.chatroom.findMany({
       where: {
@@ -67,7 +66,6 @@ export const messaging = createTRPCRouter({
       };
     });
   }),
-
   getChatroom: protectedProcedure
     .input(
       z.object({
@@ -122,27 +120,41 @@ export const messaging = createTRPCRouter({
       z.object({
         chatroomId: z.string().min(1),
         orderBy: z.enum(["asc", "desc"]).optional(),
+        cursor: z.string().nullish(),
+        skip: z.number().optional(),
+        take: z.number().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
+      const limit = input.take || 5;
       try {
-        const chatroom = await ctx.prisma.chatroom
-          .findUnique({
+        const chatroom = await ctx.prisma.chatroom.findUnique({
+          where: {
+            id: input.chatroomId,
+          },
+          select: {
+            users: true,
+          },
+        });
+        const messages = await ctx.prisma.message
+          .findMany({
             where: {
-              id: input.chatroomId,
-            },
-            include: {
-              users: true,
-              messages: {
-                select: {
-                  author: true,
-                  clientMessageId: true,
-                  text: true,
-                  content: true,
-                  createdAt: true,
-                  updatedAt: true,
-                },
+              chatroom: {
+                id: input.chatroomId,
               },
+            },
+            cursor: input.cursor
+              ? { clientMessageId: input.cursor }
+              : undefined,
+            take: limit + 1,
+            skip: input.skip || 0,
+            select: {
+              author: true,
+              clientMessageId: true,
+              text: true,
+              content: true,
+              createdAt: true,
+              updatedAt: true,
             },
           })
           .catch((e) => {
@@ -161,8 +173,13 @@ export const messaging = createTRPCRouter({
               })
               .filter(notEmpty),
           });
-          const result = produce(chatroom, (draft) => {
-            draft.messages = draft.messages.map((message) => {
+          let nextCursor: string | undefined = undefined;
+          if (messages.length > limit) {
+            const nextItem = messages.pop();
+            nextCursor = nextItem!.clientMessageId;
+          }
+          const result = produce(messages, (draft) => {
+            return draft.map((message) => {
               return {
                 ...message,
                 author: {
@@ -177,15 +194,14 @@ export const messaging = createTRPCRouter({
               };
             });
             // TODO: prune ugly type?
-          }) as Omit<typeof chatroom, "messages"> & {
-            messages: ((typeof chatroom)["messages"][number] & {
-              author: (typeof chatroom)["messages"][number]["author"] & {
-                firstName: string | undefined | null;
-                lastName: string | undefined | null;
-              };
-            })[];
-          };
-          return result;
+          }) as ((typeof messages)[number] & {
+            author: (typeof messages)[number]["author"] & {
+              firstName: string | undefined | null;
+              lastName: string | undefined | null;
+            };
+          })[];
+
+          return { messages: result, nextCursor };
         }
       } catch (e) {
         throw new TRPCError({
