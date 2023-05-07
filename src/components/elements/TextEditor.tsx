@@ -15,7 +15,6 @@ import { api } from "@/utils/api";
 import { getQueryKey } from "@trpc/react-query";
 import { useRouter } from "next/router";
 import { useQueryClient } from "@tanstack/react-query";
-import type { RouterOutput } from "@/server/api/root";
 import produce from "immer";
 import dayjs from "dayjs";
 import { useUser } from "@clerk/nextjs";
@@ -112,6 +111,7 @@ const CustomParagraph = () => {
     content: any;
   }>();
   const router = useRouter();
+  const trpcUtils = api.useContext();
   const queryClient = useQueryClient();
   const user = useUser();
   const chatroomId =
@@ -129,38 +129,62 @@ const CustomParagraph = () => {
       );
     },
     onMutate: (variables) => {
-      queryClient.setQueryData<RouterOutput["messaging"]["getMessages"]>(
-        getQueryKey(
-          api.messaging.getMessages,
-          {
-            chatroomId,
-          },
-          "query"
-        ),
-        (old) => {
-          if (old) {
-            const newState = produce(old, (draft) => {
-              draft.messages.push({
+      trpcUtils.messaging.getMessages.setInfiniteData({ chatroomId }, (old) => {
+        if (!old) {
+          return {
+            pages: [],
+            pageParams: [],
+          };
+        }
+
+        if (old.pages.length === 0) {
+          return {
+            pages: [
+              {
                 clientMessageId: uuid(),
                 text: variables.text,
                 content: variables.content,
                 createdAt: dayjs().toDate(),
                 updatedAt: dayjs().toDate(),
                 author: {
-                  authorId: user?.user?.id || "",
+                  authorId: 999,
                   userId: user?.user?.id || null,
                   role: "user",
                   createdAt: dayjs().toDate(),
                   updatedAt: dayjs().toDate(),
+                  firstName: user?.user?.firstName || "",
+                  lastName: user?.user?.lastName || "",
                 },
-              });
-            });
-            return newState;
-          }
-
-          return old;
+              },
+            ],
+            pageParams: [],
+          };
         }
-      );
+
+        const newState = produce(old.pages, (draft) => {
+          draft[0]?.messages.unshift({
+            clientMessageId: uuid(),
+            text: variables.text,
+            content: variables.content,
+            createdAt: dayjs().toDate(),
+            updatedAt: dayjs().toDate(),
+            author: {
+              authorId: 999,
+              userId: user?.user?.id || null,
+              role: "user",
+              createdAt: dayjs().toDate(),
+              updatedAt: dayjs().toDate(),
+              firstName: user?.user?.firstName || "",
+              lastName: user?.user?.lastName || "",
+            },
+          });
+        });
+
+        return {
+          pages: newState,
+          pageParams: old.pageParams,
+        };
+      });
       chatForm.reset();
     },
   });
