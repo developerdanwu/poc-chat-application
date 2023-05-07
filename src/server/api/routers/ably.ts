@@ -7,10 +7,10 @@ import { TRPCError } from "@trpc/server";
 // In a real app, you'd probably use Redis or something
 
 export const ably = createTRPCRouter({
-  auth: protectedProcedure.mutation(async () => {
+  auth: protectedProcedure.mutation(async ({ ctx }) => {
     try {
       const token = await ablyRest.auth.createTokenRequest({
-        clientId: "developerdanwu@gmail.com",
+        clientId: ctx.auth.userId,
       });
 
       return token;

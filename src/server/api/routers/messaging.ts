@@ -140,8 +140,10 @@ export const messaging = createTRPCRouter({
             },
           },
         });
-        const channel = ablyRest.channels.get("greeting");
-        channel.publish(ablyChannelKeyStore.chatroom(input.chatroomId), {
+        const channel = ablyRest.channels.get(
+          ablyChannelKeyStore.chatroom(input.chatroomId)
+        );
+        channel.publish("message", {
           clientMessageId: message.clientMessageId,
           text: message.text,
           content: message.content,

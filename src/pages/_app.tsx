@@ -10,10 +10,8 @@ import {
   SignedIn,
   SignedOut,
 } from "@clerk/nextjs";
-import useAblyWebsocket from "@/utils/useAblyWebsocket";
 
 const MyApp: AppType = ({ Component, pageProps: { ...pageProps } }) => {
-  useAblyWebsocket();
   return (
     <>
       <ClerkProvider {...pageProps}>

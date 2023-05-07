@@ -12,8 +12,10 @@ import ChatWindow from "@/components/templates/root/ChatWindow";
 import { useRouter } from "next/router";
 import TextEditor from "@/components/elements/TextEditor";
 import z from "zod";
-import { useChannel } from "@ably-labs/react-hooks";
-import { ablyChannelKeyStore } from "@/utils/useAblyWebsocket";
+import { useChannel, usePresence } from "@ably-labs/react-hooks";
+import useAblyWebsocket, {
+  ablyChannelKeyStore,
+} from "@/utils/useAblyWebsocket";
 import { RouterOutput } from "@/server/api/root";
 import produce from "immer";
 import { notEmpty } from "@/utils/ts-utils";
@@ -47,9 +49,16 @@ const Home: NextPage = () => {
   const router = useRouter();
   const chatroomId =
     typeof router.query.chatroomId === "string" ? router.query.chatroomId : "";
+  useAblyWebsocket();
+  const channelPrescence = usePresence(
+    ablyChannelKeyStore.chatroom(chatroomId)
+  );
+  console.log("LOGGY", channelPrescence);
   const [channel] = useChannel(
     ablyChannelKeyStore.chatroom(chatroomId),
     (message) => {
+      console.log("MESSAGE", message.data);
+
       queryClient.setQueryData<RouterOutput["messaging"]["getMessages"]>(
         getQueryKey(
           api.messaging.getMessages,
@@ -72,7 +81,7 @@ const Home: NextPage = () => {
     }
   );
 
-  const sendMessageToAi = api.messaging.sendMessage.useMutation({
+  const sendMessage = api.messaging.sendMessage.useMutation({
     onMutate: () => {
       chatForm.reset();
     },
@@ -141,7 +150,7 @@ const Home: NextPage = () => {
                   "flex  w-full items-center justify-between space-x-4 bg-transparent bg-secondary py-3"
                 }
                 onSubmit={chatForm.handleSubmit((data) => {
-                  sendMessageToAi.mutate({
+                  sendMessage.mutate({
                     ...data,
                     chatroomId,
                   });
