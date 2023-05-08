@@ -2,12 +2,14 @@ import React, { useState } from "react";
 import { api } from "@/utils/api";
 import { cn } from "@/utils/utils";
 import Input from "@/components/elements/Input";
-import { RiPencilLine } from "react-icons/ri";
 import ThreadListItem from "@/components/templates/root/ThreadListItem";
 import { notEmpty } from "@/utils/ts-utils";
 import { useRouter } from "next/router";
 import { useDebounce } from "react-use";
 import RadialProgress from "@/components/elements/RadialProgress";
+import DropdownMenu from "@/components/elements/Dropdown";
+import { RiPencilLine } from "react-icons/ri";
+import Link from "next/link";
 
 const ChatSidebar = () => {
   const router = useRouter();
@@ -26,6 +28,15 @@ const ChatSidebar = () => {
 
   const chatroomId =
     typeof router.query.chatroomId === "string" ? router.query.chatroomId : "";
+
+  const startNewChat = api.messaging.startNewChat.useMutation({
+    onSuccess: (data) => {
+      router.push(`/?chatroomId=${data}`);
+    },
+  });
+
+  const allAuthors = api.messaging.getAllAuthors.useQuery({});
+
   return (
     <div
       className={
@@ -38,9 +49,60 @@ const ChatSidebar = () => {
         )}
       >
         <Input value={search} onChange={(e) => setSearch(e.target.value)} />
-        <button className={cn("btn-outline btn-sm btn-circle btn")}>
-          <RiPencilLine />
-        </button>
+        <DropdownMenu
+          componentProps={{
+            contentProps: {
+              align: "start",
+            },
+          }}
+          renderButton={(setOpen) => (
+            <button
+              onClick={() => setOpen((prev) => !prev)}
+              className={cn("btn-outline btn-sm btn-circle btn")}
+            >
+              <RiPencilLine />
+            </button>
+          )}
+        >
+          {(setOpen) => {
+            return (
+              <div
+                className={
+                  "flex min-w-[224px] flex-col space-y-2 rounded-md border-2 border-warm-gray-800 bg-warm-gray-50 p-3"
+                }
+              >
+                <p className={"text-md font-semibold"}>Start conversation</p>
+                <Input
+                  className={"border border-warm-gray-800 bg-warm-gray-200"}
+                />
+                <div>
+                  {allAuthors.data?.map((author) => {
+                    return (
+                      <button
+                        key={author.authorId}
+                        className={"w-full"}
+                        onClick={() => {
+                          startNewChat.mutate(
+                            {
+                              authorId: author.authorId,
+                            },
+                            {
+                              onSuccess: () => {
+                                setOpen(false);
+                              },
+                            }
+                          );
+                        }}
+                      >
+                        <ThreadListItem name={String(author.authorId)} />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          }}
+        </DropdownMenu>
       </div>
 
       <div className={"flex w-full flex-col overflow-auto p-3"}>
@@ -49,16 +111,16 @@ const ChatSidebar = () => {
         ) : (
           chatrooms.data?.map((chatroom) => {
             return (
-              <ThreadListItem
-                chatroomId={chatroom.id}
-                key={chatroom.id}
-                selected={chatroomId === chatroom.id}
-                // TODO: setup page to let user fill in important details
-                name={chatroom.users
-                  .map((author) => author?.firstName)
-                  .filter(notEmpty)
-                  .join(", ")}
-              />
+              <Link key={chatroom.id} href={`/?chatroomId=${chatroomId}`}>
+                <ThreadListItem
+                  selected={chatroomId === chatroom.id}
+                  // TODO: setup page to let user fill in important details
+                  name={chatroom.users
+                    .map((author) => author?.firstName)
+                    .filter(notEmpty)
+                    .join(", ")}
+                />
+              </Link>
             );
           })
         )}

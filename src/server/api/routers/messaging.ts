@@ -20,11 +20,73 @@ const gpt = new ChatGPTAPI({
 // In a real app, you'd probably use Redis or something
 
 export const messaging = createTRPCRouter({
+  getAllAuthors: protectedProcedure
+    .input(
+      z.object({
+        searchKeyword: z.string().optional(),
+      })
+    )
+    .query(async ({ ctx }) => {
+      const results = await ctx.prisma.author.findMany({
+        where: {
+          userId: {
+            not: ctx.auth.userId,
+          },
+        },
+      });
+      return results;
+    }),
+  startNewChat: protectedProcedure
+    .input(
+      z.object({
+        authorId: z.number(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const targetAuthor = await ctx.prisma.author.findUnique({
+        where: {
+          authorId: input.authorId,
+        },
+        include: {
+          chatrooms: {
+            where: {
+              users: {
+                some: {
+                  userId: ctx.auth.userId,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      // todo check if there are more than 1 author for group chat
+      if (targetAuthor?.chatrooms.length === 1) {
+        return targetAuthor.chatrooms[0]!.id;
+      }
+      const newChatroom = await ctx.prisma.chatroom.create({
+        data: {
+          users: {
+            connect: [
+              {
+                authorId: input.authorId,
+              },
+              {
+                userId: ctx.auth.userId,
+              },
+            ],
+          },
+        },
+      });
+
+      return newChatroom.id;
+    }),
   getUserId: protectedProcedure.query(({ ctx }) => {
     return {
       secret: `${ctx.auth?.userId} is using a protected prodedure`,
     };
   }),
+  // TODO: improve database searching
   getChatrooms: protectedProcedure
     .input(
       z
