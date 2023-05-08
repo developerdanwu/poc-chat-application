@@ -1,19 +1,16 @@
 import { type NextPage } from "next";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { api } from "@/utils/api";
-import Input from "@/components/elements/Input";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import React from "react";
-import ThreadListItem from "@/components/templates/root/ThreadListItem";
 import ChatWindow from "@/components/templates/root/ChatWindow/ChatWindow";
 import { useRouter } from "next/router";
 import TextEditor from "@/components/elements/TextEditor";
 import z from "zod";
-import { notEmpty } from "@/utils/ts-utils";
 import ChatTopControls from "@/components/templates/root/ChatTopControls";
-import { RiPencilLine } from "react-icons/ri";
 import useAblyWebsocket from "@/utils/useAblyWebsocket";
 import { cn } from "@/utils/utils";
+import ChatSidebar from "@/components/templates/root/ChatSidebar/ChatSidebar";
 
 const ChatSidebarWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -74,35 +71,7 @@ const Home: NextPage = () => {
       )}
     >
       <div className={cn("flex h-full w-full flex-row")}>
-        <ChatSidebarWrapper>
-          <div
-            className={cn(
-              "mb-4 flex h-full w-full flex-[0_0_60px] items-center space-x-2 border-b-2 border-black px-3"
-            )}
-          >
-            <Input />
-            <button className={cn("btn-outline btn-sm btn-circle btn")}>
-              <RiPencilLine />
-            </button>
-          </div>
-
-          <div className={"flex w-full flex-col overflow-auto p-3"}>
-            {chatrooms.data?.map((chatroom) => {
-              return (
-                <ThreadListItem
-                  chatroomId={chatroom.id}
-                  key={chatroom.id}
-                  selected={chatroomId === chatroom.id}
-                  // TODO: setup page to let user fill in important details
-                  name={chatroom.users
-                    .map((author) => author?.firstName)
-                    .filter(notEmpty)
-                    .join(", ")}
-                />
-              );
-            })}
-          </div>
-        </ChatSidebarWrapper>
+        <ChatSidebar />
         {typeof router.query.chatroomId === "string" && (
           <MainChatWrapper>
             <ChatTopControls chatroomId={chatroomId} />

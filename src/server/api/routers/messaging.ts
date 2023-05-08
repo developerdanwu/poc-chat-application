@@ -77,16 +77,13 @@ export const messaging = createTRPCRouter({
         })
         .filter((chatroom) =>
           chatroom.users.some((author) => {
-            console.log(
-              getFullName({
-                firstName: author.firstName,
-                lastName: author.lastName,
-                fallback: "",
-              })
-                .toLowerCase()
-                .includes(input?.searchKeyword?.toLowerCase() ?? "")
-            );
-            return true;
+            return getFullName({
+              firstName: author.firstName,
+              lastName: author.lastName,
+              fallback: "",
+            })
+              .toLowerCase()
+              .includes(input?.searchKeyword?.toLowerCase() ?? "");
           })
         );
     }),
