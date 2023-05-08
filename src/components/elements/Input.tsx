@@ -1,5 +1,6 @@
 import React, { forwardRef } from "react";
-import clsx, { type ClassValue } from "clsx";
+import { type ClassValue } from "clsx";
+import { cn } from "@/utils/utils";
 
 const Input = forwardRef<
   HTMLInputElement,
@@ -12,10 +13,7 @@ const Input = forwardRef<
       ref={ref}
       type="text"
       placeholder="Type here"
-      className={clsx(
-        "input input-xs h-auto w-full rounded-sm py-2",
-        className
-      )}
+      className={cn("input input-xs h-auto w-full rounded-sm py-2", className)}
       {...restProps}
     />
   );

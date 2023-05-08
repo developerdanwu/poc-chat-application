@@ -21,6 +21,7 @@ import { useUser } from "@clerk/nextjs";
 import { v4 as uuid } from "uuid";
 import { CodeBlockLowlight } from "@tiptap/extension-code-block-lowlight";
 import { lowlight } from "lowlight";
+import { useEffect } from "react";
 
 const MenuBar = ({ editor }: { editor: Editor }) => {
   return (
@@ -156,7 +157,12 @@ const CustomParagraph = () => {
 
         if (old.pages.length === 0) {
           return {
-            pages: [newMessage],
+            pages: [
+              {
+                messages: [newMessage],
+                nextCursor: undefined,
+              },
+            ],
             pageParams: [],
           };
         }
@@ -203,7 +209,7 @@ const TextEditor = ({
   onChange: (...event: any[]) => void;
   content: any;
 }) => {
-  const { setValue } = useFormContext();
+  const chatForm = useFormContext();
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -228,20 +234,29 @@ const TextEditor = ({
     },
     onUpdate: ({ editor }) => {
       editor.getJSON();
-      setValue("text", editor.getText());
+      chatForm.setValue("text", editor.getText());
       onChange(editor.getJSON());
     },
   });
 
+  useEffect(() => {
+    if (!editor) return;
+    const { from, to } = editor.state.selection;
+    editor.commands.setContent(content, false, {
+      preserveWhitespace: "full",
+    });
+    editor.commands.setTextSelection({ from, to });
+  }, [editor, content]);
+
   // HACK: cursor positioning
-  // useEffect(() => {
-  //   if (!editor) return;
-  //   const { from, to } = editor.state.selection;
-  //   editor.commands.setContent(content, false, {
-  //     preserveWhitespace: "full",
-  //   });
-  //   editor.commands.setTextSelection({ from, to });
-  // }, [editor, content]);
+  useEffect(() => {
+    if (!editor) return;
+    const { from, to } = editor.state.selection;
+    editor.commands.setContent(content, false, {
+      preserveWhitespace: "full",
+    });
+    editor.commands.setTextSelection({ from, to });
+  }, [editor, content]);
 
   if (!editor) {
     return null;

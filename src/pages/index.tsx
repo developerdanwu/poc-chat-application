@@ -50,7 +50,9 @@ const Home: NextPage = () => {
       chatForm.reset();
     },
   });
-  const chatrooms = api.messaging.getAllChatrooms.useQuery();
+  const chatrooms = api.messaging.getChatrooms.useQuery({
+    searchKeyword: "test",
+  });
 
   const chatForm = useForm({
     resolver: zodResolver(
@@ -74,9 +76,9 @@ const Home: NextPage = () => {
       <div className={cn("flex h-full w-full flex-row")}>
         <ChatSidebarWrapper>
           <div
-            className={
-              "mb-4 flex w-full flex-[0_0_60px] items-center space-x-2 border-b-2 border-black px-3"
-            }
+            className={cn(
+              "mb-4 flex h-full w-full flex-[0_0_60px] items-center space-x-2 border-b-2 border-black px-3"
+            )}
           >
             <Input />
             <button className={cn("btn-outline btn-sm btn-circle btn")}>
@@ -109,7 +111,7 @@ const Home: NextPage = () => {
               <form
                 id={"message-text-input-form"}
                 className={
-                  "flex w-full items-center justify-between space-x-4 bg-transparent bg-secondary px-3 py-3"
+                  "flex w-full items-center justify-between space-x-4 bg-transparent bg-secondary px-6 py-3"
                 }
                 onSubmit={chatForm.handleSubmit((data) => {
                   sendMessage.mutate({

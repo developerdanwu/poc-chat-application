@@ -11,6 +11,7 @@ import { clerkClient } from "@clerk/nextjs/api";
 import { notEmpty } from "@/utils/ts-utils";
 import { ablyChannelKeyStore } from "@/utils/useAblyWebsocket";
 import produce from "immer";
+import { getFullName } from "@/utils/utils";
 
 const gpt = new ChatGPTAPI({
   apiKey: env.OPENAI_ACCESS_TOKEN as string,
@@ -24,48 +25,71 @@ export const messaging = createTRPCRouter({
       secret: `${ctx.auth?.userId} is using a protected prodedure`,
     };
   }),
-  getAllChatrooms: protectedProcedure.query(async ({ ctx }) => {
-    const chatrooms = await ctx.prisma.chatroom.findMany({
-      where: {
-        users: {
-          some: {
-            userId: ctx.auth.userId,
+  getChatrooms: protectedProcedure
+    .input(
+      z
+        .object({
+          searchKeyword: z.string().optional(),
+        })
+        .optional()
+    )
+    .query(async ({ ctx, input }) => {
+      const chatrooms = await ctx.prisma.chatroom.findMany({
+        where: {
+          users: {
+            some: {
+              userId: ctx.auth.userId,
+            },
           },
         },
-      },
-      include: {
-        users: {
-          select: {
-            authorId: true,
-            userId: true,
+        include: {
+          users: {
+            select: {
+              authorId: true,
+              userId: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    const authors = chatrooms.map((chatroom) => {
-      return chatroom.users.map((author) => author.userId).filter(notEmpty);
-    });
+      const authors = chatrooms.map((chatroom) => {
+        return chatroom.users.map((author) => author.userId).filter(notEmpty);
+      });
 
-    const users = await clerkClient.users.getUserList({
-      userId: authors.flat(),
-    });
+      const users = await clerkClient.users.getUserList({
+        userId: authors.flat(),
+      });
 
-    return chatrooms.map((chatroom) => {
-      return {
-        ...chatroom,
-        users: chatroom.users.map((author) => {
-          const user = users.find((user) => user.id === author.userId);
+      return chatrooms
+        .map((chatroom) => {
           return {
-            ...author,
-            firstName: user?.firstName,
-            lastName: user?.lastName,
-            emailAddresses: user?.emailAddresses,
+            ...chatroom,
+            users: chatroom.users.map((author) => {
+              const user = users.find((user) => user.id === author.userId);
+              return {
+                ...author,
+                firstName: user?.firstName,
+                lastName: user?.lastName,
+                emailAddresses: user?.emailAddresses,
+              };
+            }),
           };
-        }),
-      };
-    });
-  }),
+        })
+        .filter((chatroom) =>
+          chatroom.users.some((author) => {
+            console.log(
+              getFullName({
+                firstName: author.firstName,
+                lastName: author.lastName,
+                fallback: "",
+              })
+                .toLowerCase()
+                .includes(input?.searchKeyword?.toLowerCase() ?? "")
+            );
+            return true;
+          })
+        );
+    }),
   getChatroom: protectedProcedure
     .input(
       z.object({

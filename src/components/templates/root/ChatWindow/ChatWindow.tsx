@@ -86,7 +86,7 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
         componentProps={{
           root: {
             className:
-              "flex overflow-hidden h-full w-full rounded-xl  bg-base-100",
+              "flex overflow-hidden h-full w-full rounded-xl bg-base-100",
           },
           viewport: {
             ref: scrollAreaRef,

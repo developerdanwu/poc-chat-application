@@ -1,11 +1,9 @@
 import { useEffect } from "react";
 import { useChannel } from "@ably-labs/react-hooks";
 import { ablyChannelKeyStore } from "@/utils/useAblyWebsocket";
-import { RouterOutput } from "@/server/api/root";
-import { getQueryKey } from "@trpc/react-query";
 import { api } from "@/utils/api";
 import produce from "immer";
-import { useQueryClient } from "@tanstack/react-query";
+import { useUser } from "@clerk/nextjs";
 
 export const useChatWindowScroll = (
   scrollAreaRef: React.RefObject<HTMLDivElement>
@@ -41,27 +39,39 @@ export const useChatWindowScroll = (
 };
 
 export const useMessageUpdate = (chatroomId: string) => {
-  const queryClient = useQueryClient();
+  const trpcUtils = api.useContext();
+  const currentUser = useUser();
   useChannel(ablyChannelKeyStore.chatroom(chatroomId), (message) => {
-    console.log("MESSAGE", message);
-    queryClient.setQueryData<RouterOutput["messaging"]["getMessages"]>(
-      getQueryKey(
-        api.messaging.getMessages,
-        {
-          chatroomId,
-        },
-        "query"
-      ),
-      (old) => {
-        if (old) {
-          const newState = produce(old, (draft) => {
-            draft.messages.push(message.data);
-          });
-          return newState;
+    if (message.data.author.userId !== currentUser.user?.id) {
+      trpcUtils.messaging.getMessages.setInfiniteData({ chatroomId }, (old) => {
+        if (!old) {
+          return {
+            pages: [],
+            pageParams: [],
+          };
         }
 
-        return old;
-      }
-    );
+        if (old.pages.length === 0) {
+          return {
+            pages: [
+              {
+                messages: [message.data],
+                nextCursor: undefined,
+              },
+            ],
+            pageParams: [],
+          };
+        }
+
+        const newState = produce(old.pages, (draft) => {
+          draft[0]?.messages.unshift(message.data);
+        });
+
+        return {
+          pages: newState,
+          pageParams: old.pageParams,
+        };
+      });
+    }
   });
 };

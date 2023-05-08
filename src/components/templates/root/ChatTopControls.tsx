@@ -16,7 +16,7 @@ const ChatTopControls = ({ chatroomId }: { chatroomId: string }) => {
         "flex w-full flex-[0_0_60px] items-center border-b-2 border-black"
       }
     >
-      <p className={"w-full px-3  font-semibold text-black"}>
+      <p className={"w-full px-6  font-semibold text-black"}>
         {chatroomDetail.data?.users
           .map((author) => author?.firstName)
           .filter(notEmpty)
