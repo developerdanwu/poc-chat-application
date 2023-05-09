@@ -14,7 +14,7 @@ import { Paragraph } from "@tiptap/extension-paragraph";
 import { api } from "@/utils/api";
 import { getQueryKey } from "@trpc/react-query";
 import { useRouter } from "next/router";
-import { useQueryClient } from "@tanstack/react-query";
+import { InfiniteData, useQueryClient } from "@tanstack/react-query";
 import produce from "immer";
 import dayjs from "dayjs";
 import { useUser } from "@clerk/nextjs";
@@ -22,6 +22,7 @@ import { v4 as uuid } from "uuid";
 import { CodeBlockLowlight } from "@tiptap/extension-code-block-lowlight";
 import { lowlight } from "lowlight";
 import { useEffect } from "react";
+import { RouterOutput } from "@/server/api/root";
 
 const MenuBar = ({ editor }: { editor: Editor }) => {
   return (
@@ -30,7 +31,7 @@ const MenuBar = ({ editor }: { editor: Editor }) => {
         type={"button"}
         disabled={editor.isActive("codeBlock")}
         onClick={() => editor.commands.toggleBold()}
-        className={cn("btn-outline btn-square btn-xs btn grid border-0", {
+        className={cn("btn-outline btn-xs btn-square btn grid border-0", {
           "btn-active": editor.isActive("bold"),
           "btn-disabled": editor.isActive("codeBlock"),
         })}
@@ -41,7 +42,7 @@ const MenuBar = ({ editor }: { editor: Editor }) => {
         type={"button"}
         disabled={editor.isActive("codeBlock")}
         onClick={() => editor.commands.toggleItalic()}
-        className={cn("btn-outline btn-square btn-xs btn grid border-0", {
+        className={cn("btn-outline btn-xs btn-square btn grid border-0", {
           "btn-active": editor.isActive("italic"),
           "btn-disabled": editor.isActive("codeBlock"),
         })}
@@ -52,7 +53,7 @@ const MenuBar = ({ editor }: { editor: Editor }) => {
         type={"button"}
         disabled={editor.isActive("codeBlock")}
         onClick={() => editor.commands.toggleStrike()}
-        className={cn("btn-outline btn-square btn-xs btn grid border-0", {
+        className={cn("btn-outline btn-xs btn-square btn grid border-0", {
           "btn-active": editor.isActive("strike"),
           "btn-disabled": editor.isActive("codeBlock"),
         })}
@@ -68,7 +69,7 @@ const MenuBar = ({ editor }: { editor: Editor }) => {
         type={"button"}
         disabled={editor.isActive("codeBlock")}
         onClick={() => editor.commands.toggleCode()}
-        className={cn("btn-outline btn-square btn-xs btn grid border-0", {
+        className={cn("btn-outline btn-xs btn-square btn grid border-0", {
           "btn-active": editor.isActive("code"),
           "btn-disabled": editor.isActive("codeBlock"),
         })}
@@ -79,7 +80,7 @@ const MenuBar = ({ editor }: { editor: Editor }) => {
       <button
         type={"button"}
         onClick={() => editor.commands.toggleCodeBlock()}
-        className={cn("btn-outline btn-square btn-xs btn grid border-0", {
+        className={cn("btn-outline btn-xs btn-square btn grid border-0", {
           "btn-active": editor.isActive("codeBlock"),
         })}
       >
@@ -130,6 +131,9 @@ const CustomParagraph = () => {
       );
     },
     onMutate: (variables) => {
+      const oldData = trpcUtils.messaging.getMessages.getInfiniteData({
+        chatroomId,
+      });
       trpcUtils.messaging.getMessages.setInfiniteData({ chatroomId }, (old) => {
         if (!old) {
           return {
@@ -145,6 +149,7 @@ const CustomParagraph = () => {
           createdAt: dayjs().toDate(),
           updatedAt: dayjs().toDate(),
           author: {
+            email: user?.user?.emailAddresses[0]?.emailAddress || null,
             authorId: 999,
             userId: user?.user?.id || null,
             role: "user",
@@ -177,6 +182,21 @@ const CustomParagraph = () => {
         };
       });
       chatForm.reset();
+
+      return {
+        oldData,
+      };
+    },
+    onError: (error, variables, context) => {
+      const contextCast = context as {
+        oldData?: InfiniteData<RouterOutput["messaging"]["getMessages"]>;
+      };
+      if (contextCast.oldData) {
+        trpcUtils.messaging.getMessages.setInfiniteData(
+          { chatroomId },
+          () => contextCast.oldData
+        );
+      }
     },
   });
 
