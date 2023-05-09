@@ -12,18 +12,6 @@ import useAblyWebsocket from "@/utils/useAblyWebsocket";
 import { cn } from "@/utils/utils";
 import ChatSidebar from "@/components/templates/root/ChatSidebar/ChatSidebar";
 
-const ChatSidebarWrapper = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <div
-      className={
-        "flex h-full flex-[0_0_256px] flex-col overflow-hidden border-r-2 border-black bg-warm-gray-200 "
-      }
-    >
-      {children}
-    </div>
-  );
-};
-
 const MainChatWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
     <div
