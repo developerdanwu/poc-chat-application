@@ -4,6 +4,7 @@ import { buffer } from "micro";
 import { env } from "@/env.mjs";
 import { ClerkWebhookEvent } from "@/server/webhooks";
 import { User } from "@clerk/nextjs/api";
+import { prisma } from "@/server/db";
 
 const secret = env.WEBHOOK_SECRET;
 type UnwantedKeys =
@@ -60,7 +61,6 @@ export default async function handler(
     ) {
       return res.status(400).send("Invalid webhook");
     }
-
     const svixHeaders = {
       "svix-id": svixId,
       "svix-timestamp": svixTimestamp,
@@ -80,6 +80,33 @@ export default async function handler(
       switch (event) {
         case "user.created": {
           return res.status(200).send("ok");
+        }
+        case "user.updated": {
+          try {
+            await prisma.author.upsert({
+              where: {
+                userId: msg.data.id,
+              },
+              update: {
+                userId: msg.data.id,
+                firstName: msg.data.first_name,
+                lastName: msg.data.last_name,
+                email: msg.data.email_addresses[0]?.email_address,
+                role: "user",
+              },
+              create: {
+                userId: msg.data.id,
+                firstName: msg.data.first_name,
+                lastName: msg.data.last_name,
+                email: msg.data.email_addresses[0]?.email_address,
+                role: "user",
+              },
+            });
+            console.log("USER UPDATED");
+            return res.status(200).send("ok");
+          } catch (e) {
+            return res.status(500).send("Database error");
+          }
         }
         default: {
           return res.status(400).send("Event not implemented");

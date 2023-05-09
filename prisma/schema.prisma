@@ -36,7 +36,7 @@ model Message {
 model Author {
   firstName String     @map("first_name")
   lastName  String     @map("last_name")
-  email     String     @unique
+  email     String?    @unique
   authorId  Int        @id @default(autoincrement()) @map("author_id")
   role      String     @map("role")
   userId    String?    @unique @map("user_id")
