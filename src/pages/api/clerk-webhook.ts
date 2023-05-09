@@ -79,7 +79,20 @@ export default async function handler(
       const event = msg.type;
       switch (event) {
         case "user.created": {
-          return res.status(200).send("ok");
+          try {
+            await prisma.author.create({
+              data: {
+                userId: msg.data.id,
+                firstName: msg.data.first_name,
+                lastName: msg.data.last_name,
+                email: msg.data.email_addresses[0]?.email_address,
+                role: "user",
+              },
+            });
+            return res.status(200).send("ok");
+          } catch (e) {
+            return res.status(200).send("ok");
+          }
         }
         case "user.updated": {
           try {
@@ -102,7 +115,6 @@ export default async function handler(
                 role: "user",
               },
             });
-            console.log("USER UPDATED");
             return res.status(200).send("ok");
           } catch (e) {
             return res.status(500).send("Database error");
