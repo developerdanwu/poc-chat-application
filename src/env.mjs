@@ -9,7 +9,8 @@ const server = z.object({
     OPENAI_ACCESS_TOKEN: z.string(),
     NODE_ENV: z.enum(["development", "test", "production"]),
     CLERK_SECRET_KEY: z.string(),
-    ABLY_API_KEY: z.string()
+    ABLY_API_KEY: z.string(),
+    WEBHOOK_SECRET: z.string()
 });
 
 /**
@@ -33,7 +34,8 @@ const processEnv = {
     OPENAI_ACCESS_TOKEN: process.env.OPENAI_ACCESS_TOKEN,
     CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
-    ABLY_API_KEY: process.env.ABLY_API_KEY
+    ABLY_API_KEY: process.env.ABLY_API_KEY,
+    WEBHOOK_SECRET: process.env.WEBHOOK_SECRET
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
 };
 

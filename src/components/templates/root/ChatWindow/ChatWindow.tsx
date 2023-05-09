@@ -51,6 +51,7 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
         return lastPage.nextCursor;
       },
       staleTime: Infinity,
+      enabled: !!chatroomId,
     }
   );
 

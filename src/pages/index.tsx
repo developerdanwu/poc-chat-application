@@ -47,9 +47,6 @@ const Home: NextPage = () => {
       chatForm.reset();
     },
   });
-  const chatrooms = api.messaging.getChatrooms.useQuery({
-    searchKeyword: "test",
-  });
 
   const chatForm = useForm({
     resolver: zodResolver(

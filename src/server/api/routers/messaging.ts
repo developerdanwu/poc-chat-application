@@ -27,6 +27,7 @@ export const messaging = createTRPCRouter({
       })
     )
     .query(async ({ ctx }) => {
+      clerkClient.users.getUserList({});
       const results = await ctx.prisma.author.findMany({
         where: {
           userId: {
