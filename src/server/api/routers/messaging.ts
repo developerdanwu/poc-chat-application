@@ -10,7 +10,6 @@ import { env } from "@/env.mjs";
 import { clerkClient } from "@clerk/nextjs/api";
 import { notEmpty } from "@/utils/ts-utils";
 import { ablyChannelKeyStore } from "@/utils/useAblyWebsocket";
-import produce from "immer";
 import { getFullName } from "@/utils/utils";
 
 const gpt = new ChatGPTAPI({
@@ -253,42 +252,13 @@ export const messaging = createTRPCRouter({
           });
 
         if (chatroom) {
-          const chatroomUsers = await clerkClient.users.getUserList({
-            userId: chatroom.users
-              .map((user) => {
-                return user.userId;
-              })
-              .filter(notEmpty),
-          });
           let nextCursor: string | undefined = undefined;
           if (messages.length > limit) {
             const nextItem = messages.pop();
             nextCursor = nextItem!.clientMessageId;
           }
-          const result = produce(messages, (draft) => {
-            return draft.map((message) => {
-              return {
-                ...message,
-                author: {
-                  firstName: chatroomUsers.find(
-                    (user) => user.id === message.author.userId
-                  )?.firstName,
-                  lastName: chatroomUsers.find(
-                    (user) => user.id === message.author.userId
-                  )?.lastName,
-                  ...message.author,
-                },
-              };
-            });
-            // TODO: prune ugly type?
-          }) as ((typeof messages)[number] & {
-            author: (typeof messages)[number]["author"] & {
-              firstName: string | undefined | null;
-              lastName: string | undefined | null;
-            };
-          })[];
 
-          return { messages: result, nextCursor };
+          return { messages, nextCursor };
         }
       } catch (e) {
         throw new TRPCError({
@@ -314,16 +284,19 @@ export const messaging = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        const author = await ctx.prisma.author.upsert({
+        const author = await ctx.prisma.author.findUnique({
           where: {
             userId: ctx.auth.userId,
           },
-          create: {
-            userId: ctx.auth.userId,
-            role: "user",
-          },
-          update: {},
         });
+
+        if (!author) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "An unexpected error occurred, please try again later.",
+            cause: "author not found",
+          });
+        }
         const message = await ctx.prisma.message.create({
           data: {
             type: "message",
@@ -339,9 +312,6 @@ export const messaging = createTRPCRouter({
           ablyChannelKeyStore.chatroom(input.chatroomId)
         );
 
-        // TODO: can get user from context?
-        const user = await clerkClient.users.getUser(ctx.auth.userId);
-
         channel.publish("message", {
           clientMessageId: message.clientMessageId,
           text: message.text,
@@ -354,8 +324,8 @@ export const messaging = createTRPCRouter({
             role: "user",
             createdAt: author.createdAt,
             updatedAt: author.updatedAt,
-            firstName: user.firstName,
-            lastName: user.lastName,
+            firstName: author.firstName,
+            lastName: author.lastName,
           },
         });
       } catch (e) {
