@@ -1,5 +1,4 @@
 import { type Editor, EditorContent, useEditor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
 import cn from "clsx";
 import {
   RiBold,
@@ -19,10 +18,12 @@ import produce from "immer";
 import dayjs from "dayjs";
 import { useUser } from "@clerk/nextjs";
 import { v4 as uuid } from "uuid";
-import { CodeBlockLowlight } from "@tiptap/extension-code-block-lowlight";
-import { lowlight } from "lowlight";
 import { useEffect } from "react";
 import { RouterOutput } from "@/server/api/root";
+import {
+  TiptapCodeBlockLight,
+  TipTapStarterKit,
+} from "@/components/modules/TextEditor/utils";
 
 const MenuBar = ({ editor }: { editor: Editor }) => {
   return (
@@ -107,10 +108,10 @@ const SendBar = () => {
   );
 };
 
-const CustomParagraph = () => {
+const TextEditorParagraph = () => {
   const chatForm = useFormContext<{
     text: string;
-    content: any;
+    content: string;
   }>();
   const router = useRouter();
   const trpcUtils = api.useContext();
@@ -212,6 +213,7 @@ const CustomParagraph = () => {
             chatForm.handleSubmit((data) => {
               sendMessage.mutate({
                 ...data,
+                content: JSON.stringify(data.content),
                 chatroomId,
               });
             })();
@@ -230,45 +232,22 @@ const TextEditor = ({
   content: any;
 }) => {
   const chatForm = useFormContext();
+
   const editor = useEditor({
-    extensions: [
-      StarterKit.configure({
-        codeBlock: false,
-      }),
-      CustomParagraph(),
-      CodeBlockLowlight.configure({
-        HTMLAttributes: {
-          spellcheck: "false",
-          autocomplete: "false",
-        },
-        languageClassPrefix: "codeblock-language-",
-        lowlight,
-      }),
-    ],
+    extensions: [TipTapStarterKit, TextEditorParagraph(), TiptapCodeBlockLight],
     content,
     editorProps: {
       attributes: {
         form: "chatForm",
-        class: "border-0 max-h-[100px] overflow-auto w-full py-3",
+        class: "border-0 max-h-[55vh] overflow-auto w-full py-3",
       },
     },
     onUpdate: ({ editor }) => {
-      editor.getJSON();
       chatForm.setValue("text", editor.getText());
       onChange(editor.getJSON());
     },
   });
 
-  useEffect(() => {
-    if (!editor) return;
-    const { from, to } = editor.state.selection;
-    editor.commands.setContent(content, false, {
-      preserveWhitespace: "full",
-    });
-    editor.commands.setTextSelection({ from, to });
-  }, [editor, content]);
-
-  // HACK: cursor positioning
   useEffect(() => {
     if (!editor) return;
     const { from, to } = editor.state.selection;

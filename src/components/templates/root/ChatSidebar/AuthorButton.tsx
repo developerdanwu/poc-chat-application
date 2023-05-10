@@ -1,8 +1,8 @@
 import React from "react";
-import ThreadListItem from "@/components/templates/root/ThreadListItem";
 import { RouterOutput } from "@/server/api/root";
 import { api } from "@/utils/api";
 import { useRouter } from "next/router";
+import ThreadListItem from "@/components/templates/root/ThreadListItem";
 
 const AuthorButton = ({
   author,
@@ -34,7 +34,10 @@ const AuthorButton = ({
         );
       }}
     >
-      <ThreadListItem name={String(author.authorId)} />
+      <ThreadListItem
+        helperText={`#${author.authorId}`}
+        name={`${author.firstName} ${author.lastName}`}
+      />
     </button>
   );
 };

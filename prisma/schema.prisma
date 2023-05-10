@@ -17,10 +17,10 @@ datasource db {
 
 model Message {
   clientMessageId String   @id @default(cuid()) @map("client_message_id")
-  text            String
+  text            String   @db.LongText
   timestamp       DateTime @default(now())
   type            String
-  content         Json
+  content         String   @db.LongText
   authorId        Int      @map("author_id")
   author          Author   @relation(fields: [authorId], references: [authorId])
   chatroomId      String   @map("chatroom_id")

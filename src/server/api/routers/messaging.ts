@@ -211,14 +211,6 @@ export const messaging = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const limit = input.take || 10;
       try {
-        const chatroom = await ctx.prisma.chatroom.findUnique({
-          where: {
-            id: input.chatroomId,
-          },
-          select: {
-            users: true,
-          },
-        });
         const messages = await ctx.prisma.message
           .findMany({
             where: {
@@ -250,8 +242,8 @@ export const messaging = createTRPCRouter({
               cause: e,
             });
           });
-
-        if (chatroom) {
+        console.log("MESSAGES", messages);
+        if (messages) {
           let nextCursor: string | undefined = undefined;
           if (messages.length > limit) {
             const nextItem = messages.pop();

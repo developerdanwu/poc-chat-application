@@ -4,7 +4,7 @@ import dayjs from "dayjs";
 import { RouterOutput } from "@/server/api/root";
 import { getFullName } from "@/utils/utils";
 
-const ChatBubble = ({
+const ChatReplyWrapper = ({
   children,
   author,
   variant = "sender",
@@ -39,4 +39,4 @@ const ChatBubble = ({
   );
 };
 
-export default ChatBubble;
+export default ChatReplyWrapper;

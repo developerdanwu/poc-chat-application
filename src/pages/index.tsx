@@ -5,7 +5,7 @@ import { Controller, FormProvider, useForm } from "react-hook-form";
 import React from "react";
 import ChatWindow from "@/components/templates/root/ChatWindow/ChatWindow";
 import { useRouter } from "next/router";
-import TextEditor from "@/components/elements/TextEditor";
+import TextEditor from "@/components/modules/TextEditor/TextEditor";
 import z from "zod";
 import ChatTopControls from "@/components/templates/root/ChatTopControls";
 import useAblyWebsocket from "@/utils/useAblyWebsocket";

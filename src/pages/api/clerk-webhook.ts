@@ -46,6 +46,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  console.log("REQUEST", req);
   if (req.method === "POST") {
     const payload = (await buffer(req)).toString();
     const svixId = req.headers["svix-id"];
