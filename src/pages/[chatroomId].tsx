@@ -11,7 +11,11 @@ import { api } from "@/utils/api";
 import { zodResolver } from "@hookform/resolvers/zod";
 import z from "zod";
 
-const MainChatWrapper = ({ children }: { children: React.ReactNode }) => {
+export const MainChatWrapper = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
   return (
     <div
       className={
@@ -84,12 +88,12 @@ ChatroomId.getLayout = function getLayout(page) {
   return (
     <div
       className={cn(
-        "flex h-screen w-screen flex-row items-center justify-center bg-warm-gray-50"
+        "flex h-screen w-screen flex-row items-center justify-center  bg-warm-gray-50"
       )}
     >
       <div className={cn("flex h-full w-full flex-row")}>
         <ChatSidebar />
-        {page}
+        <MainChatWrapper>{page}</MainChatWrapper>
       </div>
     </div>
   );

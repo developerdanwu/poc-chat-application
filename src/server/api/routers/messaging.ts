@@ -242,7 +242,6 @@ export const messaging = createTRPCRouter({
               cause: e,
             });
           });
-        console.log("MESSAGES", messages);
         if (messages) {
           let nextCursor: string | undefined = undefined;
           if (messages.length > limit) {

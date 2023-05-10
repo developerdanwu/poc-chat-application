@@ -8,7 +8,7 @@ import { useRouter } from "next/router";
 import { useDebounce } from "react-use";
 import RadialProgress from "@/components/elements/RadialProgress";
 import Link from "next/link";
-import StartConversationModal from "@/components/templates/root/ChatSidebar/StartConversationModal";
+import { RiPencilLine } from "react-icons/ri";
 
 const ChatSidebar = () => {
   const router = useRouter();
@@ -40,7 +40,11 @@ const ChatSidebar = () => {
         )}
       >
         <Input value={search} onChange={(e) => setSearch(e.target.value)} />
-        <StartConversationModal />
+        <Link href={"/new-message"}>
+          <button className={cn("btn-outline btn-sm btn-circle btn")}>
+            <RiPencilLine />
+          </button>
+        </Link>
       </div>
 
       <div className={"flex w-full flex-col overflow-auto p-3"}>

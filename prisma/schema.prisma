@@ -34,27 +34,31 @@ model Message {
 }
 
 model Author {
-  firstName String     @map("first_name")
-  lastName  String     @map("last_name")
-  email     String?    @unique
-  authorId  Int        @id @default(autoincrement()) @map("author_id")
-  role      String     @map("role")
-  userId    String?    @unique @map("user_id")
-  messages  Message[]
-  chatrooms Chatroom[]
-  createdAt DateTime   @default(now()) @map("created_at")
-  updatedAt DateTime   @updatedAt @map("updated_at")
+  firstName           String     @map("first_name")
+  lastName            String     @map("last_name")
+  email               String?    @unique
+  authorId            Int        @id @default(autoincrement()) @map("author_id")
+  role                String     @map("role")
+  userId              String?    @unique @map("user_id")
+  messages            Message[]
+  multiUserChatroons  Chatroom[] @relation("singleUserChatrooms")
+  createdAt           DateTime   @default(now()) @map("created_at")
+  updatedAt           DateTime   @updatedAt @map("updated_at")
+  singleUserChatrooms Chatroom[] @relation(name: "multiUserChatrooms")
 
+  @@index([authorId])
   @@map("author")
 }
 
 model Chatroom {
-  id        String    @id @default(cuid())
-  messages  Message[]
-  users     Author[]
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
+  id                         String    @id @default(cuid())
+  messages                   Message[]
+  user                       Author    @relation(name: "singleUserChatrooms", fields: [singleUserChatroomAuthorId], references: [authorId])
+  users                      Author[]  @relation(name: "multiUserChatrooms")
+  createdAt                  DateTime  @default(now()) @map("created_at")
+  updatedAt                  DateTime  @updatedAt @map("updated_at")
+  singleUserChatroomAuthorId Int       @map("single_user_chatroom_author_id")
 
-  @@index([id])
+  @@index([singleUserChatroomAuthorId])
   @@map("chatroom")
 }
