@@ -1,4 +1,4 @@
-import { type AppType } from "next/app";
+import { AppProps } from "next/app";
 
 import { api } from "@/utils/api";
 
@@ -10,14 +10,29 @@ import {
   SignedIn,
   SignedOut,
 } from "@clerk/nextjs";
+import { ReactElement, ReactNode } from "react";
+import { NextPage } from "next";
+import useAblyWebsocket from "@/utils/useAblyWebsocket";
 
-const MyApp: AppType = ({ Component, pageProps: { ...pageProps } }) => {
+export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
+  getLayout?: (page: ReactElement) => ReactNode;
+};
+
+type AppPropsWithLayout = AppProps & {
+  Component: NextPageWithLayout;
+};
+
+const MyApp = ({
+  Component,
+  pageProps: { ...pageProps },
+}: AppPropsWithLayout) => {
+  const getLayout = Component.getLayout ?? ((page) => page);
+  useAblyWebsocket();
+
   return (
     <>
       <ClerkProvider {...pageProps}>
-        <SignedIn>
-          <Component {...pageProps} />
-        </SignedIn>
+        <SignedIn>{getLayout(<Component {...pageProps} />)}</SignedIn>
         <SignedOut>
           <RedirectToSignIn />
         </SignedOut>

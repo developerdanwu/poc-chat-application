@@ -1,54 +1,13 @@
-import { type NextPage } from "next";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { api } from "@/utils/api";
-import { Controller, FormProvider, useForm } from "react-hook-form";
 import React from "react";
-import ChatWindow from "@/components/templates/root/ChatWindow/ChatWindow";
-import { useRouter } from "next/router";
-import TextEditor from "@/components/modules/TextEditor/TextEditor";
-import z from "zod";
-import ChatTopControls from "@/components/templates/root/ChatTopControls";
-import useAblyWebsocket from "@/utils/useAblyWebsocket";
 import { cn } from "@/utils/utils";
 import ChatSidebar from "@/components/templates/root/ChatSidebar/ChatSidebar";
+import { NextPageWithLayout } from "@/pages/_app";
 
-const MainChatWrapper = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <div
-      className={
-        "flex h-full w-full flex-col items-center justify-center overflow-hidden bg-warm-gray-50 "
-      }
-    >
-      {children}
-    </div>
-  );
+const Home: NextPageWithLayout = () => {
+  return <></>;
 };
 
-const Home: NextPage = () => {
-  const router = useRouter();
-  const chatroomId =
-    typeof router.query.chatroomId === "string" ? router.query.chatroomId : "";
-  useAblyWebsocket();
-
-  const sendMessage = api.messaging.sendMessage.useMutation({
-    onMutate: () => {
-      chatForm.reset();
-    },
-  });
-
-  const chatForm = useForm({
-    resolver: zodResolver(
-      z.object({
-        text: z.string().min(1),
-        content: z.any(),
-      })
-    ),
-    defaultValues: {
-      text: "",
-      content: "",
-    },
-  });
-
+Home.getLayout = function getLayout(page) {
   return (
     <div
       className={cn(
@@ -57,34 +16,7 @@ const Home: NextPage = () => {
     >
       <div className={cn("flex h-full w-full flex-row")}>
         <ChatSidebar />
-        {typeof router.query.chatroomId === "string" && (
-          <MainChatWrapper>
-            <ChatTopControls chatroomId={chatroomId} />
-            <ChatWindow chatroomId={router.query.chatroomId} />
-            <FormProvider {...chatForm}>
-              <form
-                id={"message-text-input-form"}
-                className={
-                  "flex w-full items-center justify-between space-x-4 bg-transparent bg-secondary px-6 py-3"
-                }
-                onSubmit={chatForm.handleSubmit((data) => {
-                  sendMessage.mutate({
-                    ...data,
-                    chatroomId,
-                  });
-                })}
-              >
-                <Controller
-                  control={chatForm.control}
-                  render={({ field: { onChange, value } }) => {
-                    return <TextEditor onChange={onChange} content={value} />;
-                  }}
-                  name={"content"}
-                />
-              </form>
-            </FormProvider>
-          </MainChatWrapper>
-        )}
+        {page}
       </div>
     </div>
   );

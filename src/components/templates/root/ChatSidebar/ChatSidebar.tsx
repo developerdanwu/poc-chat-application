@@ -49,7 +49,7 @@ const ChatSidebar = () => {
         ) : (
           chatrooms.data?.map((chatroom) => {
             return (
-              <Link key={chatroom.id} href={`/?chatroomId=${chatroom.id}`}>
+              <Link key={chatroom.id} href={`/${chatroom.id}`}>
                 <ThreadListItem
                   selected={chatroomId === chatroom.id}
                   // TODO: setup page to let user fill in important details
