@@ -10,10 +10,6 @@ import {
 } from "react-icons/ri";
 import { useFormContext } from "react-hook-form";
 import { Paragraph } from "@tiptap/extension-paragraph";
-import { api } from "@/utils/api";
-import { useRouter } from "next/router";
-import { useQueryClient } from "@tanstack/react-query";
-import { useUser } from "@clerk/nextjs";
 import { useEffect } from "react";
 import {
   TiptapCodeBlockLight,
@@ -27,7 +23,7 @@ const MenuBar = ({ editor }: { editor: Editor }) => {
         type={"button"}
         disabled={editor.isActive("codeBlock")}
         onClick={() => editor.commands.toggleBold()}
-        className={cn("btn-outline btn-xs btn-square btn grid border-0", {
+        className={cn("btn-outline btn-square btn-xs btn grid border-0", {
           "btn-active": editor.isActive("bold"),
           "btn-disabled": editor.isActive("codeBlock"),
         })}
@@ -38,7 +34,7 @@ const MenuBar = ({ editor }: { editor: Editor }) => {
         type={"button"}
         disabled={editor.isActive("codeBlock")}
         onClick={() => editor.commands.toggleItalic()}
-        className={cn("btn-outline btn-xs btn-square btn grid border-0", {
+        className={cn("btn-outline btn-square btn-xs btn grid border-0", {
           "btn-active": editor.isActive("italic"),
           "btn-disabled": editor.isActive("codeBlock"),
         })}
@@ -49,7 +45,7 @@ const MenuBar = ({ editor }: { editor: Editor }) => {
         type={"button"}
         disabled={editor.isActive("codeBlock")}
         onClick={() => editor.commands.toggleStrike()}
-        className={cn("btn-outline btn-xs btn-square btn grid border-0", {
+        className={cn("btn-outline btn-square btn-xs btn grid border-0", {
           "btn-active": editor.isActive("strike"),
           "btn-disabled": editor.isActive("codeBlock"),
         })}
@@ -65,7 +61,7 @@ const MenuBar = ({ editor }: { editor: Editor }) => {
         type={"button"}
         disabled={editor.isActive("codeBlock")}
         onClick={() => editor.commands.toggleCode()}
-        className={cn("btn-outline btn-xs btn-square btn grid border-0", {
+        className={cn("btn-outline btn-square btn-xs btn grid border-0", {
           "btn-active": editor.isActive("code"),
           "btn-disabled": editor.isActive("codeBlock"),
         })}
@@ -76,7 +72,7 @@ const MenuBar = ({ editor }: { editor: Editor }) => {
       <button
         type={"button"}
         onClick={() => editor.commands.toggleCodeBlock()}
-        className={cn("btn-outline btn-xs btn-square btn grid border-0", {
+        className={cn("btn-outline btn-square btn-xs btn grid border-0", {
           "btn-active": editor.isActive("codeBlock"),
         })}
       >
@@ -108,17 +104,6 @@ const TextEditorParagraph = ({
 }: {
   onClickEnter: () => void;
 }) => {
-  const chatForm = useFormContext<{
-    text: string;
-    content: string;
-  }>();
-  const router = useRouter();
-  const trpcUtils = api.useContext();
-  const queryClient = useQueryClient();
-  const user = useUser();
-  const chatroomId =
-    typeof router.query.chatroomId === "string" ? router.query.chatroomId : "";
-
   return Paragraph.extend({
     addKeyboardShortcuts() {
       return {
