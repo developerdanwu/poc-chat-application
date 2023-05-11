@@ -10,6 +10,13 @@ import TextEditor from "@/components/modules/TextEditor/TextEditor";
 import { api } from "@/utils/api";
 import { zodResolver } from "@hookform/resolvers/zod";
 import z from "zod";
+import { getQueryKey } from "@trpc/react-query";
+import { v4 as uuid } from "uuid";
+import dayjs from "dayjs";
+import produce from "immer";
+import { InfiniteData, useQueryClient } from "@tanstack/react-query";
+import { RouterOutput } from "@/server/api/root";
+import { useUser } from "@clerk/nextjs";
 
 export const MainChatWrapper = ({
   children,
@@ -31,9 +38,88 @@ const ChatroomId: NextPageWithLayout = () => {
   const router = useRouter();
   const chatroomId =
     typeof router.query.chatroomId === "string" ? router.query.chatroomId : "";
+  const trpcUtils = api.useContext();
+  const queryClient = useQueryClient();
+  const user = useUser();
   const sendMessage = api.messaging.sendMessage.useMutation({
-    onMutate: () => {
+    onSettled: () => {
+      queryClient.invalidateQueries(
+        getQueryKey(
+          api.messaging.getMessages,
+          {
+            chatroomId,
+          },
+          "query"
+        )
+      );
+    },
+    onMutate: (variables) => {
+      const oldData = trpcUtils.messaging.getMessages.getInfiniteData({
+        chatroomId,
+      });
+      trpcUtils.messaging.getMessages.setInfiniteData({ chatroomId }, (old) => {
+        if (!old) {
+          return {
+            pages: [],
+            pageParams: [],
+          };
+        }
+
+        const newMessage = {
+          clientMessageId: uuid(),
+          text: variables.text,
+          content: variables.content,
+          createdAt: dayjs().toDate(),
+          updatedAt: dayjs().toDate(),
+          author: {
+            email: user?.user?.emailAddresses[0]?.emailAddress || null,
+            authorId: 999,
+            userId: user?.user?.id || null,
+            role: "user",
+            createdAt: dayjs().toDate(),
+            updatedAt: dayjs().toDate(),
+            firstName: user?.user?.firstName || "",
+            lastName: user?.user?.lastName || "",
+          },
+        };
+
+        if (old.pages.length === 0) {
+          return {
+            pages: [
+              {
+                messages: [newMessage],
+                nextCursor: undefined,
+              },
+            ],
+            pageParams: [],
+          };
+        }
+
+        const newState = produce(old.pages, (draft) => {
+          draft[0]?.messages.unshift(newMessage);
+        });
+
+        return {
+          pages: newState,
+          pageParams: old.pageParams,
+        };
+      });
       chatForm.reset();
+
+      return {
+        oldData,
+      };
+    },
+    onError: (error, variables, context) => {
+      const contextCast = context as {
+        oldData?: InfiniteData<RouterOutput["messaging"]["getMessages"]>;
+      };
+      if (contextCast.oldData) {
+        trpcUtils.messaging.getMessages.setInfiniteData(
+          { chatroomId },
+          () => contextCast.oldData
+        );
+      }
     },
   });
 
@@ -72,7 +158,21 @@ const ChatroomId: NextPageWithLayout = () => {
               <Controller
                 control={chatForm.control}
                 render={({ field: { onChange, value } }) => {
-                  return <TextEditor onChange={onChange} content={value} />;
+                  return (
+                    <TextEditor
+                      onClickEnter={() => {
+                        chatForm.handleSubmit((data) => {
+                          sendMessage.mutate({
+                            ...data,
+                            content: JSON.stringify(data.content),
+                            chatroomId,
+                          });
+                        })();
+                      }}
+                      onChange={onChange}
+                      content={value}
+                    />
+                  );
                 }}
                 name={"content"}
               />

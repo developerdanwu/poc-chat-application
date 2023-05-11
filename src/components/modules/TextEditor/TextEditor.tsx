@@ -11,15 +11,10 @@ import {
 import { useFormContext } from "react-hook-form";
 import { Paragraph } from "@tiptap/extension-paragraph";
 import { api } from "@/utils/api";
-import { getQueryKey } from "@trpc/react-query";
 import { useRouter } from "next/router";
-import { InfiniteData, useQueryClient } from "@tanstack/react-query";
-import produce from "immer";
-import dayjs from "dayjs";
+import { useQueryClient } from "@tanstack/react-query";
 import { useUser } from "@clerk/nextjs";
-import { v4 as uuid } from "uuid";
 import { useEffect } from "react";
-import { RouterOutput } from "@/server/api/root";
 import {
   TiptapCodeBlockLight,
   TipTapStarterKit,
@@ -108,7 +103,11 @@ const SendBar = () => {
   );
 };
 
-const TextEditorParagraph = () => {
+const TextEditorParagraph = ({
+  onClickEnter,
+}: {
+  onClickEnter: () => void;
+}) => {
   const chatForm = useFormContext<{
     text: string;
     content: string;
@@ -119,87 +118,6 @@ const TextEditorParagraph = () => {
   const user = useUser();
   const chatroomId =
     typeof router.query.chatroomId === "string" ? router.query.chatroomId : "";
-  const sendMessage = api.messaging.sendMessage.useMutation({
-    onSettled: () => {
-      queryClient.invalidateQueries(
-        getQueryKey(
-          api.messaging.getMessages,
-          {
-            chatroomId,
-          },
-          "query"
-        )
-      );
-    },
-    onMutate: (variables) => {
-      const oldData = trpcUtils.messaging.getMessages.getInfiniteData({
-        chatroomId,
-      });
-      trpcUtils.messaging.getMessages.setInfiniteData({ chatroomId }, (old) => {
-        if (!old) {
-          return {
-            pages: [],
-            pageParams: [],
-          };
-        }
-
-        const newMessage = {
-          clientMessageId: uuid(),
-          text: variables.text,
-          content: variables.content,
-          createdAt: dayjs().toDate(),
-          updatedAt: dayjs().toDate(),
-          author: {
-            email: user?.user?.emailAddresses[0]?.emailAddress || null,
-            authorId: 999,
-            userId: user?.user?.id || null,
-            role: "user",
-            createdAt: dayjs().toDate(),
-            updatedAt: dayjs().toDate(),
-            firstName: user?.user?.firstName || "",
-            lastName: user?.user?.lastName || "",
-          },
-        };
-
-        if (old.pages.length === 0) {
-          return {
-            pages: [
-              {
-                messages: [newMessage],
-                nextCursor: undefined,
-              },
-            ],
-            pageParams: [],
-          };
-        }
-
-        const newState = produce(old.pages, (draft) => {
-          draft[0]?.messages.unshift(newMessage);
-        });
-
-        return {
-          pages: newState,
-          pageParams: old.pageParams,
-        };
-      });
-      chatForm.reset();
-
-      return {
-        oldData,
-      };
-    },
-    onError: (error, variables, context) => {
-      const contextCast = context as {
-        oldData?: InfiniteData<RouterOutput["messaging"]["getMessages"]>;
-      };
-      if (contextCast.oldData) {
-        trpcUtils.messaging.getMessages.setInfiniteData(
-          { chatroomId },
-          () => contextCast.oldData
-        );
-      }
-    },
-  });
 
   return Paragraph.extend({
     addKeyboardShortcuts() {
@@ -210,13 +128,7 @@ const TextEditorParagraph = () => {
         // override enter command to submit form
         Enter: () =>
           this.editor.commands.command(() => {
-            chatForm.handleSubmit((data) => {
-              sendMessage.mutate({
-                ...data,
-                content: JSON.stringify(data.content),
-                chatroomId,
-              });
-            })();
+            onClickEnter();
             return true;
           }),
       };
@@ -227,14 +139,20 @@ const TextEditorParagraph = () => {
 const TextEditor = ({
   onChange,
   content,
+  onClickEnter,
 }: {
+  onClickEnter: () => void;
   onChange: (...event: any[]) => void;
   content: any;
 }) => {
   const chatForm = useFormContext();
 
   const editor = useEditor({
-    extensions: [TipTapStarterKit, TextEditorParagraph(), TiptapCodeBlockLight],
+    extensions: [
+      TipTapStarterKit,
+      TextEditorParagraph({ onClickEnter }),
+      TiptapCodeBlockLight,
+    ],
     content,
     editorProps: {
       attributes: {

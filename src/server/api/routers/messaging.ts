@@ -26,7 +26,6 @@ export const messaging = createTRPCRouter({
       })
     )
     .query(async ({ ctx }) => {
-      clerkClient.users.getUserList({});
       const results = await ctx.prisma.author.findMany({
         where: {
           userId: {
@@ -40,6 +39,8 @@ export const messaging = createTRPCRouter({
     .input(
       z.object({
         authorId: z.number(),
+        text: z.string().min(1),
+        content: z.any(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -50,6 +51,7 @@ export const messaging = createTRPCRouter({
         include: {
           chatrooms: {
             where: {
+              noOfUsers: 2,
               users: {
                 some: {
                   userId: ctx.auth.userId,
@@ -60,12 +62,47 @@ export const messaging = createTRPCRouter({
         },
       });
 
-      // todo check if there are more than 1 author for group chat
-      if (targetAuthor?.chatrooms.length === 1) {
-        return targetAuthor.chatrooms[0]!.id;
+      if (!targetAuthor) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Author not found",
+        });
       }
+
+      if (targetAuthor.chatrooms.length > 1) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Multiple chatrooms found",
+        });
+      }
+
+      // send message and return chatroom id
+      if (targetAuthor.chatrooms.length === 1) {
+        await ctx.prisma.message.create({
+          data: {
+            chatroom: {
+              connect: {
+                id: targetAuthor.chatrooms[0]?.id,
+              },
+            },
+            text: input.text,
+            type: "message",
+            content: input.content,
+            author: {
+              connect: {
+                userId: ctx.auth.userId,
+              },
+            },
+          },
+        });
+
+        return targetAuthor.chatrooms[0]?.id;
+      }
+
+      // create new chatroom, send message and return chatroom id
       const newChatroom = await ctx.prisma.chatroom.create({
         data: {
+          noOfUsers: 2,
           users: {
             connect: [
               {
@@ -75,6 +112,18 @@ export const messaging = createTRPCRouter({
                 userId: ctx.auth.userId,
               },
             ],
+          },
+          messages: {
+            create: {
+              text: input.text,
+              type: "message",
+              content: input.content,
+              author: {
+                connect: {
+                  userId: ctx.auth.userId,
+                },
+              },
+            },
           },
         },
       });
@@ -269,7 +318,7 @@ export const messaging = createTRPCRouter({
       z.object({
         text: z.string().min(1),
         chatroomId: z.string().min(1),
-        content: z.any(),
+        content: z.string(),
         // TODO: add Ai model
       })
     )
