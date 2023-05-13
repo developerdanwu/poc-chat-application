@@ -24,13 +24,13 @@ const ChatReplyWrapper = ({
   return (
     <div
       data-communicator={variant === 'sender' ? 'sender' : 'receiver'}
-      className={'chat chat-start'}
+      className="chat chat-start"
     >
       <Avatar alt={fullName.slice(0, 2)} />
-      <div className={'flex flex-col space-y-2'}>
-        <div className={'flex items-center space-x-2 text-sm font-semibold'}>
-          {<p>{fullName}</p>}
-          <div className={'text-xs font-normal text-warm-gray-400'}>
+      <div className="flex flex-col space-y-2">
+        <div className="flex items-center space-x-2 text-sm font-semibold">
+          <p>{fullName}</p>
+          <div className="text-xs font-normal text-warm-gray-400">
             {dayjs.utc(sendDate).local().format('hh:mm a')}
           </div>
         </div>

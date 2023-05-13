@@ -37,7 +37,7 @@ const MyApp = ({
           <RedirectToSignIn />
         </SignedOut>
       </ClerkProvider>
-      <ReactQueryDevtools position={'top-right'} panelPosition={'right'} />
+      <ReactQueryDevtools position="top-right" panelPosition="right" />
     </>
   );
 };

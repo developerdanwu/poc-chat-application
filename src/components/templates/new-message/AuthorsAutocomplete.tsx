@@ -69,14 +69,14 @@ const AuthorsAutocomplete = () => {
         justifyContent: 'center',
         alignSelf: 'center',
       }}
-      className={'relative flex-1'}
+      className="relative flex-1"
     >
-      <div className={'flex w-full items-center justify-between'}>
+      <div className="flex w-full items-center justify-between">
         <input
           autoFocus
           spellCheck="false"
-          placeholder={'@friend'}
-          className={'relative bg-transparent outline-none'}
+          placeholder="@friend"
+          className="relative bg-transparent outline-none"
           style={{ padding: '4px' }}
           {...getInputProps()}
           data-testid="combobox-input"
@@ -87,9 +87,7 @@ const AuthorsAutocomplete = () => {
       {isOpen && !allAuthors.isLoading && (
         <ul
           {...getMenuProps()}
-          className={
-            'z-50 w-full rounded-sm border-2 border-black bg-warm-gray-50 p-3'
-          }
+          className="z-50 w-full rounded-sm border-2 border-black bg-warm-gray-50 p-3"
           style={{
             listStyle: 'none',
             position: 'absolute',
@@ -111,8 +109,8 @@ const AuthorsAutocomplete = () => {
                   }
                 )}
               >
-                <div className={'flex items-center'}>
-                  <Avatar size={'xs'} alt={item.first_name.slice(0, 2)} />
+                <div className="flex items-center">
+                  <Avatar size="xs" alt={item.first_name.slice(0, 2)} />
                   <p
                     className={cn(
                       'select-none pl-3 text-xs font-normal leading-4',

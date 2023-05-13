@@ -25,6 +25,11 @@ const config = {
     plugins: ["@typescript-eslint"],
     extends: ["next/core-web-vitals", "plugin:@typescript-eslint/recommended"],
     rules: {
+        "react/jsx-curly-brace-presence": ["warn", {
+            "props": "never",
+            "children": "never",
+            "propElementValues": "never"
+        }],
         "@typescript-eslint/consistent-type-imports": [
             "warn",
             {

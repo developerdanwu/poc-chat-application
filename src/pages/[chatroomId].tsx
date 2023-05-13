@@ -24,9 +24,7 @@ export const MainChatWrapper = ({
 }) => {
   return (
     <div
-      className={
-        'flex h-full w-full flex-col items-center justify-center overflow-hidden bg-warm-gray-50 '
-      }
+      className="flex h-full w-full flex-col items-center justify-center overflow-hidden bg-warm-gray-50 "
     >
       {children}
     </div>
@@ -143,10 +141,8 @@ const ChatroomId: NextPageWithLayout = () => {
           <ChatWindow chatroomId={router.query.chatroomId} />
           <FormProvider {...chatForm}>
             <form
-              id={'message-text-input-form'}
-              className={
-                'flex w-full items-center justify-between space-x-4 bg-transparent bg-secondary px-6 py-3'
-              }
+              id="message-text-input-form"
+              className="flex w-full items-center justify-between space-x-4 bg-transparent bg-secondary px-6 py-3"
               onSubmit={chatForm.handleSubmit((data) => {
                 sendMessage.mutate({
                   ...data,
@@ -173,7 +169,7 @@ const ChatroomId: NextPageWithLayout = () => {
                     />
                   );
                 }}
-                name={'content'}
+                name="content"
               />
             </form>
           </FormProvider>

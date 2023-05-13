@@ -81,19 +81,15 @@ const NewMessage: NextPageWithLayout = () => {
     <>
       <FormProvider {...newMessageForm}>
         <div
-          className={
-            "flex w-full flex-[0_0_60px] items-center border-b-2 border-black px-6"
-          }
+          className="flex w-full flex-[0_0_60px] items-center border-b-2 border-black px-6"
         >
-          <p className={"font-semibold"}>New message</p>
+          <p className="font-semibold">New message</p>
         </div>
         <div
-          className={
-            "flex w-full flex-[0_0_60px] items-center items-center border-b-2 border-black px-6"
-          }
+          className="flex w-full flex-[0_0_60px] items-center items-center border-b-2 border-black px-6"
         >
-          <div className={"flex w-full items-center space-x-2"}>
-            <p className={"leading-[0px]"}>To:</p>
+          <div className="flex w-full items-center space-x-2">
+            <p className="leading-[0px]">To:</p>
             <AuthorsAutocomplete />
           </div>
         </div>
@@ -110,10 +106,8 @@ const NewMessage: NextPageWithLayout = () => {
           }}
         ></ScrollArea>
         <form
-          id={"message-text-input-form"}
-          className={
-            "flex w-full items-center justify-between space-x-4 bg-transparent bg-secondary px-6 py-3"
-          }
+          id="message-text-input-form"
+          className="flex w-full items-center justify-between space-x-4 bg-transparent bg-secondary px-6 py-3"
           onSubmit={newMessageForm.handleSubmit((data) => {
             console.log(data, "DATA");
           })}
@@ -144,7 +138,7 @@ const NewMessage: NextPageWithLayout = () => {
                 />
               );
             }}
-            name={"content"}
+            name="content"
           />
         </form>
       </FormProvider>

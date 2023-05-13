@@ -32,9 +32,7 @@ const ChatSidebar = () => {
 
   return (
     <div
-      className={
-        'flex h-full flex-[0_0_256px] flex-col overflow-hidden border-r-2 border-black bg-warm-gray-200 '
-      }
+      className="flex h-full flex-[0_0_256px] flex-col overflow-hidden border-r-2 border-black bg-warm-gray-200 "
     >
       <div
         className={cn(
@@ -42,16 +40,16 @@ const ChatSidebar = () => {
         )}
       >
         <Input value={search} onChange={(e) => setSearch(e.target.value)} />
-        <Link href={'/new-message'}>
+        <Link href="/new-message">
           <button className={cn('btn-outline btn-sm btn-circle btn')}>
             <RiPencilLine />
           </button>
         </Link>
       </div>
 
-      <div className={'flex w-full flex-col overflow-auto p-3'}>
+      <div className="flex w-full flex-col overflow-auto p-3">
         {chatrooms.isLoading ? (
-          <RadialProgress className={'self-center'} />
+          <RadialProgress className="self-center" />
         ) : (
           chatrooms.data?.map((chatroom) => {
             return (

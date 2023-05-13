@@ -20,8 +20,8 @@ const ThreadListItem = ({
         }
       )}
     >
-      <div className={"flex items-center"}>
-        <Avatar size={"xs"} alt={name.slice(0, 2)} />
+      <div className="flex items-center">
+        <Avatar size="xs" alt={name.slice(0, 2)} />
         <p
           className={cn("select-none pl-3 text-xs font-normal leading-4", {
             "text-white": selected,

@@ -18,9 +18,9 @@ import {
 
 const MenuBar = ({ editor }: { editor: Editor }) => {
   return (
-    <div className={"flex h-full w-full items-center space-x-2"}>
+    <div className="flex h-full w-full items-center space-x-2">
       <button
-        type={"button"}
+        type="button"
         disabled={editor.isActive("codeBlock")}
         onClick={() => editor.commands.toggleBold()}
         className={cn("btn-outline btn-square btn-xs btn grid border-0", {
@@ -28,10 +28,10 @@ const MenuBar = ({ editor }: { editor: Editor }) => {
           "btn-disabled": editor.isActive("codeBlock"),
         })}
       >
-        <RiBold size={"18px"} />
+        <RiBold size="18px" />
       </button>
       <button
-        type={"button"}
+        type="button"
         disabled={editor.isActive("codeBlock")}
         onClick={() => editor.commands.toggleItalic()}
         className={cn("btn-outline btn-square btn-xs btn grid border-0", {
@@ -39,10 +39,10 @@ const MenuBar = ({ editor }: { editor: Editor }) => {
           "btn-disabled": editor.isActive("codeBlock"),
         })}
       >
-        <RiItalic size={"18px"} />
+        <RiItalic size="18px" />
       </button>
       <button
-        type={"button"}
+        type="button"
         disabled={editor.isActive("codeBlock")}
         onClick={() => editor.commands.toggleStrike()}
         className={cn("btn-outline btn-square btn-xs btn grid border-0", {
@@ -50,15 +50,13 @@ const MenuBar = ({ editor }: { editor: Editor }) => {
           "btn-disabled": editor.isActive("codeBlock"),
         })}
       >
-        <RiStrikethrough size={"18px"} />
+        <RiStrikethrough size="18px" />
       </button>
       <div
-        className={
-          "divider divider-horizontal before:bg-neutral after:bg-neutral"
-        }
+        className="divider divider-horizontal before:bg-neutral after:bg-neutral"
       />
       <button
-        type={"button"}
+        type="button"
         disabled={editor.isActive("codeBlock")}
         onClick={() => editor.commands.toggleCode()}
         className={cn("btn-outline btn-square btn-xs btn grid border-0", {
@@ -66,17 +64,17 @@ const MenuBar = ({ editor }: { editor: Editor }) => {
           "btn-disabled": editor.isActive("codeBlock"),
         })}
       >
-        <RiCodeLine size={"18px"} />
+        <RiCodeLine size="18px" />
       </button>
 
       <button
-        type={"button"}
+        type="button"
         onClick={() => editor.commands.toggleCodeBlock()}
         className={cn("btn-outline btn-square btn-xs btn grid border-0", {
           "btn-active": editor.isActive("codeBlock"),
         })}
       >
-        <RiCodeBoxLine size={"18px"} />
+        <RiCodeBoxLine size="18px" />
       </button>
     </div>
   );
@@ -85,7 +83,7 @@ const MenuBar = ({ editor }: { editor: Editor }) => {
 const SendBar = () => {
   const { formState } = useFormContext();
   return (
-    <div className={"flex justify-between"}>
+    <div className="flex justify-between">
       <div></div>
       <button
         disabled={!formState.isValid}

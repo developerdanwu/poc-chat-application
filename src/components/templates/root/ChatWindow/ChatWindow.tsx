@@ -101,9 +101,9 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
       }}
     >
       {!messages.hasNextPage && filteredChatroomUsers?.length === 1 && (
-        <div className={'flex flex-col px-6 pt-10'}>
-          <Avatar alt={'TE'} size={'lg'} />
-          <p className={'pt-5 pb-2 text-xl font-bold'}>
+        <div className="flex flex-col px-6 pt-10">
+          <Avatar alt="TE" size="lg" />
+          <p className="pt-5 pb-2 text-xl font-bold">
             {filteredChatroomUsers?.length === 1
               ? getFullName({
                   firstName: filteredChatroomUsers[0]?.first_name,
@@ -112,9 +112,9 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
                 })
               : ''}
           </p>
-          <p className={'text-sm text-warm-gray-400'}>
+          <p className="text-sm text-warm-gray-400">
             This is the beginning of your message history with{' '}
-            <span className={'font-semibold'}>
+            <span className="font-semibold">
               {filteredChatroomUsers?.length === 1
                 ? getFullName({
                     firstName: filteredChatroomUsers[0]?.first_name,
@@ -128,7 +128,7 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
       )}
       <InfiniteScroll
         pageStart={0}
-        className={'flex flex-col space-y-4 px-6 py-3'}
+        className="flex flex-col space-y-4 px-6 py-3"
         hasMore={messages.hasNextPage}
         reversed={true}
         getScrollParent={() => {

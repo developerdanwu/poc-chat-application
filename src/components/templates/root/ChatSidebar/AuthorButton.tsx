@@ -20,7 +20,7 @@ const AuthorButton = ({
   return (
     <button
       key={author.author_id}
-      className={"w-full"}
+      className="w-full"
       onClick={() => {
         startNewChat.mutate(
           {

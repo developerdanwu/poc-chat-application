@@ -39,15 +39,13 @@ const StartConversationModal = () => {
       {(setOpen) => {
         return (
           <div
-            className={
-              "flex min-w-[224px] flex-col space-y-2 rounded-md border-2 border-warm-gray-800 bg-warm-gray-50 p-3"
-            }
+            className="flex min-w-[224px] flex-col space-y-2 rounded-md border-2 border-warm-gray-800 bg-warm-gray-50 p-3"
           >
-            <p className={"text-md font-semibold"}>Start conversation</p>
+            <p className="text-md font-semibold">Start conversation</p>
             <Input
               onChange={(e) => setSearch(e.target.value)}
               value={search}
-              className={"border border-warm-gray-800 bg-warm-gray-200"}
+              className="border border-warm-gray-800 bg-warm-gray-200"
             />
             <div>
               {allAuthors.data?.map((author) => {
