@@ -41,30 +41,29 @@ const safeGenerateMessageContent = (content: any) => {
   }
 };
 
-const ChatWindow = ({chatroomId}: { chatroomId: string }) => {
+const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messages = api.messaging.getMessages.useInfiniteQuery(
-      {
-        chatroomId: chatroomId,
+    {
+      chatroomId: chatroomId,
+    },
+    {
+      getNextPageParam: (lastPage) => {
+        return lastPage?.next_cursor;
       },
-      {
-        getNextPageParam: (lastPage) => {
-          return lastPage?.next_cursor;
-        },
-        staleTime: Infinity,
-        enabled: !!chatroomId,
-      }
+      staleTime: Infinity,
+      enabled: !!chatroomId,
+    }
   );
-  const chatroomDetails = api.messaging.getChatroom.useQuery({chatroomId});
-  const {filterAuthedUserFromChatroomAuthors} = useApiTransformUtils();
+  const chatroomDetails = api.messaging.getChatroom.useQuery({ chatroomId });
+  const { filterAuthedUserFromChatroomAuthors, getFullName } =
+    useApiTransformUtils();
   const filteredChatroomUsers = filterAuthedUserFromChatroomAuthors(
-      chatroomDetails.data?.authors ?? []
+    chatroomDetails.data?.authors ?? []
   );
-
-  console.log('DD', messages.data);
 
   const messagesArray = messages.data?.pages.reduce<
-      RouterOutput['messaging']['getMessages']['messages']
+    RouterOutput['messaging']['getMessages']['messages']
   >((acc, nextVal) => {
     console.log(nextVal);
     nextVal.messages.forEach((m) => {
@@ -73,10 +72,9 @@ const ChatWindow = ({chatroomId}: { chatroomId: string }) => {
     return acc;
   }, []);
   const user = useUser();
-  console.log('ARRR', messagesArray);
 
   const formattedMessages = messagesArray?.reduce<
-      Record<string, RouterOutput['messaging']['getMessages']['messages']>
+    Record<string, RouterOutput['messaging']['getMessages']['messages']>
   >((acc, nextVal) => {
     const date = dayjs(nextVal.created_at).format('dddd, MMMM Do');
     if (!acc[date]) {
@@ -86,96 +84,97 @@ const ChatWindow = ({chatroomId}: { chatroomId: string }) => {
     return acc;
   }, {});
 
-  console.log('FORMATTED', formattedMessages);
-
   useMessageUpdate(chatroomId);
   useChatWindowScroll(scrollAreaRef);
 
   return (
-      <ScrollArea
-          componentProps={{
-            root: {
-              className:
-                  'flex overflow-hidden h-full w-full rounded-xl bg-base-100',
-            },
-            viewport: {
-              ref: scrollAreaRef,
-              className: 'h-full w-full',
-            },
-          }}
-      >
-        {!messages.hasNextPage && filteredChatroomUsers?.length === 1 && (
-            <div className={'flex flex-col px-6 pt-10'}>
-              <Avatar alt={'TE'} size={'lg'}/>
-              <p className={'pt-5 pb-2 text-xl font-bold'}>
-                {filteredChatroomUsers?.length === 1
-                    ? filteredChatroomUsers[0]?.first_name
-                    : ''}
-              </p>
-              <p className={'text-sm text-warm-gray-400'}>
-                This is the beginning of your message history with{' '}
-                <span className={'font-semibold'}>
+    <ScrollArea
+      componentProps={{
+        root: {
+          className:
+            'flex overflow-hidden h-full w-full rounded-xl bg-base-100',
+        },
+        viewport: {
+          ref: scrollAreaRef,
+          className: 'h-full w-full',
+        },
+      }}
+    >
+      {!messages.hasNextPage && filteredChatroomUsers?.length === 1 && (
+        <div className={'flex flex-col px-6 pt-10'}>
+          <Avatar alt={'TE'} size={'lg'} />
+          <p className={'pt-5 pb-2 text-xl font-bold'}>
+            {filteredChatroomUsers?.length === 1
+              ? getFullName({
+                  firstName: filteredChatroomUsers[0]?.first_name,
+                  lastName: filteredChatroomUsers[0]?.last_name,
+                  fallback: 'Untitled',
+                })
+              : ''}
+          </p>
+          <p className={'text-sm text-warm-gray-400'}>
+            This is the beginning of your message history with{' '}
+            <span className={'font-semibold'}>
               {filteredChatroomUsers?.length === 1
-                  ? filteredChatroomUsers[0]?.last_name
-                  : ''}
+                ? getFullName({
+                    firstName: filteredChatroomUsers[0]?.first_name,
+                    lastName: filteredChatroomUsers[0]?.last_name,
+                    fallback: 'Untitled',
+                  })
+                : ''}
             </span>
-              </p>
-            </div>
-        )}
-        {/*{messages.data?.messages?.map((message) => {*/}
-        {/*  return <>{message.text}</>;*/}
-        {/*})}*/}
+          </p>
+        </div>
+      )}
+      <InfiniteScroll
+        pageStart={0}
+        className={'flex flex-col space-y-4 px-6 py-3'}
+        hasMore={messages.hasNextPage}
+        reversed={true}
+        getScrollParent={() => {
+          return scrollAreaRef.current;
+        }}
+        loadMore={() => {
+          messages.fetchNextPage();
+        }}
+        isReverse={true}
+        loader={<div>LOADING</div>}
+        useWindow={false}
+      >
+        {Object.entries(formattedMessages || {})
+          .sort((a, b) => (dayjs(a[0]).isBefore(dayjs(b[0])) ? 1 : -1))
+          .map(([date, messages]) => {
+            return (
+              <div key={date} className={cn('flex flex-col space-y-4')}>
+                <div
+                  className={cn(
+                    'divider text-center text-sm font-semibold before:bg-warm-gray-400 after:bg-warm-gray-400'
+                  )}
+                >
+                  {date}
+                </div>
+                {messages.reverse().map((m) => {
+                  const isSentByMe = m.author.user_id === user.user?.id;
+                  const content = safeGenerateMessageContent(
+                    JSON.parse(m.content)
+                  );
 
-        <InfiniteScroll
-            pageStart={0}
-            className={'flex flex-col space-y-4 px-6 py-3'}
-            hasMore={messages.hasNextPage}
-            reversed={true}
-            getScrollParent={() => {
-              return scrollAreaRef.current;
-            }}
-            loadMore={() => {
-              messages.fetchNextPage();
-            }}
-            isReverse={true}
-            loader={<div>LOADING</div>}
-            useWindow={false}
-        >
-          {Object.entries(formattedMessages || {})
-              .sort((a, b) => (dayjs(a[0]).isBefore(dayjs(b[0])) ? 1 : -1))
-              .map(([date, messages]) => {
-                return (
-                    <div key={date} className={cn('flex flex-col space-y-4')}>
-                      <div
-                          className={cn(
-                              'divider text-center text-sm font-semibold before:bg-warm-gray-400 after:bg-warm-gray-400'
-                          )}
-                      >
-                        {date}
-                      </div>
-                      {messages.reverse().map((m) => {
-                        const isSentByMe = m.author.user_id === user.user?.id;
-                        const content = safeGenerateMessageContent(
-                            JSON.parse(m.content)
-                        );
-
-                        return (
-                            <ChatReplyWrapper
-                                sendDate={m.created_at}
-                                variant={isSentByMe ? 'sender' : 'receiver'}
-                                author={m.author}
-                                key={m.client_message_id}
-                            >
-
-                              <ChatContent content={content}/>
-                            </ChatReplyWrapper>
-                        );
-                      })}
-                    </div>
-                );
-              })}
-        </InfiniteScroll>
-      </ScrollArea>
+                  return (
+                    <ChatReplyWrapper
+                      sendDate={m.created_at}
+                      variant={isSentByMe ? 'sender' : 'receiver'}
+                      author={m.author}
+                      key={m.client_message_id}
+                    >
+                      <ChatContent content={content} />
+                    </ChatReplyWrapper>
+                  );
+                })}
+              </div>
+            );
+          })}
+      </InfiniteScroll>
+    </ScrollArea>
   );
 };
 
