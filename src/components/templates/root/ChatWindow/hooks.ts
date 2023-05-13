@@ -1,9 +1,9 @@
-import { useEffect } from "react";
-import { useChannel } from "@ably-labs/react-hooks";
-import { ablyChannelKeyStore } from "@/utils/useAblyWebsocket";
-import { api } from "@/utils/api";
-import produce from "immer";
-import { useUser } from "@clerk/nextjs";
+import { useEffect } from 'react';
+import { useChannel } from '@ably-labs/react-hooks';
+import { ablyChannelKeyStore } from '@/utils/useAblyWebsocket';
+import { api } from '@/utils/api';
+import produce from 'immer';
+import { useUser } from '@clerk/nextjs';
 
 export const useChatWindowScroll = (
   scrollAreaRef: React.RefObject<HTMLDivElement>
@@ -14,22 +14,22 @@ export const useChatWindowScroll = (
         event.currentTarget instanceof HTMLElement &&
         event.target instanceof HTMLElement
       ) {
-        const sentBy = event.target.getAttribute("data-communicator");
+        const sentBy = event.target.getAttribute('data-communicator');
 
         event.currentTarget.scroll({
           top: event.currentTarget.scrollHeight,
-          behavior: "smooth",
+          behavior: 'smooth',
         });
       }
     };
     if (scrollAreaRef.current) {
-      scrollAreaRef.current.addEventListener("DOMNodeInserted", listener);
+      scrollAreaRef.current.addEventListener('DOMNodeInserted', listener);
     }
 
     return () => {
       if (scrollAreaRef.current) {
         scrollAreaRef.current.removeEventListener(
-          "DOMNodeInserted",
+          'DOMNodeInserted',
           listener,
           false
         );
@@ -56,7 +56,7 @@ export const useMessageUpdate = (chatroomId: string) => {
             pages: [
               {
                 messages: [message.data],
-                nextCursor: undefined,
+                next_cursor: null,
               },
             ],
             pageParams: [],

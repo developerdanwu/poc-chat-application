@@ -11,7 +11,7 @@ const ChatReplyWrapper = ({
   sendDate,
 }: {
   author: RouterOutput['messaging']['getMessages']['messages'][number]['author'];
-  sendDate: Date;
+  sendDate: string;
   variant?: 'sender' | 'receiver';
   children: React.ReactNode;
 }) => {
@@ -31,7 +31,7 @@ const ChatReplyWrapper = ({
         <div className={'flex items-center space-x-2 text-sm font-semibold'}>
           {<p>{fullName}</p>}
           <div className={'text-xs font-normal text-warm-gray-400'}>
-            {dayjs(sendDate).format('hh:mm a')}
+            {dayjs.utc(sendDate).local().format('hh:mm a')}
           </div>
         </div>
         <div>{children}</div>

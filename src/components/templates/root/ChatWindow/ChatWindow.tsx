@@ -18,9 +18,10 @@ import InfiniteScroll from 'react-infinite-scroller';
 import ChatReplyWrapper from '@/components/templates/root/ChatReplyWrapper';
 import { useUser } from '@clerk/nextjs';
 import ChatContent from '@/components/templates/root/ChatContent';
+import utc from 'dayjs/plugin/utc';
 
 dayjs.extend(advancedFormat);
-
+dayjs.extend(utc);
 const safeGenerateMessageContent = (content: any) => {
   try {
     return generateHTML(content, [
@@ -75,7 +76,7 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
   const formattedMessages = messagesArray?.reduce<
     Record<string, RouterOutput['messaging']['getMessages']['messages']>
   >((acc, nextVal) => {
-    const date = dayjs(nextVal.created_at).format('dddd, MMMM Do');
+    const date = dayjs.utc(nextVal.created_at).local().format('dddd, MMMM Do');
     if (!acc[date]) {
       acc[date] = [];
     }

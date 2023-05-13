@@ -1,18 +1,18 @@
-import { AppProps } from "next/app";
+import { AppProps } from 'next/app';
 
-import { api } from "@/utils/api";
+import { api } from '@/utils/api';
 
-import "@/styles/globals.css";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import '@/styles/globals.css';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import {
   ClerkProvider,
   RedirectToSignIn,
   SignedIn,
   SignedOut,
-} from "@clerk/nextjs";
-import { ReactElement, ReactNode } from "react";
-import { NextPage } from "next";
-import useAblyWebsocket from "@/utils/useAblyWebsocket";
+} from '@clerk/nextjs';
+import { ReactElement, ReactNode } from 'react';
+import { NextPage } from 'next';
+import useAblyWebsocket from '@/utils/useAblyWebsocket';
 
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
   getLayout?: (page: ReactElement) => ReactNode;
@@ -37,7 +37,7 @@ const MyApp = ({
           <RedirectToSignIn />
         </SignedOut>
       </ClerkProvider>
-      <ReactQueryDevtools position={"top-right"} panelPosition={"right"} />
+      <ReactQueryDevtools position={'top-right'} panelPosition={'right'} />
     </>
   );
 };

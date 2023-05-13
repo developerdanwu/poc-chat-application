@@ -1,6 +1,6 @@
-import origCN, { ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
-import { useUser } from "@clerk/nextjs";
+import origCN, { ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+import { useUser } from '@clerk/nextjs';
 
 export const getFullName = ({
   firstName,
@@ -18,7 +18,7 @@ export const getFullName = ({
   let fullName;
   // check first name to avoid space in the front if only lastname exists
   if (firstName) {
-    fullName = `${firstName || ""} ${lastName || ""}`;
+    fullName = `${firstName || ''} ${lastName || ''}`;
   } else {
     fullName = lastName ? lastName : fallback;
   }

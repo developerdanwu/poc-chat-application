@@ -36,43 +36,43 @@ export const MainChatWrapper = ({
 const ChatroomId: NextPageWithLayout = () => {
   const router = useRouter();
   const chatroomId =
-      typeof router.query.chatroomId === 'string' ? router.query.chatroomId : '';
+    typeof router.query.chatroomId === 'string' ? router.query.chatroomId : '';
   const trpcUtils = api.useContext();
   const queryClient = useQueryClient();
   const user = useUser();
   const sendMessage = api.messaging.sendMessage.useMutation({
     onSettled: () => {
       queryClient.invalidateQueries(
-          getQueryKey(
-              api.messaging.getMessages,
-              {
-                chatroomId,
-              },
-              'query'
-          )
+        getQueryKey(
+          api.messaging.getMessages,
+          {
+            chatroomId,
+          },
+          'query'
+        )
       );
     },
     onMutate: (variables) => {
       const oldData = trpcUtils.messaging.getMessages.getInfiniteData({
         chatroomId,
       });
-      trpcUtils.messaging.getMessages.setInfiniteData({chatroomId}, (old) => {
+      trpcUtils.messaging.getMessages.setInfiniteData({ chatroomId }, (old) => {
         if (!old) {
           return {
-            pages: [{messages: [], next_cursor: null}],
+            pages: [{ messages: [], next_cursor: null }],
             pageParams: [],
           };
         }
 
         const newMessage = {
           client_message_id:
-              old.pages[old.pages.length - 1]?.messages?.[
+            old.pages[old.pages.length - 1]?.messages?.[
               (old.pages?.[old.pages.length - 1]?.messages?.length ?? 1) - 1
-                  ]?.client_message_id || 999,
+            ]?.client_message_id || 999,
           text: variables.text,
           content: variables.content,
-          created_at: dayjs().toDate(),
-          updated_at: dayjs().toDate(),
+          created_at: dayjs().utc().toDate(),
+          updated_at: dayjs().utc().toDate(),
           author: {
             author_id: 999,
             user_id: user?.user?.id || '',
@@ -115,8 +115,8 @@ const ChatroomId: NextPageWithLayout = () => {
       };
       if (contextCast.oldData) {
         trpcUtils.messaging.getMessages.setInfiniteData(
-            {chatroomId},
-            () => contextCast.oldData
+          { chatroomId },
+          () => contextCast.oldData
         );
       }
     },
@@ -124,10 +124,10 @@ const ChatroomId: NextPageWithLayout = () => {
 
   const chatForm = useForm({
     resolver: zodResolver(
-        z.object({
-          text: z.string().min(1),
-          content: z.any(),
-        })
+      z.object({
+        text: z.string().min(1),
+        content: z.any(),
+      })
     ),
     defaultValues: {
       text: '',
@@ -136,65 +136,65 @@ const ChatroomId: NextPageWithLayout = () => {
   });
 
   return (
-      <>
-        {typeof router.query.chatroomId === 'string' && (
-            <MainChatWrapper>
-              <ChatTopControls chatroomId={chatroomId}/>
-              <ChatWindow chatroomId={router.query.chatroomId}/>
-              <FormProvider {...chatForm}>
-                <form
-                    id={'message-text-input-form'}
-                    className={
-                      'flex w-full items-center justify-between space-x-4 bg-transparent bg-secondary px-6 py-3'
-                    }
-                    onSubmit={chatForm.handleSubmit((data) => {
-                      sendMessage.mutate({
-                        ...data,
-                        chatroomId,
-                      });
-                    })}
-                >
-                  <Controller
-                      control={chatForm.control}
-                      render={({field: {onChange, value}}) => {
-                        return (
-                            <TextEditor
-                                onClickEnter={() => {
-                                  chatForm.handleSubmit((data) => {
-                                    sendMessage.mutate({
-                                      ...data,
-                                      content: JSON.stringify(data.content),
-                                      chatroomId,
-                                    });
-                                  })();
-                                }}
-                                onChange={onChange}
-                                content={value}
-                            />
-                        );
+    <>
+      {typeof router.query.chatroomId === 'string' && (
+        <MainChatWrapper>
+          <ChatTopControls chatroomId={chatroomId} />
+          <ChatWindow chatroomId={router.query.chatroomId} />
+          <FormProvider {...chatForm}>
+            <form
+              id={'message-text-input-form'}
+              className={
+                'flex w-full items-center justify-between space-x-4 bg-transparent bg-secondary px-6 py-3'
+              }
+              onSubmit={chatForm.handleSubmit((data) => {
+                sendMessage.mutate({
+                  ...data,
+                  chatroomId,
+                });
+              })}
+            >
+              <Controller
+                control={chatForm.control}
+                render={({ field: { onChange, value } }) => {
+                  return (
+                    <TextEditor
+                      onClickEnter={() => {
+                        chatForm.handleSubmit((data) => {
+                          sendMessage.mutate({
+                            ...data,
+                            content: JSON.stringify(data.content),
+                            chatroomId,
+                          });
+                        })();
                       }}
-                      name={'content'}
-                  />
-                </form>
-              </FormProvider>
-            </MainChatWrapper>
-        )}
-      </>
+                      onChange={onChange}
+                      content={value}
+                    />
+                  );
+                }}
+                name={'content'}
+              />
+            </form>
+          </FormProvider>
+        </MainChatWrapper>
+      )}
+    </>
   );
 };
 
 ChatroomId.getLayout = function getLayout(page) {
   return (
-      <div
-          className={cn(
-              'flex h-screen w-screen flex-row items-center justify-center  bg-warm-gray-50'
-          )}
-      >
-        <div className={cn('flex h-full w-full flex-row')}>
-          <ChatSidebar/>
-          <MainChatWrapper>{page}</MainChatWrapper>
-        </div>
+    <div
+      className={cn(
+        'flex h-screen w-screen flex-row items-center justify-center  bg-warm-gray-50'
+      )}
+    >
+      <div className={cn('flex h-full w-full flex-row')}>
+        <ChatSidebar />
+        <MainChatWrapper>{page}</MainChatWrapper>
       </div>
+    </div>
   );
 };
 

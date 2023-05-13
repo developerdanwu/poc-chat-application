@@ -318,8 +318,8 @@ export const messaging = createTRPCRouter({
                 user_id: string;
               };
               text: string;
-              created_at: Date;
-              updated_at: Date;
+              created_at: string;
+              updated_at: string;
             }[]
           >`JSON_ARRAYAGG(
                 JSON_OBJECT(
