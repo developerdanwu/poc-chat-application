@@ -10,8 +10,6 @@ const gpt = new ChatGPTAPI({
   apiKey: env.OPENAI_ACCESS_TOKEN as string,
 });
 
-// In a real app, you'd probably use Redis or something
-
 export const messaging = createTRPCRouter({
   getAllAuthors: protectedProcedure
     .input(
@@ -117,7 +115,6 @@ export const messaging = createTRPCRouter({
             .execute();
 
           // create new message
-
           await trx
             .insertInto('message')
             .values((eb) => ({
@@ -279,8 +276,6 @@ export const messaging = createTRPCRouter({
 
       return chatroom;
     }),
-
-  // TODO: fix infinite query
   getMessages: protectedProcedure
     .input(
       z.object({
@@ -314,8 +309,7 @@ export const messaging = createTRPCRouter({
         .select([
           sql<
             {
-              client_message_id: string;
-              author_id: number;
+              client_message_id: number;
               content: string;
               author: {
                 author_id: number;
@@ -323,7 +317,6 @@ export const messaging = createTRPCRouter({
                 last_name: string;
                 user_id: string;
               };
-              user_id: string;
               text: string;
               created_at: Date;
               updated_at: Date;
@@ -353,7 +346,6 @@ export const messaging = createTRPCRouter({
             : null,
       };
     }),
-
   sendMessage: protectedProcedure
     .input(
       z.object({

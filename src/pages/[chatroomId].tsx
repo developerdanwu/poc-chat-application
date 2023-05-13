@@ -1,22 +1,21 @@
-import { NextPageWithLayout } from "@/pages/_app";
-import { cn } from "@/utils/utils";
-import ChatSidebar from "@/components/templates/root/ChatSidebar/ChatSidebar";
-import React from "react";
-import { useRouter } from "next/router";
-import ChatTopControls from "@/components/templates/root/ChatTopControls";
-import ChatWindow from "@/components/templates/root/ChatWindow/ChatWindow";
-import { Controller, FormProvider, useForm } from "react-hook-form";
-import TextEditor from "@/components/modules/TextEditor/TextEditor";
-import { api } from "@/utils/api";
-import { zodResolver } from "@hookform/resolvers/zod";
-import z from "zod";
-import { getQueryKey } from "@trpc/react-query";
-import { v4 as uuid } from "uuid";
-import dayjs from "dayjs";
-import produce from "immer";
-import { InfiniteData, useQueryClient } from "@tanstack/react-query";
-import { RouterOutput } from "@/server/api/root";
-import { useUser } from "@clerk/nextjs";
+import { NextPageWithLayout } from '@/pages/_app';
+import { cn } from '@/utils/utils';
+import ChatSidebar from '@/components/templates/root/ChatSidebar/ChatSidebar';
+import React from 'react';
+import { useRouter } from 'next/router';
+import ChatTopControls from '@/components/templates/root/ChatTopControls';
+import ChatWindow from '@/components/templates/root/ChatWindow/ChatWindow';
+import { Controller, FormProvider, useForm } from 'react-hook-form';
+import TextEditor from '@/components/modules/TextEditor/TextEditor';
+import { api } from '@/utils/api';
+import { zodResolver } from '@hookform/resolvers/zod';
+import z from 'zod';
+import { getQueryKey } from '@trpc/react-query';
+import dayjs from 'dayjs';
+import produce from 'immer';
+import { InfiniteData, useQueryClient } from '@tanstack/react-query';
+import { RouterOutput } from '@/server/api/root';
+import { useUser } from '@clerk/nextjs';
 
 export const MainChatWrapper = ({
   children,
@@ -26,7 +25,7 @@ export const MainChatWrapper = ({
   return (
     <div
       className={
-        "flex h-full w-full flex-col items-center justify-center overflow-hidden bg-warm-gray-50 "
+        'flex h-full w-full flex-col items-center justify-center overflow-hidden bg-warm-gray-50 '
       }
     >
       {children}
@@ -37,49 +36,48 @@ export const MainChatWrapper = ({
 const ChatroomId: NextPageWithLayout = () => {
   const router = useRouter();
   const chatroomId =
-    typeof router.query.chatroomId === "string" ? router.query.chatroomId : "";
+      typeof router.query.chatroomId === 'string' ? router.query.chatroomId : '';
   const trpcUtils = api.useContext();
   const queryClient = useQueryClient();
   const user = useUser();
   const sendMessage = api.messaging.sendMessage.useMutation({
     onSettled: () => {
       queryClient.invalidateQueries(
-        getQueryKey(
-          api.messaging.getMessages,
-          {
-            chatroomId,
-          },
-          "query"
-        )
+          getQueryKey(
+              api.messaging.getMessages,
+              {
+                chatroomId,
+              },
+              'query'
+          )
       );
     },
     onMutate: (variables) => {
       const oldData = trpcUtils.messaging.getMessages.getInfiniteData({
         chatroomId,
       });
-      trpcUtils.messaging.getMessages.setInfiniteData({ chatroomId }, (old) => {
+      trpcUtils.messaging.getMessages.setInfiniteData({chatroomId}, (old) => {
         if (!old) {
           return {
-            pages: [],
+            pages: [{messages: [], next_cursor: null}],
             pageParams: [],
           };
         }
 
         const newMessage = {
-          clientMessageId: uuid(),
+          client_message_id:
+              old.pages[old.pages.length - 1]?.messages?.[
+              (old.pages?.[old.pages.length - 1]?.messages?.length ?? 1) - 1
+                  ]?.client_message_id || 999,
           text: variables.text,
           content: variables.content,
-          createdAt: dayjs().toDate(),
-          updatedAt: dayjs().toDate(),
+          created_at: dayjs().toDate(),
+          updated_at: dayjs().toDate(),
           author: {
-            email: user?.user?.emailAddresses[0]?.emailAddress || null,
-            authorId: 999,
-            userId: user?.user?.id || null,
-            role: "user",
-            createdAt: dayjs().toDate(),
-            updatedAt: dayjs().toDate(),
-            firstName: user?.user?.firstName || "",
-            lastName: user?.user?.lastName || "",
+            author_id: 999,
+            user_id: user?.user?.id || '',
+            first_name: user?.user?.firstName || '',
+            last_name: user?.user?.lastName || '',
           },
         };
 
@@ -88,7 +86,7 @@ const ChatroomId: NextPageWithLayout = () => {
             pages: [
               {
                 messages: [newMessage],
-                nextCursor: undefined,
+                next_cursor: null,
               },
             ],
             pageParams: [],
@@ -97,27 +95,28 @@ const ChatroomId: NextPageWithLayout = () => {
 
         const newState = produce(old.pages, (draft) => {
           draft[0]?.messages.unshift(newMessage);
+          return draft;
         });
 
         return {
-          pages: newState,
+          pages: newState || [],
           pageParams: old.pageParams,
         };
       });
-      chatForm.reset();
 
+      chatForm.reset();
       return {
         oldData,
       };
     },
     onError: (error, variables, context) => {
       const contextCast = context as {
-        oldData?: InfiniteData<RouterOutput["messaging"]["getMessages"]>;
+        oldData?: InfiniteData<RouterOutput['messaging']['getMessages']>;
       };
       if (contextCast.oldData) {
         trpcUtils.messaging.getMessages.setInfiniteData(
-          { chatroomId },
-          () => contextCast.oldData
+            {chatroomId},
+            () => contextCast.oldData
         );
       }
     },
@@ -125,77 +124,77 @@ const ChatroomId: NextPageWithLayout = () => {
 
   const chatForm = useForm({
     resolver: zodResolver(
-      z.object({
-        text: z.string().min(1),
-        content: z.any(),
-      })
+        z.object({
+          text: z.string().min(1),
+          content: z.any(),
+        })
     ),
     defaultValues: {
-      text: "",
-      content: "",
+      text: '',
+      content: '',
     },
   });
 
   return (
-    <>
-      {typeof router.query.chatroomId === "string" && (
-        <MainChatWrapper>
-          <ChatTopControls chatroomId={chatroomId} />
-          <ChatWindow chatroomId={router.query.chatroomId} />
-          <FormProvider {...chatForm}>
-            <form
-              id={"message-text-input-form"}
-              className={
-                "flex w-full items-center justify-between space-x-4 bg-transparent bg-secondary px-6 py-3"
-              }
-              onSubmit={chatForm.handleSubmit((data) => {
-                sendMessage.mutate({
-                  ...data,
-                  chatroomId,
-                });
-              })}
-            >
-              <Controller
-                control={chatForm.control}
-                render={({ field: { onChange, value } }) => {
-                  return (
-                    <TextEditor
-                      onClickEnter={() => {
-                        chatForm.handleSubmit((data) => {
-                          sendMessage.mutate({
-                            ...data,
-                            content: JSON.stringify(data.content),
-                            chatroomId,
-                          });
-                        })();
+      <>
+        {typeof router.query.chatroomId === 'string' && (
+            <MainChatWrapper>
+              <ChatTopControls chatroomId={chatroomId}/>
+              <ChatWindow chatroomId={router.query.chatroomId}/>
+              <FormProvider {...chatForm}>
+                <form
+                    id={'message-text-input-form'}
+                    className={
+                      'flex w-full items-center justify-between space-x-4 bg-transparent bg-secondary px-6 py-3'
+                    }
+                    onSubmit={chatForm.handleSubmit((data) => {
+                      sendMessage.mutate({
+                        ...data,
+                        chatroomId,
+                      });
+                    })}
+                >
+                  <Controller
+                      control={chatForm.control}
+                      render={({field: {onChange, value}}) => {
+                        return (
+                            <TextEditor
+                                onClickEnter={() => {
+                                  chatForm.handleSubmit((data) => {
+                                    sendMessage.mutate({
+                                      ...data,
+                                      content: JSON.stringify(data.content),
+                                      chatroomId,
+                                    });
+                                  })();
+                                }}
+                                onChange={onChange}
+                                content={value}
+                            />
+                        );
                       }}
-                      onChange={onChange}
-                      content={value}
-                    />
-                  );
-                }}
-                name={"content"}
-              />
-            </form>
-          </FormProvider>
-        </MainChatWrapper>
-      )}
-    </>
+                      name={'content'}
+                  />
+                </form>
+              </FormProvider>
+            </MainChatWrapper>
+        )}
+      </>
   );
 };
 
 ChatroomId.getLayout = function getLayout(page) {
   return (
-    <div
-      className={cn(
-        "flex h-screen w-screen flex-row items-center justify-center  bg-warm-gray-50"
-      )}
-    >
-      <div className={cn("flex h-full w-full flex-row")}>
-        <ChatSidebar />
-        <MainChatWrapper>{page}</MainChatWrapper>
+      <div
+          className={cn(
+              'flex h-screen w-screen flex-row items-center justify-center  bg-warm-gray-50'
+          )}
+      >
+        <div className={cn('flex h-full w-full flex-row')}>
+          <ChatSidebar/>
+          <MainChatWrapper>{page}</MainChatWrapper>
+        </div>
       </div>
-    </div>
   );
 };
 
