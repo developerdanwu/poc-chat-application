@@ -65,7 +65,6 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
   const messagesArray = messages.data?.pages.reduce<
     RouterOutput['messaging']['getMessages']['messages']
   >((acc, nextVal) => {
-    console.log(nextVal);
     nextVal.messages.forEach((m) => {
       acc.push(m);
     });
