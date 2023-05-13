@@ -1,5 +1,6 @@
 import { notEmpty } from "@/utils/ts-utils";
 import { api } from "@/utils/api";
+import { useUser } from "@clerk/nextjs";
 
 const ChatTopControls = ({ chatroomId }: { chatroomId: string }) => {
   const chatroomDetail = api.messaging.getChatroom.useQuery(
@@ -10,6 +11,12 @@ const ChatTopControls = ({ chatroomId }: { chatroomId: string }) => {
       enabled: !!chatroomId,
     }
   );
+
+  const selfUser = useUser();
+  const filteredChatroomUsers = chatroomDetail.data?.authors.filter(
+    (user) => user.user_id !== selfUser.user?.id
+  );
+
   return (
     <div
       className={
@@ -17,8 +24,8 @@ const ChatTopControls = ({ chatroomId }: { chatroomId: string }) => {
       }
     >
       <p className={"w-full px-6  font-semibold text-black"}>
-        {chatroomDetail.data?.authors
-          .map((author) => author?.first_name)
+        {filteredChatroomUsers
+          ?.map((author) => author?.first_name)
           .filter(notEmpty)
           .join(",")}
       </p>
