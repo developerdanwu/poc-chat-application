@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { api } from "@/utils/api";
-import { cn } from "@/utils/utils";
+import { cn, useApiTransformUtils } from "@/utils/utils";
 import Input from "@/components/elements/Input";
 import ThreadListItem from "@/components/templates/root/ThreadListItem";
 import { notEmpty } from "@/utils/ts-utils";
@@ -17,6 +17,7 @@ const ChatSidebar = () => {
   const chatrooms = api.messaging.getChatrooms.useQuery({
     searchKeyword: debouncedSearch,
   });
+  const { filterAuthedUserFromChatroomAuthors } = useApiTransformUtils();
   useDebounce(
     () => {
       setDebouncedSearch(search);
@@ -57,8 +58,8 @@ const ChatSidebar = () => {
                 <ThreadListItem
                   selected={chatroomId === chatroom.id}
                   // TODO: setup page to let user fill in important details
-                  name={chatroom.users
-                    .map((author) => author?.firstName)
+                  name={filterAuthedUserFromChatroomAuthors(chatroom.authors)
+                    ?.map((author) => author?.first_name)
                     .filter(notEmpty)
                     .join(", ")}
                 />

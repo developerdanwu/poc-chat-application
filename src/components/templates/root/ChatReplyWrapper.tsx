@@ -1,36 +1,37 @@
-import React from "react";
-import Avatar from "@/components/elements/Avatar";
-import dayjs from "dayjs";
-import { RouterOutput } from "@/server/api/root";
-import { getFullName } from "@/utils/utils";
+import React from 'react';
+import Avatar from '@/components/elements/Avatar';
+import dayjs from 'dayjs';
+import { RouterOutput } from '@/server/api/root';
+import { useApiTransformUtils } from '@/utils/utils';
 
 const ChatReplyWrapper = ({
   children,
   author,
-  variant = "sender",
+  variant = 'sender',
   sendDate,
 }: {
-  author: RouterOutput["messaging"]["getMessages"]["messages"][number]["author"];
-  sendDate: string;
-  variant?: "sender" | "receiver";
+  author: RouterOutput['messaging']['getMessages']['messages'][number]['author'];
+  sendDate: Date;
+  variant?: 'sender' | 'receiver';
   children: React.ReactNode;
 }) => {
+  const { getFullName } = useApiTransformUtils();
   const fullName = getFullName({
-    firstName: author.firstName,
-    lastName: author.lastName,
-    fallback: "Untitled",
+    firstName: author.first_name,
+    lastName: author.last_name,
+    fallback: 'Untitled',
   });
   return (
     <div
-      data-communicator={variant === "sender" ? "sender" : "receiver"}
-      className={"chat chat-start"}
+      data-communicator={variant === 'sender' ? 'sender' : 'receiver'}
+      className={'chat chat-start'}
     >
       <Avatar alt={fullName.slice(0, 2)} />
-      <div className={"flex flex-col space-y-2"}>
-        <div className={"flex items-center space-x-2 text-sm font-semibold"}>
+      <div className={'flex flex-col space-y-2'}>
+        <div className={'flex items-center space-x-2 text-sm font-semibold'}>
           {<p>{fullName}</p>}
-          <div className={"text-xs font-normal text-warm-gray-400"}>
-            {dayjs(sendDate).format("hh:mm a")}
+          <div className={'text-xs font-normal text-warm-gray-400'}>
+            {dayjs(sendDate).format('hh:mm a')}
           </div>
         </div>
         <div>{children}</div>

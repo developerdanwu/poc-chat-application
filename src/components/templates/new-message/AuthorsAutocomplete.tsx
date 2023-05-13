@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useCombobox } from "downshift";
 import { api } from "@/utils/api";
 import { useDebounce } from "react-use";
-import { cn, getFullName } from "@/utils/utils";
+import { cn, useApiTransformUtils } from "@/utils/utils";
 import Avatar from "@/components/elements/Avatar";
 import RadialProgress from "@/components/elements/RadialProgress";
 import { useFormContext } from "react-hook-form";
@@ -10,6 +10,7 @@ import { useFormContext } from "react-hook-form";
 const AuthorsAutocomplete = () => {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const { getFullName } = useApiTransformUtils();
   const {
     setValue,
     register,

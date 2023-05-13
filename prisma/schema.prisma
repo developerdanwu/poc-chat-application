@@ -16,7 +16,7 @@ datasource db {
 }
 
 model Message {
-  clientMessageId String   @id @default(dbgenerated("(uuid())")) @map("client_message_id")
+  clientMessageId Int      @id @default(autoincrement()) @map("client_message_id")
   text            String   @db.LongText
   timestamp       DateTime @default(now())
   type            String

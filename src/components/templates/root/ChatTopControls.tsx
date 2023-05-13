@@ -1,6 +1,6 @@
 import { notEmpty } from "@/utils/ts-utils";
 import { api } from "@/utils/api";
-import { useUser } from "@clerk/nextjs";
+import { useApiTransformUtils } from "@/utils/utils";
 
 const ChatTopControls = ({ chatroomId }: { chatroomId: string }) => {
   const chatroomDetail = api.messaging.getChatroom.useQuery(
@@ -12,9 +12,9 @@ const ChatTopControls = ({ chatroomId }: { chatroomId: string }) => {
     }
   );
 
-  const selfUser = useUser();
-  const filteredChatroomUsers = chatroomDetail.data?.authors.filter(
-    (user) => user.user_id !== selfUser.user?.id
+  const { filterAuthedUserFromChatroomAuthors } = useApiTransformUtils();
+  const filteredChatroomUsers = filterAuthedUserFromChatroomAuthors(
+    chatroomDetail.data?.authors ?? []
   );
 
   return (

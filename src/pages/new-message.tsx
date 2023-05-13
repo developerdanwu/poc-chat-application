@@ -27,7 +27,6 @@ const NewMessage: NextPageWithLayout = () => {
       content: "",
     },
   });
-  const trpcUtils = api.useContext();
   const router = useRouter();
 
   const startNewChat = api.messaging.startNewChat.useMutation({

@@ -1,5 +1,6 @@
 import origCN, { ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { useUser } from "@clerk/nextjs";
 
 export const getFullName = ({
   firstName,
@@ -23,6 +24,18 @@ export const getFullName = ({
   }
 
   return fullName;
+};
+
+export const useApiTransformUtils = () => {
+  const user = useUser();
+  const filterAuthedUserFromChatroomAuthors = <T extends { user_id: string }>(
+    authors: T[]
+  ) => authors?.filter((author) => author.user_id !== user?.user?.id);
+
+  return {
+    filterAuthedUserFromChatroomAuthors,
+    getFullName,
+  };
 };
 
 export const cn = (...inputs: ClassValue[]) => {
