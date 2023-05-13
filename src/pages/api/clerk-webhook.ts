@@ -1,9 +1,9 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { type NextApiRequest, type NextApiResponse } from "next";
 import { Webhook } from "svix";
 import { buffer } from "micro";
 import { env } from "@/env.mjs";
-import { ClerkWebhookEvent } from "@/server/webhooks";
-import { User } from "@clerk/nextjs/api";
+import { type ClerkWebhookEvent } from "@/server/webhooks";
+import { type User } from "@clerk/nextjs/api";
 import { prisma } from "@/server/db";
 
 const secret = env.WEBHOOK_SECRET;

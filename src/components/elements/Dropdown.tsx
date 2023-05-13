@@ -1,9 +1,9 @@
 import React from "react";
 import * as RadixDropdownMenu from "@radix-ui/react-dropdown-menu";
 import {
-  DropdownMenuContentProps,
-  DropdownMenuProps,
-  DropdownMenuTriggerProps,
+  type DropdownMenuContentProps,
+  type DropdownMenuProps,
+  type DropdownMenuTriggerProps,
 } from "@radix-ui/react-dropdown-menu";
 
 const DropdownMenu = ({

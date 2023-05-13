@@ -1,4 +1,4 @@
-import origCN, { ClassValue } from 'clsx';
+import origCN, { type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { useUser } from '@clerk/nextjs';
 

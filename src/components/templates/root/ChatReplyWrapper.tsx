@@ -1,7 +1,7 @@
 import React from 'react';
 import Avatar from '@/components/elements/Avatar';
 import dayjs from 'dayjs';
-import { RouterOutput } from '@/server/api/root';
+import { type RouterOutput } from '@/server/api/root';
 import { useApiTransformUtils } from '@/utils/utils';
 
 const ChatReplyWrapper = ({

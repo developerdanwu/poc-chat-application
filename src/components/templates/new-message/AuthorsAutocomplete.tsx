@@ -1,19 +1,18 @@
-import React, { useEffect, useState } from "react";
-import { useCombobox } from "downshift";
-import { api } from "@/utils/api";
-import { useDebounce } from "react-use";
-import { cn, useApiTransformUtils } from "@/utils/utils";
-import Avatar from "@/components/elements/Avatar";
-import RadialProgress from "@/components/elements/RadialProgress";
-import { useFormContext } from "react-hook-form";
+import React, { useEffect, useState } from 'react';
+import { useCombobox } from 'downshift';
+import { api } from '@/utils/api';
+import { useDebounce } from 'react-use';
+import { cn, useApiTransformUtils } from '@/utils/utils';
+import Avatar from '@/components/elements/Avatar';
+import RadialProgress from '@/components/elements/RadialProgress';
+import { useFormContext } from 'react-hook-form';
 
 const AuthorsAutocomplete = () => {
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const { getFullName } = useApiTransformUtils();
   const {
     setValue,
-    register,
     formState: { isSubmitSuccessful },
   } = useFormContext();
   const allAuthors = api.messaging.getAllAuthors.useQuery({
@@ -39,46 +38,46 @@ const AuthorsAutocomplete = () => {
   } = useCombobox({
     onSelectedItemChange: (item) => {
       if (item?.selectedItem?.author_id) {
-        setValue("authorId", item.selectedItem.author_id);
+        setValue('authorId', item.selectedItem.author_id);
       }
     },
     itemToString: (item) =>
       getFullName({
         firstName: item?.first_name,
         lastName: item?.last_name,
-        fallback: "Untitled",
+        fallback: 'Untitled',
       }),
     items: allAuthors.data || [],
     onInputValueChange: ({ inputValue }) => {
       if (inputValue) {
         return setSearch(inputValue);
       }
-      return setSearch("");
+      return setSearch('');
     },
   });
   useEffect(() => {
     selectItem(null);
-    setInputValue("");
+    setInputValue('');
   }, [isSubmitSuccessful, selectItem, setInputValue]);
 
   return (
     <div
       style={{
-        display: "flex",
-        flexDirection: "column",
-        width: "fit-content",
-        justifyContent: "center",
-        alignSelf: "center",
+        display: 'flex',
+        flexDirection: 'column',
+        width: 'fit-content',
+        justifyContent: 'center',
+        alignSelf: 'center',
       }}
-      className={"relative flex-1"}
+      className={'relative flex-1'}
     >
-      <div className={"flex w-full items-center justify-between"}>
+      <div className={'flex w-full items-center justify-between'}>
         <input
           autoFocus
           spellCheck="false"
-          placeholder={"@friend"}
-          className={"relative bg-transparent outline-none"}
-          style={{ padding: "4px" }}
+          placeholder={'@friend'}
+          className={'relative bg-transparent outline-none'}
+          style={{ padding: '4px' }}
           {...getInputProps()}
           data-testid="combobox-input"
         />
@@ -89,11 +88,11 @@ const AuthorsAutocomplete = () => {
         <ul
           {...getMenuProps()}
           className={
-            "z-50 w-full rounded-sm border-2 border-black bg-warm-gray-50 p-3"
+            'z-50 w-full rounded-sm border-2 border-black bg-warm-gray-50 p-3'
           }
           style={{
-            listStyle: "none",
-            position: "absolute",
+            listStyle: 'none',
+            position: 'absolute',
             top: 35,
             left: -1,
           }}
@@ -105,20 +104,20 @@ const AuthorsAutocomplete = () => {
                 {...getItemProps({ item, index, key: item.author_id })}
                 key={item.author_id}
                 className={cn(
-                  "flex w-full cursor-pointer items-center rounded-sm py-2 px-3 hover:bg-warm-gray-300",
+                  'flex w-full cursor-pointer items-center rounded-sm py-2 px-3 hover:bg-warm-gray-300',
                   {
-                    "bg-warm-gray-300": highlightedIndex === index,
-                    "bg-gray-900 hover:bg-gray-900": selected,
+                    'bg-warm-gray-300': highlightedIndex === index,
+                    'bg-gray-900 hover:bg-gray-900': selected,
                   }
                 )}
               >
-                <div className={"flex items-center"}>
-                  <Avatar size={"xs"} alt={item.first_name.slice(0, 2)} />
+                <div className={'flex items-center'}>
+                  <Avatar size={'xs'} alt={item.first_name.slice(0, 2)} />
                   <p
                     className={cn(
-                      "select-none pl-3 text-xs font-normal leading-4",
+                      'select-none pl-3 text-xs font-normal leading-4',
                       {
-                        "text-white": selected,
+                        'text-white': selected,
                       }
                     )}
                   >
@@ -127,9 +126,9 @@ const AuthorsAutocomplete = () => {
                 </div>
                 <p
                   className={cn(
-                    "select-none pl-3 text-xs font-normal leading-4 text-warm-gray-400",
+                    'select-none pl-3 text-xs font-normal leading-4 text-warm-gray-400',
                     {
-                      "text-white": selected,
+                      'text-white': selected,
                     }
                   )}
                 >

@@ -1,4 +1,4 @@
-import { NextPageWithLayout } from '@/pages/_app';
+import { type NextPageWithLayout } from '@/pages/_app';
 import { cn } from '@/utils/utils';
 import ChatSidebar from '@/components/templates/root/ChatSidebar/ChatSidebar';
 import React from 'react';
@@ -13,8 +13,8 @@ import z from 'zod';
 import { getQueryKey } from '@trpc/react-query';
 import dayjs from 'dayjs';
 import produce from 'immer';
-import { InfiniteData, useQueryClient } from '@tanstack/react-query';
-import { RouterOutput } from '@/server/api/root';
+import { type InfiniteData, useQueryClient } from '@tanstack/react-query';
+import { type RouterOutput } from '@/server/api/root';
 import { useUser } from '@clerk/nextjs';
 
 export const MainChatWrapper = ({
@@ -71,8 +71,8 @@ const ChatroomId: NextPageWithLayout = () => {
             ]?.client_message_id || 999,
           text: variables.text,
           content: variables.content,
-          created_at: dayjs().utc().toDate(),
-          updated_at: dayjs().utc().toDate(),
+          created_at: dayjs().utc().toISOString(),
+          updated_at: dayjs().utc().toISOString(),
           author: {
             author_id: 999,
             user_id: user?.user?.id || '',

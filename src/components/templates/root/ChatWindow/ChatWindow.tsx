@@ -12,7 +12,7 @@ import {
 import dayjs from 'dayjs';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import { cn, useApiTransformUtils } from '@/utils/utils';
-import { RouterOutput } from '@/server/api/root';
+import { type RouterOutput } from '@/server/api/root';
 import Avatar from '@/components/elements/Avatar';
 import InfiniteScroll from 'react-infinite-scroller';
 import ChatReplyWrapper from '@/components/templates/root/ChatReplyWrapper';

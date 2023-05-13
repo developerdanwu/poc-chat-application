@@ -1,7 +1,7 @@
 import React from "react";
 import { cn } from "@/utils/utils";
 import ChatSidebar from "@/components/templates/root/ChatSidebar/ChatSidebar";
-import { NextPageWithLayout } from "@/pages/_app";
+import { type NextPageWithLayout } from "@/pages/_app";
 import { MainChatWrapper } from "@/pages/[chatroomId]";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import TextEditor from "@/components/modules/TextEditor/TextEditor";

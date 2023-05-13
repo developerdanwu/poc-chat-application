@@ -1,4 +1,4 @@
-import { AppProps } from 'next/app';
+import { type AppProps } from 'next/app';
 
 import { api } from '@/utils/api';
 
@@ -10,8 +10,8 @@ import {
   SignedIn,
   SignedOut,
 } from '@clerk/nextjs';
-import { ReactElement, ReactNode } from 'react';
-import { NextPage } from 'next';
+import { type ReactElement, type ReactNode } from 'react';
+import { type NextPage } from 'next';
 import useAblyWebsocket from '@/utils/useAblyWebsocket';
 
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {

@@ -1,5 +1,5 @@
 import React from "react";
-import { RouterOutput } from "@/server/api/root";
+import { type RouterOutput } from "@/server/api/root";
 import { api } from "@/utils/api";
 import { useRouter } from "next/router";
 import ThreadListItem from "@/components/templates/root/ThreadListItem";
