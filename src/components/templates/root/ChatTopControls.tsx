@@ -17,8 +17,8 @@ const ChatTopControls = ({ chatroomId }: { chatroomId: string }) => {
       }
     >
       <p className={"w-full px-6  font-semibold text-black"}>
-        {chatroomDetail.data?.users
-          .map((author) => author?.firstName)
+        {chatroomDetail.data?.authors
+          .map((author) => author?.first_name)
           .filter(notEmpty)
           .join(",")}
       </p>

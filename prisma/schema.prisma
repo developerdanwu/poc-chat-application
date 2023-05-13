@@ -2,7 +2,7 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-kysely"
 }
 
 datasource db {
@@ -16,7 +16,7 @@ datasource db {
 }
 
 model Message {
-  clientMessageId String   @id @default(cuid()) @map("client_message_id")
+  clientMessageId String   @id @default(dbgenerated("(uuid())")) @map("client_message_id")
   text            String   @db.LongText
   timestamp       DateTime @default(now())
   type            String
@@ -34,28 +34,40 @@ model Message {
 }
 
 model Author {
-  firstName String     @map("first_name")
-  lastName  String     @map("last_name")
-  email     String?    @unique
-  authorId  Int        @id @default(autoincrement()) @map("author_id")
-  role      String     @map("role")
-  userId    String?    @unique @map("user_id")
+  firstName String               @map("first_name")
+  lastName  String               @map("last_name")
+  email     String?              @unique
+  authorId  Int                  @id @default(autoincrement()) @map("author_id")
+  role      String               @map("role")
+  userId    String?              @unique @map("user_id")
   messages  Message[]
-  chatrooms Chatroom[]
-  createdAt DateTime   @default(now()) @map("created_at")
-  updatedAt DateTime   @updatedAt @map("updated_at")
+  chatrooms AuthorsOnChatrooms[]
+  createdAt DateTime             @default(now()) @map("created_at")
+  updatedAt DateTime             @updatedAt @map("updated_at")
 
   @@index([authorId])
   @@map("author")
 }
 
+model AuthorsOnChatrooms {
+  author     Author   @relation(fields: [authorId], references: [authorId])
+  authorId   Int      @map("author_id")
+  chatroom   Chatroom @relation(fields: [chatroomId], references: [id])
+  chatroomId String   @map("chatroom_id")
+
+  @@id([authorId, chatroomId])
+  @@index([chatroomId])
+  @@index([authorId])
+  @@map("_authors_on_chatrooms")
+}
+
 model Chatroom {
-  id        String    @id @default(cuid())
+  id        String               @id @default(dbgenerated("(uuid())"))
   messages  Message[]
-  noOfUsers Int       @map("no_of_users")
-  users     Author[]
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
+  noOfUsers Int                  @map("no_of_users")
+  createdAt DateTime             @default(now()) @map("created_at")
+  updatedAt DateTime             @updatedAt @map("updated_at")
+  authors   AuthorsOnChatrooms[]
 
   @@map("chatroom")
 }

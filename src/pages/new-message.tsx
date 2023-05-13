@@ -27,6 +27,7 @@ const NewMessage: NextPageWithLayout = () => {
       content: "",
     },
   });
+  const trpcUtils = api.useContext();
   const router = useRouter();
 
   const startNewChat = api.messaging.startNewChat.useMutation({
@@ -34,11 +35,49 @@ const NewMessage: NextPageWithLayout = () => {
       newMessageForm.reset();
     },
     onSuccess: (data) => {
-      router.push(`/${data}`);
+      return router.push(`/${data.id}`);
+
+      // trpcUtils.messaging.getMessages.reset();
+      // trpcUtils.messaging.getMessages.setInfiniteData(
+      //   { chatroomId: data.chatroomId },
+      //   (old) => {
+      //     if (!old) {
+      //       return {
+      //         pages: [
+      //           {
+      //             messages: [data],
+      //             nextCursor: undefined,
+      //           },
+      //         ],
+      //         pageParams: [],
+      //       };
+      //     }
+      //     if (old.pages.length === 0) {
+      //       return {
+      //         pages: [
+      //           {
+      //             messages: [data],
+      //             nextCursor: undefined,
+      //           },
+      //         ],
+      //         pageParams: [],
+      //       };
+      //     }
+      //
+      //     const newState = produce(old.pages, (draft) => {
+      //       draft[0]?.messages.unshift(data);
+      //     });
+      //
+      //     return {
+      //       pages: newState,
+      //       pageParams: old.pageParams,
+      //     };
+      //   }
+      // );
+      // router.push(`/${data.chatroomId}`);
     },
   });
 
-  console.log(newMessageForm.watch());
   return (
     <>
       <FormProvider {...newMessageForm}>

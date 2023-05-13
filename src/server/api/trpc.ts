@@ -15,7 +15,7 @@ import type * as trpcNext from "@trpc/server/adapters/next";
  *
  * These allow you to access things when processing a request, like the database, the session, etc.
  */
-import { prisma } from "@/server/db";
+import { db, prisma } from "@/server/db";
 import type * as trpc from "@trpc/server";
 /**
  * 2. INITIALIZATION
@@ -49,6 +49,7 @@ export const createTRPCContext = (opts: trpcNext.CreateNextContextOptions) => {
   return {
     auth: getAuth(opts.req),
     prisma,
+    db,
   };
 };
 

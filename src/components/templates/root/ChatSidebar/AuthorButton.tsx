@@ -19,12 +19,12 @@ const AuthorButton = ({
   });
   return (
     <button
-      key={author.authorId}
+      key={author.author_id}
       className={"w-full"}
       onClick={() => {
         startNewChat.mutate(
           {
-            authorId: author.authorId,
+            authorId: author.author_id,
           },
           {
             onSuccess: () => {

@@ -7,10 +7,9 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { ChatGPTAPI } from "chatgpt";
 import { env } from "@/env.mjs";
-import { clerkClient } from "@clerk/nextjs/api";
-import { notEmpty } from "@/utils/ts-utils";
 import { ablyChannelKeyStore } from "@/utils/useAblyWebsocket";
-import { getFullName } from "@/utils/utils";
+import { sql } from "kysely";
+import { v4 as uuid } from "uuid";
 
 const gpt = new ChatGPTAPI({
   apiKey: env.OPENAI_ACCESS_TOKEN as string,
@@ -26,13 +25,12 @@ export const messaging = createTRPCRouter({
       })
     )
     .query(async ({ ctx }) => {
-      const results = await ctx.prisma.author.findMany({
-        where: {
-          userId: {
-            not: ctx.auth.userId,
-          },
-        },
-      });
+      const results = await ctx.db
+        .selectFrom("author")
+        .select(["author.author_id", "author.first_name", "author.last_name"])
+        .where("author.user_id", "!=", ctx.auth.userId)
+        .execute();
+
       return results;
     }),
   startNewChat: protectedProcedure
@@ -44,91 +42,151 @@ export const messaging = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const targetAuthor = await ctx.prisma.author.findUnique({
-        where: {
-          authorId: input.authorId,
-        },
-        include: {
-          chatrooms: {
-            where: {
-              noOfUsers: 2,
-              users: {
-                some: {
-                  userId: ctx.auth.userId,
-                },
-              },
-            },
-          },
-        },
-      });
+      // get chatroom
+      const chatroom = await ctx.db
+        .selectFrom("chatroom")
+        .select([
+          "id",
+          sql<number>`COUNT(DISTINCT _authors_on_chatrooms.author_id)`.as(
+            "user_count"
+          ),
+          sql<
+            { author_id: number }[]
+          >`JSON_ARRAYAGG(JSON_OBJECT('author_id', author.author_id, 'first_name', author.first_name, 'last_name', author.last_name, 'user_id', author.user_id))`.as(
+            "authors"
+          ),
+        ])
+        .innerJoin(
+          "_authors_on_chatrooms",
+          "_authors_on_chatrooms.chatroom_id",
+          "chatroom.id"
+        )
+        .innerJoin(
+          "author",
+          "author.author_id",
+          "_authors_on_chatrooms.author_id"
+        )
+        .where(({ cmpr, or }) =>
+          or([
+            cmpr("author.author_id", "=", input.authorId),
+            cmpr("author.user_id", "=", ctx.auth.userId),
+          ])
+        )
+        .groupBy("id")
+        // @ts-expect-error idk why this is happening
+        .having((eb) => eb.cmpr("user_count", "=", 2))
+        .execute();
 
-      if (!targetAuthor) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Author not found",
-        });
-      }
-
-      if (targetAuthor.chatrooms.length > 1) {
+      if (chatroom.length > 1) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: "Multiple chatrooms found",
+          message: "More than one chatroom found",
         });
       }
 
-      // send message and return chatroom id
-      if (targetAuthor.chatrooms.length === 1) {
-        await ctx.prisma.message.create({
-          data: {
-            chatroom: {
-              connect: {
-                id: targetAuthor.chatrooms[0]?.id,
-              },
-            },
-            text: input.text,
-            type: "message",
-            content: input.content,
-            author: {
-              connect: {
-                userId: ctx.auth.userId,
-              },
-            },
-          },
-        });
-
-        return targetAuthor.chatrooms[0]?.id;
+      // if there is 1 element return the chatroom
+      if (chatroom[0]) {
+        return chatroom[0];
       }
 
-      // create new chatroom, send message and return chatroom id
-      const newChatroom = await ctx.prisma.chatroom.create({
-        data: {
-          noOfUsers: 2,
-          users: {
-            connect: [
+      // create new chatroom if no chatroom found
+      const chatroomTransaction = await ctx.db
+        .transaction()
+        .execute(async (trx) => {
+          const newChatroomId = uuid();
+          await trx
+            .insertInto("chatroom")
+            .values({
+              no_of_users: 2,
+              updated_at: new Date(),
+              id: newChatroomId,
+            })
+            .execute();
+
+          // add author to chatroom
+          await trx
+            .insertInto("_authors_on_chatrooms")
+            .values((eb) => [
               {
-                authorId: input.authorId,
+                author_id: eb
+                  .selectFrom("author")
+                  .select("author_id")
+                  .where("author.user_id", "=", ctx.auth.userId),
+                chatroom_id: newChatroomId,
               },
               {
-                userId: ctx.auth.userId,
+                author_id: input.authorId,
+                chatroom_id: newChatroomId,
               },
-            ],
-          },
-          messages: {
-            create: {
+            ])
+            .execute();
+
+          // create new message
+          const clientMessageId = uuid();
+          await trx
+            .insertInto("message")
+            .values((eb) => ({
+              client_message_id: clientMessageId,
               text: input.text,
-              type: "message",
+              type: "text",
               content: input.content,
-              author: {
-                connect: {
-                  userId: ctx.auth.userId,
-                },
-              },
-            },
-          },
-        },
-      });
+              author_id: eb
+                .selectFrom("author")
+                .select("author_id")
+                .where("author.user_id", "=", ctx.auth.userId),
+              chatroom_id: newChatroomId,
+              updated_at: new Date(),
+            }))
+            .execute();
 
-      return newChatroom.id;
+          // id is unique so must only return 1
+          // get chatrooms
+          const chatroom = await ctx.db
+            .selectFrom("chatroom")
+            .select([
+              "id",
+              sql<number>`COUNT(DISTINCT _authors_on_chatrooms.author_id)`.as(
+                "user_count"
+              ),
+              sql<
+                { author_id: number }[]
+              >`JSON_ARRAYAGG(JSON_OBJECT('author_id', author.author_id, 'first_name', author.first_name, 'last_name', author.last_name, 'user_id', author.user_id))`.as(
+                "authors"
+              ),
+            ])
+            .innerJoin(
+              "_authors_on_chatrooms",
+              "_authors_on_chatrooms.chatroom_id",
+              "chatroom.id"
+            )
+            .innerJoin(
+              "author",
+              "author.author_id",
+              "_authors_on_chatrooms.author_id"
+            )
+            .where(({ cmpr }) => cmpr("chatroom.id", "=", newChatroomId))
+            .groupBy("id")
+            .execute();
+
+          if (chatroom.length > 1) {
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: "Error creating chatroom",
+            });
+          }
+
+          // if no chatroom throw error
+          if (!chatroom[0]) {
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: "Error finding chatroom",
+            });
+          }
+
+          return chatroom[0];
+        });
+
+      return chatroomTransaction;
     }),
   getUserId: protectedProcedure.query(({ ctx }) => {
     return {
@@ -145,58 +203,73 @@ export const messaging = createTRPCRouter({
         .optional()
     )
     .query(async ({ ctx, input }) => {
-      const chatrooms = await ctx.prisma.chatroom.findMany({
-        where: {
-          users: {
-            some: {
-              userId: ctx.auth.userId,
-            },
-          },
-        },
-        include: {
-          users: {
-            select: {
-              authorId: true,
-              userId: true,
-            },
-          },
-        },
-      });
-
-      const authors = chatrooms.map((chatroom) => {
-        return chatroom.users.map((author) => author.userId).filter(notEmpty);
-      });
-
-      const users = await clerkClient.users.getUserList({
-        userId: authors.flat(),
-      });
-
-      return chatrooms
-        .map((chatroom) => {
-          return {
-            ...chatroom,
-            users: chatroom.users.map((author) => {
-              const user = users.find((user) => user.id === author.userId);
-              return {
-                ...author,
-                firstName: user?.firstName,
-                lastName: user?.lastName,
-                emailAddresses: user?.emailAddresses,
-              };
-            }),
-          };
-        })
-        .filter((chatroom) =>
-          chatroom.users.some((author) => {
-            return getFullName({
-              firstName: author.firstName,
-              lastName: author.lastName,
-              fallback: "",
-            })
-              .toLowerCase()
-              .includes(input?.searchKeyword?.toLowerCase() ?? "");
-          })
-        );
+      const test = await ctx.db
+        .selectFrom("chatroom")
+        .select(["chatroom.id", "chatroom.no_of_users"])
+        .leftJoin(
+          "_authors_on_chatrooms",
+          "_authors_on_chatrooms.chatroom_id",
+          "chatroom.id"
+        )
+        .leftJoin(
+          "author",
+          "author.author_id",
+          "_authors_on_chatrooms.author_id"
+        )
+        .select(["author.author_id", "author.first_name", "author.last_name"])
+        .execute();
+      // const chatrooms = await ctx.prisma.chatroom.findMany({
+      //   where: {
+      //     users: {
+      //       some: {
+      //         userId: ctx.auth.userId,
+      //       },
+      //     },
+      //   },
+      //   include: {
+      //     users: {
+      //       select: {
+      //         authorId: true,
+      //         userId: true,
+      //       },
+      //     },
+      //   },
+      // });
+      //
+      // const authors = chatrooms.map((chatroom) => {
+      //   return chatroom.users.map((author) => author.userId).filter(notEmpty);
+      // });
+      //
+      // const users = await clerkClient.users.getUserList({
+      //   userId: authors.flat(),
+      // });
+      //
+      // return chatrooms
+      //   .map((chatroom) => {
+      //     return {
+      //       ...chatroom,
+      //       users: chatroom.users.map((author) => {
+      //         const user = users.find((user) => user.id === author.userId);
+      //         return {
+      //           ...author,
+      //           firstName: user?.firstName,
+      //           lastName: user?.lastName,
+      //           emailAddresses: user?.emailAddresses,
+      //         };
+      //       }),
+      //     };
+      //   })
+      //   .filter((chatroom) =>
+      //     chatroom.users.some((author) => {
+      //       return getFullName({
+      //         firstName: author.firstName,
+      //         lastName: author.lastName,
+      //         fallback: "",
+      //       })
+      //         .toLowerCase()
+      //         .includes(input?.searchKeyword?.toLowerCase() ?? "");
+      //     })
+      //   );
     }),
   getChatroom: protectedProcedure
     .input(
@@ -205,48 +278,48 @@ export const messaging = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      const chatroom = await ctx.prisma.chatroom.findUnique({
-        where: {
-          id: input.chatroomId,
-        },
-        include: {
-          users: {
-            select: {
-              authorId: true,
-              userId: true,
-            },
-          },
-        },
-      });
+      const chatroom = await ctx.db
+        .selectFrom("chatroom")
+        .select([
+          "id",
+          sql<number>`COUNT(DISTINCT _authors_on_chatrooms.author_id)`.as(
+            "user_count"
+          ),
+          sql<
+            {
+              author_id: number;
+              first_name: string;
+              last_name: string;
+              user_id: string;
+            }[]
+          >`JSON_ARRAYAGG(JSON_OBJECT('author_id', author.author_id, 'first_name', author.first_name, 'last_name', author.last_name, 'user_id', author.user_id))`.as(
+            "authors"
+          ),
+        ])
+        .innerJoin(
+          "_authors_on_chatrooms",
+          "_authors_on_chatrooms.chatroom_id",
+          "chatroom.id"
+        )
+        .innerJoin(
+          "author",
+          "author.author_id",
+          "_authors_on_chatrooms.author_id"
+        )
+        .where(({ cmpr }) => cmpr("id", "=", input.chatroomId))
+        .groupBy("id")
+        .executeTakeFirst();
 
-      if (chatroom) {
-        const authors = chatroom.users
-          .map((author) => author.userId)
-          .filter(notEmpty);
-
-        const users = await clerkClient.users.getUserList({
-          userId: authors,
+      if (!chatroom) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Error finding chatroom",
         });
-
-        return {
-          ...chatroom,
-          users: chatroom.users.map((author) => {
-            const user = users.find((user) => user.id === author.userId);
-            return {
-              ...author,
-              firstName: user?.firstName,
-              lastName: user?.lastName,
-              emailAddresses: user?.emailAddresses,
-            };
-          }),
-        };
       }
 
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Chatroom not found",
-      });
+      return chatroom;
     }),
+
   getMessages: protectedProcedure
     .input(
       z.object({

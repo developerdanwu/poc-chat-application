@@ -1,8 +1,19 @@
 import { PrismaClient } from "@prisma/client";
 
 import { env } from "@/env.mjs";
+import { Kysely } from "kysely";
+import { DB } from "../../prisma/generated/types";
+import { PlanetScaleDialect } from "kysely-planetscale";
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
+
+export const db = new Kysely<DB>({
+  dialect: new PlanetScaleDialect({
+    host: env.DB_HOST,
+    username: env.DB_USERNAME,
+    password: env.DB_PASSWORD,
+  }),
+});
 
 export const prisma =
   globalForPrisma.prisma ||

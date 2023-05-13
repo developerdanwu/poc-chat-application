@@ -37,14 +37,14 @@ const AuthorsAutocomplete = () => {
     selectItem,
   } = useCombobox({
     onSelectedItemChange: (item) => {
-      if (item?.selectedItem?.authorId) {
-        setValue("authorId", item.selectedItem.authorId);
+      if (item?.selectedItem?.author_id) {
+        setValue("authorId", item.selectedItem.author_id);
       }
     },
     itemToString: (item) =>
       getFullName({
-        firstName: item?.firstName,
-        lastName: item?.lastName,
+        firstName: item?.first_name,
+        lastName: item?.last_name,
         fallback: "Untitled",
       }),
     items: allAuthors.data || [],
@@ -55,7 +55,6 @@ const AuthorsAutocomplete = () => {
       return setSearch("");
     },
   });
-  console.log("ISS", isSubmitSuccessful);
   useEffect(() => {
     selectItem(null);
     setInputValue("");
@@ -74,6 +73,7 @@ const AuthorsAutocomplete = () => {
     >
       <div className={"flex w-full items-center justify-between"}>
         <input
+          autoFocus
           spellCheck="false"
           placeholder={"@friend"}
           className={"relative bg-transparent outline-none"}
@@ -98,11 +98,11 @@ const AuthorsAutocomplete = () => {
           }}
         >
           {allAuthors.data?.map((item, index) => {
-            const selected = selectedItem?.authorId === item.authorId;
+            const selected = selectedItem?.author_id === item.author_id;
             return (
               <li
-                {...getItemProps({ item, index, key: item.authorId })}
-                key={item.authorId}
+                {...getItemProps({ item, index, key: item.author_id })}
+                key={item.author_id}
                 className={cn(
                   "flex w-full cursor-pointer items-center rounded-sm py-2 px-3 hover:bg-warm-gray-300",
                   {
@@ -112,7 +112,7 @@ const AuthorsAutocomplete = () => {
                 )}
               >
                 <div className={"flex items-center"}>
-                  <Avatar size={"xs"} alt={item.firstName.slice(0, 2)} />
+                  <Avatar size={"xs"} alt={item.first_name.slice(0, 2)} />
                   <p
                     className={cn(
                       "select-none pl-3 text-xs font-normal leading-4",
@@ -121,7 +121,7 @@ const AuthorsAutocomplete = () => {
                       }
                     )}
                   >
-                    {item.firstName}
+                    {item.first_name}
                   </p>
                 </div>
                 <p
@@ -132,7 +132,7 @@ const AuthorsAutocomplete = () => {
                     }
                   )}
                 >
-                  #{item.authorId}
+                  #{item.author_id}
                 </p>
               </li>
             );

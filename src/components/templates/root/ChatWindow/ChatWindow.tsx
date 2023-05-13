@@ -59,8 +59,8 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
     }
   );
   const chatroomDetails = api.messaging.getChatroom.useQuery({ chatroomId });
-  const filteredChatroomUsers = chatroomDetails.data?.users.filter(
-    (user) => user.userId !== selfUser.user?.id
+  const filteredChatroomUsers = chatroomDetails.data?.authors.filter(
+    (user) => user.user_id !== selfUser.user?.id
   );
 
   const messagesArray = messages.data?.pages.reduce<
@@ -107,14 +107,14 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
           <Avatar alt={"TE"} size={"lg"} />
           <p className={"pt-5 pb-2 text-xl font-bold"}>
             {filteredChatroomUsers?.length === 1
-              ? filteredChatroomUsers[0]?.firstName
+              ? filteredChatroomUsers[0]?.first_name
               : ""}
           </p>
           <p className={"text-sm text-warm-gray-400"}>
             This is the beginning of your message history with{" "}
             <span className={"font-semibold"}>
               {filteredChatroomUsers?.length === 1
-                ? filteredChatroomUsers[0]?.firstName
+                ? filteredChatroomUsers[0]?.last_name
                 : ""}
             </span>
           </p>

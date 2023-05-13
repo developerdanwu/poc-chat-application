@@ -10,7 +10,10 @@ const server = z.object({
     NODE_ENV: z.enum(["development", "test", "production"]),
     CLERK_SECRET_KEY: z.string(),
     ABLY_API_KEY: z.string(),
-    WEBHOOK_SECRET: z.string()
+    WEBHOOK_SECRET: z.string(),
+    DB_USERNAME: z.string(),
+    DB_PASSWORD: z.string(),
+    DB_HOST: z.string()
 });
 
 /**
@@ -35,8 +38,10 @@ const processEnv = {
     CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
     ABLY_API_KEY: process.env.ABLY_API_KEY,
-    WEBHOOK_SECRET: process.env.WEBHOOK_SECRET
-    // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
+    WEBHOOK_SECRET: process.env.WEBHOOK_SECRET,
+    DB_USERNAME: process.env.DB_USERNAME,
+    DB_PASSWORD: process.env.DB_PASSWORD,
+    DB_HOST: process.env.DB_HOST
 };
 
 // Don't touch the part below

@@ -53,7 +53,7 @@ const StartConversationModal = () => {
               {allAuthors.data?.map((author) => {
                 return (
                   <AuthorButton
-                    key={author.authorId}
+                    key={author.author_id}
                     author={author}
                     onSuccess={() => {
                       setOpen(false);
