@@ -29,11 +29,23 @@ const config = {
                     '100%': {
                         opacity: '0'
                     }
+                },
+                'pulse': {
+                    '0%': {
+                        opacity: '40%',
+                    },
+                    '50%': {
+                        opacity: '80%'
+                    },
+                    '100%': {
+                        opacity: '40%'
+                    }
                 }
             }
         },
         animation: {
-            'typing-dot': 'loading-fade 1.4s ease-in-out infinite'
+            'typing-dot': 'loading-fade 1.4s ease-in-out infinite',
+            'pulse': 'pulse 2s ease-in-out infinite'
         }
     },
     daisyui: {

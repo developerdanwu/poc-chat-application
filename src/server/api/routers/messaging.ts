@@ -297,7 +297,7 @@ export const messaging = createTRPCRouter({
             .where(({ cmpr, and }) => {
               return and([
                 cmpr('chatroom_id', '=', input.chatroomId),
-                ...(input.cursor
+                ...(input.cursor !== null && input.cursor !== undefined
                   ? [cmpr('client_message_id', '<', input.cursor)]
                   : []),
               ]);
@@ -334,16 +334,15 @@ export const messaging = createTRPCRouter({
                     'first_name', author.first_name, 
                     'last_name', author.last_name))
                      )`.as('messages'),
+          ctx.db.fn.min('client_message_id').as('next_cursor'),
         ])
         .innerJoin('author', 'author.author_id', 'message.author_id')
         .executeTakeFirst();
 
+      console.log('MESSAGES', messages);
       return {
         messages: messages?.messages || [],
-        next_cursor:
-          messages?.messages.length === limit
-            ? messages?.messages[limit - 1]?.client_message_id
-            : null,
+        next_cursor: messages?.next_cursor || 0,
       };
     }),
   sendMessage: protectedProcedure

@@ -12,7 +12,6 @@ import {
 } from '@clerk/nextjs';
 import { type ReactElement, type ReactNode } from 'react';
 import { type NextPage } from 'next';
-import useAblyWebsocket from '@/utils/useAblyWebsocket';
 
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
   getLayout?: (page: ReactElement) => ReactNode;
@@ -27,7 +26,7 @@ const MyApp = ({
   pageProps: { ...pageProps },
 }: AppPropsWithLayout) => {
   const getLayout = Component.getLayout ?? ((page) => page);
-  useAblyWebsocket();
+  // useAblyWebsocket();
 
   return (
     <>

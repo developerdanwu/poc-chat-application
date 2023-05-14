@@ -1,10 +1,10 @@
 import { type NextPageWithLayout } from '@/pages/_app';
 import { cn } from '@/utils/utils';
 import ChatSidebar from '@/components/templates/root/ChatSidebar/ChatSidebar';
-import React from 'react';
+import React, { useRef } from 'react';
 import { useRouter } from 'next/router';
 import ChatWindow from '@/components/templates/root/ChatWindow/ChatWindow';
-import { Controller, FormProvider, useForm } from 'react-hook-form';
+import { FormProvider, useForm } from 'react-hook-form';
 import { api } from '@/utils/api';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
@@ -14,7 +14,6 @@ import produce from 'immer';
 import { type InfiniteData, useQueryClient } from '@tanstack/react-query';
 import { type RouterOutput } from '@/server/api/root';
 import { useUser } from '@clerk/nextjs';
-import TextEditor from '@/components/modules/TextEditor/TextEditor';
 import ChatTopControls from '@/components/templates/root/ChatTopControls';
 
 export const MainChatWrapper = ({
@@ -28,6 +27,13 @@ export const MainChatWrapper = ({
     </div>
   );
 };
+
+const chatFormSchema = z.object({
+  text: z.string().min(1),
+  content: z.any(),
+});
+
+export type ChatForm = z.infer<typeof chatFormSchema>;
 
 const ChatroomId: NextPageWithLayout = () => {
   const router = useRouter();
@@ -117,14 +123,9 @@ const ChatroomId: NextPageWithLayout = () => {
       }
     },
   });
-
+  const scrollAreaRef = useRef<HTMLDivElement | null>(null);
   const chatForm = useForm({
-    resolver: zodResolver(
-      z.object({
-        text: z.string().min(1),
-        content: z.any(),
-      })
-    ),
+    resolver: zodResolver(chatFormSchema),
     defaultValues: {
       text: '',
       content: '',
@@ -136,40 +137,8 @@ const ChatroomId: NextPageWithLayout = () => {
       {typeof router.query.chatroomId === 'string' && (
         <MainChatWrapper>
           <ChatTopControls chatroomId={chatroomId} />
-          <ChatWindow chatroomId={router.query.chatroomId} />
           <FormProvider {...chatForm}>
-            <form
-              id="message-text-input-form"
-              className="flex w-full items-center justify-between space-x-4 bg-transparent bg-secondary px-6 py-3"
-              onSubmit={chatForm.handleSubmit((data) => {
-                sendMessage.mutate({
-                  ...data,
-                  chatroomId,
-                });
-              })}
-            >
-              <Controller
-                control={chatForm.control}
-                render={({ field: { onChange, value } }) => {
-                  return (
-                    <TextEditor
-                      onClickEnter={() => {
-                        chatForm.handleSubmit((data) => {
-                          sendMessage.mutate({
-                            ...data,
-                            content: JSON.stringify(data.content),
-                            chatroomId,
-                          });
-                        })();
-                      }}
-                      onChange={onChange}
-                      content={value}
-                    />
-                  );
-                }}
-                name="content"
-              />
-            </form>
+            <ChatWindow chatroomId={router.query.chatroomId} />
           </FormProvider>
         </MainChatWrapper>
       )}
