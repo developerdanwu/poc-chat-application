@@ -16,7 +16,6 @@ import { useUser } from '@clerk/nextjs';
 import utc from 'dayjs/plugin/utc';
 import ChatReplyWrapper from '../ChatReplyWrapper';
 import ChatContent from '@/components/templates/root/ChatContent';
-import InfiniteScroll from 'react-infinite-scroller';
 import Avatar from '@/components/elements/Avatar';
 import ScrollArea from '@/components/elements/ScrollArea';
 
@@ -132,54 +131,39 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
             </p>
           </div>
         )}
-      <InfiniteScroll
-        pageStart={0}
-        className="flex flex-col space-y-4 px-6 py-3"
-        hasMore={chatWindowLogic.messages.hasNextPage}
-        reversed={true}
-        getScrollParent={() => {
-          return scrollAreaRef.current;
-        }}
-        loadMore={() => {
-          chatWindowLogic.messages.fetchNextPage();
-        }}
-        isReverse={true}
-        loader={<div>LOADING</div>}
-        useWindow={false}
-      >
-        {Object.entries(chatWindowLogic.messagesGroupedByDate || {})
-          .sort((a, b) => (dayjs(a[0]).isBefore(dayjs(b[0])) ? 1 : -1))
-          .map(([date, messages]) => {
-            return (
-              <div key={date} className={cn('flex flex-col space-y-4')}>
-                <div
-                  className={cn(
-                    'divider text-center text-sm font-semibold before:bg-warm-gray-400 after:bg-warm-gray-400'
-                  )}
-                >
-                  {date}
-                </div>
-                {messages.reverse().map((m) => {
-                  const isSentByMe = m.author.user_id === user.user?.id;
-                  const content = safeGenerateMessageContent(
-                    JSON.parse(m.content)
-                  );
 
-                  return (
-                    <ChatReplyWrapper
-                      sendDate={m.created_at}
-                      variant={isSentByMe ? 'sender' : 'receiver'}
-                      author={m.author}
-                      key={m.client_message_id}
-                    >
-                      <ChatContent content={content} />
-                    </ChatReplyWrapper>
-                  );
-                })}
+      {Object.entries(chatWindowLogic.messagesGroupedByDate || {})
+        .sort((a, b) => (dayjs(a[0]).isBefore(dayjs(b[0])) ? 1 : -1))
+        .map(([date, messages]) => {
+          return (
+            <div key={date} className={cn('flex flex-col space-y-4')}>
+              <div
+                className={cn(
+                  'divider text-center text-sm font-semibold before:bg-warm-gray-400 after:bg-warm-gray-400'
+                )}
+              >
+                {date}
               </div>
-            );
-          })}
-      </InfiniteScroll>
+              {messages.reverse().map((m) => {
+                const isSentByMe = m.author.user_id === user.user?.id;
+                const content = safeGenerateMessageContent(
+                  JSON.parse(m.content)
+                );
+
+                return (
+                  <ChatReplyWrapper
+                    sendDate={m.created_at}
+                    variant={isSentByMe ? 'sender' : 'receiver'}
+                    author={m.author}
+                    key={m.client_message_id}
+                  >
+                    <ChatContent content={content} />
+                  </ChatReplyWrapper>
+                );
+              })}
+            </div>
+          );
+        })}
     </ScrollArea>
   );
 };
