@@ -6,7 +6,6 @@ import { CodeBlockLowlight } from '@tiptap/extension-code-block-lowlight';
 import { lowlight } from 'lowlight';
 import {
   useChatWindowLogic,
-  useChatWindowScroll,
   useMessageUpdate,
 } from '@/components/templates/root/ChatWindow/hooks';
 import dayjs from 'dayjs';
@@ -56,18 +55,6 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
   const filteredChatroomUsers = filterAuthedUserFromChatroomAuthors(
     chatroomDetails.data?.authors ?? []
   );
-  const activeStickyIndexRef = useRef(0);
-
-  const stickyIndexes = React.useMemo(
-    () =>
-      chatWindowLogic.messageGroupKeys.map((gn) =>
-        chatWindowLogic.formattedMessages.findIndex((n) => n === gn)
-      ),
-    [chatWindowLogic.formattedMessages, chatWindowLogic.messageGroupKeys]
-  );
-
-  const isSticky = (index) => stickyIndexes.includes(index);
-  const isActiveSticky = (index) => activeStickyIndexRef.current === index;
 
   const intersectionRef = useRef(null);
   const inView = useIntersection(intersectionRef, {
@@ -76,10 +63,14 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
     threshold: 1.0,
   });
   const count = chatWindowLogic.formattedMessages.length;
-  const reverseIndex = React.useCallback((index) => count - 1 - index, [count]);
-  const virtualizerRef =
-    React.useRef<Virtualizer<HTMLDivElement, Element>>(null);
-  console.log('PENIS', count, virtualizerRef.current?.options.count);
+  const reverseIndex = React.useCallback(
+    (index: number) => count - 1 - index,
+    [count]
+  );
+  const virtualizerRef = React.useRef<Virtualizer<
+    HTMLDivElement,
+    Element
+  > | null>(null);
 
   if (
     virtualizerRef.current &&
@@ -95,35 +86,20 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
   const virtualizer = useVirtualizer({
     getScrollElement: () => scrollAreaRef.current,
     count: count,
-    estimateSize: () => 100,
-    overscan: 10,
-    getItemKey: React.useCallback(
-      (index) => {
-        const item = chatWindowLogic.formattedMessages[reverseIndex(index)];
-        if (typeof item === 'string') {
-          return item;
-        }
+    estimateSize: () => 50,
+    overscan: 5,
+    getItemKey: (index) => {
+      const item = chatWindowLogic.formattedMessages[reverseIndex(index)];
+      if (!item) {
+        return index;
+      }
 
-        return item.client_message_id;
-      },
-      [chatWindowLogic.formattedMessages, reverseIndex]
-    ),
-    scrollMargin: 50,
-    // rangeExtractor: React.useCallback(
-    //     (range) => {
-    //       activeStickyIndexRef.current = [...stickyIndexes]
-    //           .reverse()
-    //           .find((index) => range.startIndex >= index);
-    //
-    //       const next = new Set([
-    //         activeStickyIndexRef.current,
-    //         ...defaultRangeExtractor(range),
-    //       ]);
-    //
-    //       return [...next].sort((a, b) => a - b);
-    //     },
-    //     [stickyIndexes]
-    // ),
+      if (typeof item === 'string') {
+        return item;
+      }
+
+      return item.client_message_id;
+    },
   });
 
   useIsomorphicLayoutEffect(() => {
@@ -135,16 +111,17 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
   const [paddingTop, paddingBottom] =
     virtualItems.length > 0
       ? [
-          Math.max(0, virtualItems[0].start - virtualizer.options.scrollMargin),
+          Math.max(
+            0,
+            (virtualItems[0]?.start ?? 0) - virtualizer.options.scrollMargin
+          ),
           Math.max(
             0,
             virtualizer.getTotalSize() -
-              virtualItems[virtualItems.length - 1].end
+              (virtualItems[virtualItems?.length - 1]?.end ?? 0)
           ),
         ]
       : [0, 0];
-
-  console.log(paddingBottom, paddingTop);
 
   React.useEffect(() => {
     if (inView?.isIntersecting) {
@@ -153,7 +130,6 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
   }, [inView?.isIntersecting, chatWindowLogic.messages]);
 
   useMessageUpdate(chatroomId);
-  useChatWindowScroll(scrollAreaRef);
 
   return (
     <ScrollArea
@@ -195,35 +171,6 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
             </p>
           </div>
         )}
-
-      {/*{!chatWindowLogic.messages.hasNextPage &&*/}
-      {/*  filteredChatroomUsers?.length === 1 && (*/}
-      {/*    <div className="flex flex-col px-6 pt-10">*/}
-      {/*      <Avatar alt="TE" size="lg" />*/}
-      {/*      <p className="pt-5 pb-2 text-xl font-bold">*/}
-      {/*        {filteredChatroomUsers?.length === 1*/}
-      {/*          ? getFullName({*/}
-      {/*              firstName: filteredChatroomUsers[0]?.first_name,*/}
-      {/*              lastName: filteredChatroomUsers[0]?.last_name,*/}
-      {/*              fallback: 'Untitled',*/}
-      {/*            })*/}
-      {/*          : ''}*/}
-      {/*      </p>*/}
-      {/*      <p className="text-sm text-warm-gray-400">*/}
-      {/*        This is the beginning of your message history with{' '}*/}
-      {/*        <span className="font-semibold">*/}
-      {/*          {filteredChatroomUsers?.length === 1*/}
-      {/*            ? getFullName({*/}
-      {/*                firstName: filteredChatroomUsers[0]?.first_name,*/}
-      {/*                lastName: filteredChatroomUsers[0]?.last_name,*/}
-      {/*                fallback: 'Untitled',*/}
-      {/*              })*/}
-      {/*            : ''}*/}
-      {/*        </span>*/}
-      {/*      </p>*/}
-      {/*    </div>*/}
-      {/*  )}*/}
-
       {/*
         loading intersection
       */}
@@ -239,6 +186,7 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
       )}
       <div
         style={{
+          position: 'relative',
           overflowAnchor: 'none',
           paddingTop,
           paddingBottom,
@@ -247,8 +195,10 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
         {virtualItems.map((item) => {
           const index = reverseIndex(item.index);
           const targetItem = chatWindowLogic.formattedMessages[index];
+          if (!targetItem) {
+            return null;
+          }
 
-          console.log('TARGET', targetItem);
           if (typeof targetItem === 'string') {
             return (
               <div
@@ -256,6 +206,7 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
                 data-index={item.index}
                 data-reverse-index={index}
                 ref={virtualizer.measureElement}
+                style={{}}
                 className={cn(
                   'divider px-6 text-center text-sm font-semibold before:bg-warm-gray-400 after:bg-warm-gray-400'
                 )}
@@ -279,7 +230,6 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
               className={'px-6 py-2'}
             >
               <ChatReplyWrapper
-                virtualizer={virtualizer}
                 sendDate={targetItem.created_at}
                 variant={isSentByMe ? 'sender' : 'receiver'}
                 author={targetItem.author}
@@ -291,39 +241,6 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
           );
         })}
       </div>
-
-      {/*{Object.entries(chatWindowLogic.messagesGroupedByDate || {})*/}
-      {/*  .sort((a, b) => (dayjs(a[0]).isBefore(dayjs(b[0])) ? 1 : -1))*/}
-      {/*  .map(([date, messages]) => {*/}
-      {/*    return (*/}
-      {/*      <div key={date} className={cn('flex flex-col space-y-4')}>*/}
-      {/*        <div*/}
-      {/*          className={cn(*/}
-      {/*            'divider text-center text-sm font-semibold before:bg-warm-gray-400 after:bg-warm-gray-400'*/}
-      {/*          )}*/}
-      {/*        >*/}
-      {/*          {date}*/}
-      {/*        </div>*/}
-      {/*        {messages.reverse().map((m) => {*/}
-      {/*          const isSentByMe = m.author.user_id === user.user?.id;*/}
-      {/*          const content = safeGenerateMessageContent(*/}
-      {/*            JSON.parse(m.content)*/}
-      {/*          );*/}
-
-      {/*          return (*/}
-      {/*            <ChatReplyWrapper*/}
-      {/*              sendDate={m.created_at}*/}
-      {/*              variant={isSentByMe ? 'sender' : 'receiver'}*/}
-      {/*              author={m.author}*/}
-      {/*              key={m.client_message_id}*/}
-      {/*            >*/}
-      {/*              <ChatContent content={content} />*/}
-      {/*            </ChatReplyWrapper>*/}
-      {/*          );*/}
-      {/*        })}*/}
-      {/*      </div>*/}
-      {/*    );*/}
-      {/*  })}*/}
     </ScrollArea>
   );
 };
