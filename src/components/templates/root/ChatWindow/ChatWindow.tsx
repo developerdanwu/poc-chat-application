@@ -1,24 +1,24 @@
 import React, { useRef } from 'react';
 import { api } from '@/utils/api';
-import ScrollArea from '@/components/elements/ScrollArea';
 import { generateHTML } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import { CodeBlockLowlight } from '@tiptap/extension-code-block-lowlight';
 import { lowlight } from 'lowlight';
 import {
+  useChatWindowLogic,
   useChatWindowScroll,
   useMessageUpdate,
 } from '@/components/templates/root/ChatWindow/hooks';
 import dayjs from 'dayjs';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import { cn, useApiTransformUtils } from '@/utils/utils';
-import { type RouterOutput } from '@/server/api/root';
-import Avatar from '@/components/elements/Avatar';
-import InfiniteScroll from 'react-infinite-scroller';
-import ChatReplyWrapper from '@/components/templates/root/ChatReplyWrapper';
 import { useUser } from '@clerk/nextjs';
-import ChatContent from '@/components/templates/root/ChatContent';
 import utc from 'dayjs/plugin/utc';
+import ChatReplyWrapper from '../ChatReplyWrapper';
+import ChatContent from '@/components/templates/root/ChatContent';
+import InfiniteScroll from 'react-infinite-scroller';
+import Avatar from '@/components/elements/Avatar';
+import ScrollArea from '@/components/elements/ScrollArea';
 
 dayjs.extend(advancedFormat);
 dayjs.extend(utc);
@@ -44,45 +44,50 @@ const safeGenerateMessageContent = (content: any) => {
 
 const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const messages = api.messaging.getMessages.useInfiniteQuery(
-    {
-      chatroomId: chatroomId,
-    },
-    {
-      getNextPageParam: (lastPage) => {
-        return lastPage?.next_cursor;
-      },
-      staleTime: Infinity,
-      enabled: !!chatroomId,
-    }
-  );
+  const chatWindowLogic = useChatWindowLogic({ chatroomId });
+  const user = useUser();
   const chatroomDetails = api.messaging.getChatroom.useQuery({ chatroomId });
   const { filterAuthedUserFromChatroomAuthors, getFullName } =
     useApiTransformUtils();
   const filteredChatroomUsers = filterAuthedUserFromChatroomAuthors(
     chatroomDetails.data?.authors ?? []
   );
+  const activeStickyIndexRef = useRef(0);
 
-  const messagesArray = messages.data?.pages.reduce<
-    RouterOutput['messaging']['getMessages']['messages']
-  >((acc, nextVal) => {
-    nextVal.messages.forEach((m) => {
-      acc.push(m);
-    });
-    return acc;
-  }, []);
-  const user = useUser();
+  const stickyIndexes = React.useMemo(
+    () =>
+      chatWindowLogic.messageGroupKeys.map((gn) =>
+        chatWindowLogic.formattedMessages.findIndex((n) => n === gn)
+      ),
+    [chatWindowLogic.formattedMessages, chatWindowLogic.messageGroupKeys]
+  );
 
-  const formattedMessages = messagesArray?.reduce<
-    Record<string, RouterOutput['messaging']['getMessages']['messages']>
-  >((acc, nextVal) => {
-    const date = dayjs.utc(nextVal.created_at).local().format('dddd, MMMM Do');
-    if (!acc[date]) {
-      acc[date] = [];
-    }
-    acc[date]!.push(nextVal);
-    return acc;
-  }, {});
+  const isSticky = (index) => stickyIndexes.includes(index);
+  const isActiveSticky = (index) => activeStickyIndexRef.current === index;
+
+  // const rowVirtualizer = useVirtualizer({
+  //   count: chatWindowLogic.formattedMessages.length,
+  //   estimateSize: () => 100,
+  //   overscan: 5,
+  //   getScrollElement: () => scrollAreaRef.current,
+  //   rangeExtractor: React.useCallback(
+  //     (range) => {
+  //       activeStickyIndexRef.current = [...stickyIndexes]
+  //         .reverse()
+  //         .find((index) => range.startIndex >= index);
+  //
+  //       const next = new Set([
+  //         activeStickyIndexRef.current,
+  //         ...defaultRangeExtractor(range),
+  //       ]);
+  //
+  //       return [...next].sort((a, b) => a - b);
+  //     },
+  //     [stickyIndexes]
+  //   ),
+  // });
+
+  // const virtualItems = rowVirtualizer.getVirtualItems();
 
   useMessageUpdate(chatroomId);
   useChatWindowScroll(scrollAreaRef);
@@ -100,21 +105,11 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
         },
       }}
     >
-      {!messages.hasNextPage && filteredChatroomUsers?.length === 1 && (
-        <div className="flex flex-col px-6 pt-10">
-          <Avatar alt="TE" size="lg" />
-          <p className="pt-5 pb-2 text-xl font-bold">
-            {filteredChatroomUsers?.length === 1
-              ? getFullName({
-                  firstName: filteredChatroomUsers[0]?.first_name,
-                  lastName: filteredChatroomUsers[0]?.last_name,
-                  fallback: 'Untitled',
-                })
-              : ''}
-          </p>
-          <p className="text-sm text-warm-gray-400">
-            This is the beginning of your message history with{' '}
-            <span className="font-semibold">
+      {!chatWindowLogic.messages.hasNextPage &&
+        filteredChatroomUsers?.length === 1 && (
+          <div className="flex flex-col px-6 pt-10">
+            <Avatar alt="TE" size="lg" />
+            <p className="pt-5 pb-2 text-xl font-bold">
               {filteredChatroomUsers?.length === 1
                 ? getFullName({
                     firstName: filteredChatroomUsers[0]?.first_name,
@@ -122,26 +117,37 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
                     fallback: 'Untitled',
                   })
                 : ''}
-            </span>
-          </p>
-        </div>
-      )}
+            </p>
+            <p className="text-sm text-warm-gray-400">
+              This is the beginning of your message history with{' '}
+              <span className="font-semibold">
+                {filteredChatroomUsers?.length === 1
+                  ? getFullName({
+                      firstName: filteredChatroomUsers[0]?.first_name,
+                      lastName: filteredChatroomUsers[0]?.last_name,
+                      fallback: 'Untitled',
+                    })
+                  : ''}
+              </span>
+            </p>
+          </div>
+        )}
       <InfiniteScroll
         pageStart={0}
         className="flex flex-col space-y-4 px-6 py-3"
-        hasMore={messages.hasNextPage}
+        hasMore={chatWindowLogic.messages.hasNextPage}
         reversed={true}
         getScrollParent={() => {
           return scrollAreaRef.current;
         }}
         loadMore={() => {
-          messages.fetchNextPage();
+          chatWindowLogic.messages.fetchNextPage();
         }}
         isReverse={true}
         loader={<div>LOADING</div>}
         useWindow={false}
       >
-        {Object.entries(formattedMessages || {})
+        {Object.entries(chatWindowLogic.messagesGroupedByDate || {})
           .sort((a, b) => (dayjs(a[0]).isBefore(dayjs(b[0])) ? 1 : -1))
           .map(([date, messages]) => {
             return (
