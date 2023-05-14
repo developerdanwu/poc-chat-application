@@ -53,9 +53,7 @@ export const useChatWindowLogic = ({ chatroomId }: { chatroomId: string }) => {
 
   console.log('ROWS', formattedMessages);
   return {
-    formattedMessages: messages.hasNextPage
-      ? ['loader', ...formattedMessages]
-      : formattedMessages,
+    formattedMessages: formattedMessages.reverse(),
     messages,
     messageGroupKeys,
     messagesGroupedByDate,
@@ -63,7 +61,7 @@ export const useChatWindowLogic = ({ chatroomId }: { chatroomId: string }) => {
 };
 
 export const useChatWindowScroll = (
-  scrollAreaRef: React.RefObject<HTMLDivElement>
+    scrollAreaRef: React.RefObject<HTMLDivElement>
 ) => {
   // useEffect(() => {
   //   const listener = (event: Event) => {
@@ -100,7 +98,7 @@ export const useMessageUpdate = (chatroomId: string) => {
   const currentUser = useUser();
   useChannel(ablyChannelKeyStore.chatroom(chatroomId), (message) => {
     if (message.data.author.userId !== currentUser.user?.id) {
-      trpcUtils.messaging.getMessages.setInfiniteData({ chatroomId }, (old) => {
+      trpcUtils.messaging.getMessages.setInfiniteData({chatroomId}, (old) => {
         if (!old) {
           return {
             pages: [],

@@ -3,10 +3,8 @@ import { cn } from '@/utils/utils';
 import ChatSidebar from '@/components/templates/root/ChatSidebar/ChatSidebar';
 import React from 'react';
 import { useRouter } from 'next/router';
-import ChatTopControls from '@/components/templates/root/ChatTopControls';
 import ChatWindow from '@/components/templates/root/ChatWindow/ChatWindow';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
-import TextEditor from '@/components/modules/TextEditor/TextEditor';
 import { api } from '@/utils/api';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
@@ -16,6 +14,8 @@ import produce from 'immer';
 import { type InfiniteData, useQueryClient } from '@tanstack/react-query';
 import { type RouterOutput } from '@/server/api/root';
 import { useUser } from '@clerk/nextjs';
+import TextEditor from '@/components/modules/TextEditor/TextEditor';
+import ChatTopControls from '@/components/templates/root/ChatTopControls';
 
 export const MainChatWrapper = ({
   children,
@@ -23,9 +23,7 @@ export const MainChatWrapper = ({
   children: React.ReactNode;
 }) => {
   return (
-    <div
-      className="flex h-full w-full flex-col items-center justify-center overflow-hidden bg-warm-gray-50 "
-    >
+    <div className="flex h-full w-full flex-col items-center justify-center overflow-hidden bg-warm-gray-50 ">
       {children}
     </div>
   );
