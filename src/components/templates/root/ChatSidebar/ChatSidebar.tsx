@@ -17,6 +17,7 @@ const ChatSidebar = () => {
   const chatrooms = api.messaging.getChatrooms.useQuery({
     searchKeyword: debouncedSearch,
   });
+
   const { filterAuthedUserFromChatroomAuthors, getFullName } =
     useApiTransformUtils();
   useDebounce(
@@ -31,9 +32,7 @@ const ChatSidebar = () => {
     typeof router.query.chatroomId === 'string' ? router.query.chatroomId : '';
 
   return (
-    <div
-      className="flex h-full flex-[0_0_256px] flex-col overflow-hidden border-r-2 border-black bg-warm-gray-200 "
-    >
+    <div className="flex h-full flex-[0_0_256px] flex-col overflow-hidden border-r-2 border-black bg-warm-gray-200 ">
       <div
         className={cn(
           'mb-4 flex h-full w-full flex-[0_0_60px] items-center space-x-2 border-b-2 border-black px-3'
@@ -51,7 +50,7 @@ const ChatSidebar = () => {
         {chatrooms.isLoading ? (
           <RadialProgress className="self-center" />
         ) : (
-          chatrooms.data?.map((chatroom) => {
+          chatrooms.data?.chatrooms?.map((chatroom) => {
             return (
               <Link key={chatroom.id} href={`/${chatroom.id}`}>
                 <ThreadListItem

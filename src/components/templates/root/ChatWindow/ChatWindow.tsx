@@ -273,7 +273,10 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
         loading intersection
       */}
         {chatWindowLogic.messages.hasNextPage && (
-          <div ref={intersectionRef} className={'flex flex-col space-y-4 px-6'}>
+          <div
+            ref={intersectionRef}
+            className={'flex flex-col space-y-4 px-6 py-6'}
+          >
             <ChatLoadingSkeleton />
             <ChatLoadingSkeleton />
             <ChatLoadingSkeleton />

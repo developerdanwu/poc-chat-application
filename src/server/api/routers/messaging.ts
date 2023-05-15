@@ -194,37 +194,96 @@ export const messaging = createTRPCRouter({
         .optional()
     )
     .query(async ({ ctx, input }) => {
-      const chatrooms = await ctx.db
-        .selectFrom('chatroom')
+      const authorsOnChatroomsBaseQuery = ctx.db
+        .selectFrom('_authors_on_chatrooms')
         .select([
-          'id',
-          sql<number>`COUNT(DISTINCT _authors_on_chatrooms.author_id)`.as(
-            'user_count'
-          ),
-          sql<
-            {
-              author_id: number;
-              first_name: string;
-              last_name: string;
-              user_id: string;
-            }[]
-          >`JSON_ARRAYAGG(JSON_OBJECT('author_id', author.author_id, 'first_name', author.first_name, 'last_name', author.last_name, 'user_id', author.user_id))`.as(
+          '_authors_on_chatrooms.chatroom_id',
+          sql<{
+            author_id: number;
+            first_name: string;
+            last_name: string;
+            user_id: string;
+          }>`JSON_ARRAYAGG(JSON_OBJECT('author_id', author.author_id, 'first_name', author.first_name, 'last_name', author.last_name, 'user_id', author.user_id))`.as(
             'authors'
           ),
         ])
         .innerJoin(
-          '_authors_on_chatrooms',
-          '_authors_on_chatrooms.chatroom_id',
-          'chatroom.id'
-        )
-        .innerJoin(
           'author',
           'author.author_id',
           '_authors_on_chatrooms.author_id'
+        );
+
+      const chatrooms = await ctx.db
+        .selectFrom('author as a')
+        .where(({ cmpr }) => cmpr('a.user_id', '=', ctx.auth.userId))
+        .select([
+          'a.author_id',
+          'a.first_name',
+          'a.last_name',
+          'a.email',
+          'a.role',
+          'a.user_id',
+          'a.created_at',
+          'a.updated_at',
+          sql<
+            {
+              id: string;
+              no_of_users: number;
+              created_at: string;
+              updated_at: string;
+              authors: {
+                author_id: number;
+                first_name: string;
+                last_name: string;
+                user_id: string;
+              }[];
+            }[]
+          >`JSON_ARRAYAGG(JSON_OBJECT('id', chatroom.id, 'no_of_users', chatroom.no_of_users, 'created_at', chatroom.created_at, 'updated_at', chatroom.updated_at, 'authors', chatroom_authors.authors))`.as(
+            'chatrooms'
+          ),
+        ])
+        .innerJoin(
+          '_authors_on_chatrooms',
+          '_authors_on_chatrooms.author_id',
+          'a.author_id'
         )
-        // .where(({ cmpr }) => cmpr("", "=", input.chatroomId))
-        .groupBy('id')
-        .execute();
+        .innerJoin(
+          'chatroom',
+          'chatroom.id',
+          '_authors_on_chatrooms.chatroom_id'
+        )
+        .innerJoin(
+          input?.searchKeyword
+            ? authorsOnChatroomsBaseQuery
+                .where(({ cmpr, or }) =>
+                  or([
+                    ...(input?.searchKeyword
+                      ? [
+                          cmpr(
+                            'author.first_name',
+                            'like',
+                            `%${input.searchKeyword}%`
+                          ),
+                          cmpr(
+                            'author.last_name',
+                            'like',
+                            `%${input.searchKeyword}%`
+                          ),
+                        ]
+                      : []),
+                  ])
+                )
+                .groupBy('chatroom_id')
+                .as('chatroom_authors')
+            : authorsOnChatroomsBaseQuery
+                .groupBy('chatroom_id')
+                .as('chatroom_authors'),
+          'chatroom_authors.chatroom_id',
+          'chatroom.id'
+        )
+        .where('a.user_id', '=', ctx.auth.userId)
+        .groupBy('author_id')
+        .executeTakeFirst();
 
       return chatrooms;
     }),
