@@ -194,25 +194,6 @@ export const messaging = createTRPCRouter({
         .optional()
     )
     .query(async ({ ctx, input }) => {
-      const authorsOnChatroomsBaseQuery = ctx.db
-        .selectFrom('_authors_on_chatrooms')
-        .select([
-          '_authors_on_chatrooms.chatroom_id',
-          sql<{
-            author_id: number;
-            first_name: string;
-            last_name: string;
-            user_id: string;
-          }>`JSON_ARRAYAGG(JSON_OBJECT('author_id', author.author_id, 'first_name', author.first_name, 'last_name', author.last_name, 'user_id', author.user_id))`.as(
-            'authors'
-          ),
-        ])
-        .innerJoin(
-          'author',
-          'author.author_id',
-          '_authors_on_chatrooms.author_id'
-        );
-
       const chatrooms = await ctx.db
         .selectFrom('author as a')
         .where(({ cmpr }) => cmpr('a.user_id', '=', ctx.auth.userId))
@@ -253,38 +234,64 @@ export const messaging = createTRPCRouter({
           '_authors_on_chatrooms.chatroom_id'
         )
         .innerJoin(
-          input?.searchKeyword
-            ? authorsOnChatroomsBaseQuery
+          ctx.db
+            .selectFrom('chatroom')
+            .select([
+              'chatroom.id as id',
+              sql<{
+                author_id: number;
+                first_name: string;
+                last_name: string;
+                user_id: string;
+              }>`JSON_ARRAYAGG(JSON_OBJECT('author_id', author.author_id, 'first_name', author.first_name, 'last_name', author.last_name, 'user_id', author.user_id))`.as(
+                'authors'
+              ),
+              'chatroom.created_at as created_at',
+              'chatroom.updated_at as updated_at',
+              'chatroom.no_of_users as no_of_users',
+            ])
+            .innerJoin(
+              ctx.db
+                .selectFrom('_authors_on_chatrooms as ac')
+                .select([sql`DISTINCT ac.chatroom_id`.as('chatroom_id')])
+                .leftJoin('author', 'author.author_id', 'ac.author_id')
                 .where(({ cmpr, or }) =>
                   or([
-                    ...(input?.searchKeyword
-                      ? [
-                          cmpr(
-                            'author.first_name',
-                            'like',
-                            `%${input.searchKeyword}%`
-                          ),
-                          cmpr(
-                            'author.last_name',
-                            'like',
-                            `%${input.searchKeyword}%`
-                          ),
-                        ]
-                      : []),
+                    cmpr(
+                      'author.first_name',
+                      'like',
+                      `%${input?.searchKeyword ?? ''}%`
+                    ),
+                    cmpr(
+                      'author.last_name',
+                      'like',
+                      `%${input?.searchKeyword ?? ''}%`
+                    ),
                   ])
                 )
-                .groupBy('chatroom_id')
-                .as('chatroom_authors')
-            : authorsOnChatroomsBaseQuery
-                .groupBy('chatroom_id')
-                .as('chatroom_authors'),
-          'chatroom_authors.chatroom_id',
+                .as('matched_chatrooms'),
+              'matched_chatrooms.chatroom_id',
+              'chatroom.id'
+            )
+            .innerJoin(
+              '_authors_on_chatrooms as ac',
+              'ac.chatroom_id',
+              'chatroom.id'
+            )
+            .innerJoin('author', 'author.author_id', 'ac.author_id')
+            .groupBy([
+              'chatroom.id',
+              'chatroom.created_at',
+              'chatroom.updated_at',
+              'chatroom.no_of_users',
+            ])
+            .as('chatroom_authors'),
+          'chatroom_authors.id',
           'chatroom.id'
         )
         .where('a.user_id', '=', ctx.auth.userId)
         .groupBy('author_id')
         .executeTakeFirst();
-
       return chatrooms;
     }),
   getChatroom: protectedProcedure
