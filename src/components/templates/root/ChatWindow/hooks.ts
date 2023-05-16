@@ -64,11 +64,14 @@ export const useChatWindowLogic = ({ chatroomId }: { chatroomId: string }) => {
       acc.push(k);
       return acc;
     }, []);
-  }, [messageGroupKeys, messagesGroupedByDate]);
+  }, [messageGroupKeys, messagesGroupedByDate, messages.hasNextPage]);
 
-  console.log('ROWS', formattedMessages);
+  if (messages.hasNextPage) {
+    formattedMessages.push('loading');
+  }
+
   return {
-    formattedMessages: formattedMessages,
+    formattedMessages,
     messages,
     messageGroupKeys,
     messagesGroupedByDate,
