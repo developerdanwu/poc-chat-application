@@ -24,7 +24,7 @@ const ChatSidebar = () => {
     () => {
       setDebouncedSearch(search);
     },
-    1000,
+    100,
     [search]
   );
 
@@ -38,7 +38,11 @@ const ChatSidebar = () => {
           'mb-4 flex h-full w-full flex-[0_0_60px] items-center space-x-2 border-b-2 border-black px-3'
         )}
       >
-        <Input value={search} onChange={(e) => setSearch(e.target.value)} />
+        <Input
+          spellCheck={false}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
         <Link href="/new-message">
           <button className={cn('btn-outline btn-sm btn-circle btn')}>
             <RiPencilLine />

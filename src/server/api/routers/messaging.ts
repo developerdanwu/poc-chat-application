@@ -255,18 +255,24 @@ export const messaging = createTRPCRouter({
                 .selectFrom('_authors_on_chatrooms as ac')
                 .select([sql`DISTINCT ac.chatroom_id`.as('chatroom_id')])
                 .leftJoin('author', 'author.author_id', 'ac.author_id')
-                .where(({ cmpr, or }) =>
+                .where(({ cmpr, or, and }) =>
                   or([
-                    cmpr(
-                      'author.first_name',
-                      'like',
-                      `%${input?.searchKeyword ?? ''}%`
-                    ),
-                    cmpr(
-                      'author.last_name',
-                      'like',
-                      `%${input?.searchKeyword ?? ''}%`
-                    ),
+                    and([
+                      cmpr('author.user_id', '!=', ctx.auth.userId),
+                      cmpr(
+                        'author.first_name',
+                        'like',
+                        `%${input?.searchKeyword ?? ''}%`
+                      ),
+                    ]),
+                    and([
+                      cmpr('author.user_id', '!=', ctx.auth.userId),
+                      cmpr(
+                        'author.last_name',
+                        'like',
+                        `%${input?.searchKeyword ?? ''}%`
+                      ),
+                    ]),
                   ])
                 )
                 .as('matched_chatrooms'),
@@ -405,7 +411,6 @@ export const messaging = createTRPCRouter({
         .innerJoin('author', 'author.author_id', 'message.author_id')
         .executeTakeFirst();
 
-      console.log('MESSAGES', messages);
       return {
         messages: messages?.messages || [],
         next_cursor: messages?.next_cursor || 0,
