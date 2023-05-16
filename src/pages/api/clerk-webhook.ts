@@ -5,6 +5,7 @@ import { env } from '@/env.mjs';
 import { type ClerkWebhookEvent } from '@/server/webhooks';
 import { type User } from '@clerk/nextjs/api';
 import { db } from '@/server/db';
+import dayjs from 'dayjs';
 
 const secret = env.WEBHOOK_SECRET;
 type UnwantedKeys =
@@ -89,7 +90,7 @@ export default async function handler(
                   last_name: msg ? msg.data.last_name : '',
                   email: msg ? msg.data.email_addresses[0]?.email_address : '',
                   role: 'user',
-                  updated_at: new Date().getUTCDate().toString(),
+                  updated_at: dayjs().utc().toDate(),
                 })
                 .execute();
             });
@@ -115,7 +116,7 @@ export default async function handler(
                     email: msg
                       ? msg.data.email_addresses[0]?.email_address
                       : '',
-                    updated_at: new Date().getUTCDate().toString(),
+                    updated_at: dayjs().utc().toDate(),
                   })
                   .where(({ cmpr }) => cmpr('user_id', '=', msg!.data.id))
                   .execute();
@@ -131,7 +132,7 @@ export default async function handler(
                   last_name: msg ? msg.data.last_name : '',
                   email: msg ? msg.data.email_addresses[0]?.email_address : '',
                   role: 'user',
-                  updated_at: new Date().getUTCDate().toString(),
+                  updated_at: dayjs().utc().toDate(),
                 })
                 .execute();
             });

@@ -5,6 +5,7 @@ import { ChatGPTAPI } from 'chatgpt';
 import { env } from '@/env.mjs';
 import { sql } from 'kysely';
 import { v4 as uuid } from 'uuid';
+import dayjs from 'dayjs';
 
 const gpt = new ChatGPTAPI({
   apiKey: env.OPENAI_ACCESS_TOKEN as string,
@@ -91,7 +92,7 @@ export const messaging = createTRPCRouter({
             .insertInto('chatroom')
             .values({
               no_of_users: 2,
-              updated_at: new Date(),
+              updated_at: dayjs().utc().toDate(),
               id: newChatroomId,
             })
             .execute();
@@ -126,7 +127,7 @@ export const messaging = createTRPCRouter({
                 .select('author_id')
                 .where('author.user_id', '=', ctx.auth.userId),
               chatroom_id: newChatroomId,
-              updated_at: new Date(),
+              updated_at: dayjs().utc().toDate(),
             }))
             .execute();
 
@@ -438,7 +439,7 @@ export const messaging = createTRPCRouter({
               .select('author_id')
               .where('author.user_id', '=', ctx.auth.userId),
             chatroom_id: input.chatroomId,
-            updated_at: new Date(),
+            updated_at: dayjs().utc().toDate(),
           }))
           .execute();
       });
