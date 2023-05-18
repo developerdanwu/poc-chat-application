@@ -55,7 +55,7 @@ const ChatroomId: NextPageWithLayout = () => {
       trpcUtils.messaging.getMessages.setInfiniteData({ chatroomId }, (old) => {
         if (!old) {
           return {
-            pages: [{ messages: [], next_cursor: null }],
+            pages: [{ messages: [], next_cursor: 0 }],
             pageParams: [],
           };
         }
@@ -84,7 +84,7 @@ const ChatroomId: NextPageWithLayout = () => {
             pages: [
               {
                 messages: [newMessage],
-                next_cursor: null,
+                next_cursor: 0,
               },
             ],
             pageParams: [],
@@ -92,7 +92,16 @@ const ChatroomId: NextPageWithLayout = () => {
         }
 
         const newState = produce(old.pages, (draft) => {
-          draft[0]?.messages.unshift(newMessage);
+          if (draft[0] && draft[0].messages.length < 10) {
+            draft[0]?.messages.unshift(newMessage);
+            return draft;
+          }
+
+          draft.unshift({
+            messages: [newMessage],
+            next_cursor: null as unknown as number,
+          });
+
           return draft;
         });
 

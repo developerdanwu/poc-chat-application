@@ -92,7 +92,7 @@ export const messaging = createTRPCRouter({
             .insertInto('chatroom')
             .values({
               no_of_users: 2,
-              updated_at: dayjs().utc().toDate(),
+              updated_at: dayjs.utc().toDate(),
               id: newChatroomId,
             })
             .execute();
@@ -127,7 +127,7 @@ export const messaging = createTRPCRouter({
                 .select('author_id')
                 .where('author.user_id', '=', ctx.auth.userId),
               chatroom_id: newChatroomId,
-              updated_at: dayjs().utc().toDate(),
+              updated_at: dayjs.utc().toDate(),
             }))
             .execute();
 
@@ -439,7 +439,7 @@ export const messaging = createTRPCRouter({
               .select('author_id')
               .where('author.user_id', '=', ctx.auth.userId),
             chatroom_id: input.chatroomId,
-            updated_at: dayjs().utc().toDate(),
+            updated_at: dayjs.utc().toDate(),
           }))
           .execute();
       });
@@ -472,7 +472,7 @@ export const messaging = createTRPCRouter({
           .set({
             text: input.text,
             content: input.content,
-            updated_at: dayjs().utc().toDate(),
+            updated_at: dayjs.utc().toDate(),
           })
           .where(({ cmpr, and }) =>
             and([

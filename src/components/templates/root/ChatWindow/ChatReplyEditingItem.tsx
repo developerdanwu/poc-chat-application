@@ -8,6 +8,9 @@ import {
 } from '@/components/modules/TextEditor/utils';
 import { Paragraph } from '@tiptap/extension-paragraph';
 import { MenuBar } from '@/components/modules/TextEditor/TextEditor';
+import { safeGenerateMessageContent } from '@/components/templates/root/ChatWindow/ChatWindow';
+import { api } from '@/utils/api';
+import produce from 'immer';
 
 const TextEditorParagraph = ({
   onClickEnter,
@@ -32,13 +35,54 @@ const TextEditorParagraph = ({
 };
 
 const ChatReplyEditingItem = ({
+  text,
   content,
   setIsEditing,
+  clientMessageId,
+  chatroomId,
 }: {
+  chatroomId: string;
+  clientMessageId: number;
+  text: string;
   setIsEditing: React.Dispatch<React.SetStateAction<number | undefined>>;
   content: string;
 }) => {
-  const editChatForm = useForm();
+  const trpcUtils = api.useContext();
+  const editChatForm = useForm({
+    defaultValues: {
+      text,
+      content,
+    },
+  });
+
+  const editMessage = api.messaging.editMessage.useMutation({
+    onMutate: (data) => {
+      trpcUtils.messaging.getMessages.setInfiniteData({ chatroomId }, (old) => {
+        if (!old) {
+          return {
+            pages: [{ messages: [], next_cursor: 0 }],
+            pageParams: [],
+          };
+        }
+
+        const newState = produce(old.pages, (draft) => {
+          draft.forEach((item) => {
+            item.messages.forEach((message) => {
+              if (message.client_message_id === data.clientMessageId) {
+                message.text = data.text;
+                message.content = data.content;
+              }
+            });
+          });
+        });
+
+        return {
+          pages: newState,
+          pageParams: old.pageParams,
+        };
+      });
+    },
+  });
 
   const editor = useEditor({
     extensions: [
@@ -48,7 +92,10 @@ const ChatReplyEditingItem = ({
       }),
       TiptapCodeBlockLight,
     ],
-    content,
+    content:
+      safeGenerateMessageContent(
+        JSON.parse(editChatForm.getValues('content'))
+      ) || text,
     editorProps: {
       attributes: {
         form: 'chatForm',
@@ -57,7 +104,7 @@ const ChatReplyEditingItem = ({
     },
     onUpdate: ({ editor }) => {
       editChatForm.setValue('text', editor.getText());
-      // onChange(editor.getJSON());
+      editChatForm.setValue('content', JSON.stringify(editor.getJSON()));
     },
   });
 
@@ -67,7 +114,15 @@ const ChatReplyEditingItem = ({
 
   return (
     <FormProvider {...editChatForm}>
-      <div
+      <form
+        onSubmit={editChatForm.handleSubmit((data) => {
+          editMessage.mutate({
+            clientMessageId,
+            text: data.text,
+            content: data.content,
+          });
+          setIsEditing(undefined);
+        })}
         className={cn(
           'group w-full rounded-lg border-2 border-warm-gray-400 bg-warm-gray-50 px-3 py-2',
           {
@@ -101,7 +156,7 @@ const ChatReplyEditingItem = ({
             </button>
           </div>
         </div>
-      </div>
+      </form>
     </FormProvider>
   );
 };

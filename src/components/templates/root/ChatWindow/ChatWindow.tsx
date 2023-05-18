@@ -19,7 +19,7 @@ import ChatReplyItemWrapper from '@/components/templates/root/ChatWindow/ChatRep
 
 dayjs.extend(advancedFormat);
 dayjs.extend(utc);
-const safeGenerateMessageContent = (content: any) => {
+export const safeGenerateMessageContent = (content: any) => {
   try {
     return generateHTML(content, [
       StarterKit.configure({
@@ -185,8 +185,11 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
                     >
                       {editingChatItem === m.client_message_id ? (
                         <ChatReplyEditingItem
+                          chatroomId={chatroomId}
+                          clientMessageId={m.client_message_id}
+                          text={m.text}
                           setIsEditing={setEditingChatItem}
-                          content={content || m.text}
+                          content={m.content}
                         />
                       ) : (
                         <ChatReplyItem
