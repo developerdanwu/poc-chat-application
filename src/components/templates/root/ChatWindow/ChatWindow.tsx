@@ -128,7 +128,7 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
       )}
       <InfiniteScroll
         pageStart={0}
-        className="flex flex-col space-y-4  py-3"
+        className="flex flex-col space-y-4 py-3"
         hasMore={messages.hasNextPage}
         reversed={true}
         getScrollParent={() => {
