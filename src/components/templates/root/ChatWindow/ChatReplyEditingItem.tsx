@@ -11,6 +11,8 @@ import { MenuBar } from '@/components/modules/TextEditor/TextEditor';
 import { safeGenerateMessageContent } from '@/components/templates/root/ChatWindow/ChatWindow';
 import { api } from '@/utils/api';
 import produce from 'immer';
+import { InfiniteData } from '@tanstack/react-query';
+import { RouterOutput } from '@/server/api/root';
 
 const TextEditorParagraph = ({
   onClickEnter,
@@ -57,6 +59,9 @@ const ChatReplyEditingItem = ({
 
   const editMessage = api.messaging.editMessage.useMutation({
     onMutate: (data) => {
+      const oldData = trpcUtils.messaging.getMessages.getInfiniteData({
+        chatroomId,
+      });
       trpcUtils.messaging.getMessages.setInfiniteData({ chatroomId }, (old) => {
         if (!old) {
           return {
@@ -81,6 +86,21 @@ const ChatReplyEditingItem = ({
           pageParams: old.pageParams,
         };
       });
+
+      return {
+        oldData,
+      };
+    },
+    onError: (error, variables, context) => {
+      const contextCast = context as {
+        oldData?: InfiniteData<RouterOutput['messaging']['getMessages']>;
+      };
+      if (contextCast.oldData) {
+        trpcUtils.messaging.getMessages.setInfiniteData(
+          { chatroomId },
+          () => contextCast.oldData
+        );
+      }
     },
   });
 
