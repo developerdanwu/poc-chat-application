@@ -77,7 +77,7 @@ const ChatReplyItem = ({
     <>
       <div
         className={cn(
-          ' invisible absolute -top-2 right-6 flex items-center justify-center space-x-1 rounded-md  border border-black bg-warm-gray-100 p-1 group-hover:visible'
+          'invisible absolute -top-4 right-6 z-50 flex items-center justify-center space-x-1 rounded-md  border border-black bg-warm-gray-100 p-1 group-hover:visible'
         )}
       >
         {variant === 'sender' && (
