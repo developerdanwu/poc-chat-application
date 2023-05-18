@@ -136,7 +136,10 @@ const ChatroomId: NextPageWithLayout = () => {
       {typeof router.query.chatroomId === 'string' && (
         <MainChatWrapper>
           <ChatTopControls chatroomId={chatroomId} />
-          <ChatWindow chatroomId={router.query.chatroomId} />
+          <ChatWindow
+            key={router.query.chatroomId}
+            chatroomId={router.query.chatroomId}
+          />
           <FormProvider {...chatForm}>
             <form
               id="message-text-input-form"

@@ -67,7 +67,7 @@ export const useChatWindowLogic = ({ chatroomId }: { chatroomId: string }) => {
   }, [messageGroupKeys, messagesGroupedByDate]);
 
   return {
-    formattedMessages: formattedMessages,
+    formattedMessages,
     messages,
     messageGroupKeys,
     messagesGroupedByDate,

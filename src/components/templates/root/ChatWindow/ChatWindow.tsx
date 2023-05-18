@@ -144,6 +144,16 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
         {Object.entries(formattedMessages || {})
           .sort((a, b) => (dayjs(a[0]).isBefore(dayjs(b[0])) ? 1 : -1))
           .map(([date, messages]) => {
+            const messagesHashmap = messages.reduce<
+              Record<
+                string,
+                RouterOutput['messaging']['getMessages']['messages'][number]
+              >
+            >((acc, nextVal) => {
+              acc[nextVal.client_message_id] = nextVal;
+
+              return acc;
+            }, {});
             return (
               <div
                 key={date}
@@ -164,8 +174,21 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
                     JSON.parse(m.content)
                   );
 
+                  const previousMessage =
+                    messagesHashmap[m.client_message_id - 1];
+                  const differenceBetweenLastMessage = previousMessage
+                    ? dayjs(m.created_at).diff(
+                        dayjs(previousMessage.created_at),
+                        'minute'
+                      )
+                    : undefined;
                   return (
                     <ChatReplyItemWrapper
+                      sendDate={m.created_at}
+                      differenceBetweenLastMessage={
+                        differenceBetweenLastMessage
+                      }
+                      isEditing={editingChatItem === m.client_message_id}
                       key={m.client_message_id}
                       author={m.author}
                       communicator={isSentByMe ? 'sender' : 'receiver'}
@@ -173,16 +196,19 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
                       {editingChatItem === m.client_message_id ? (
                         <ChatReplyEditingItem
                           setIsEditing={setEditingChatItem}
-                          content={content}
+                          content={content || m.text}
                         />
                       ) : (
                         <ChatReplyItem
+                          differenceBetweenLastMessage={
+                            differenceBetweenLastMessage
+                          }
                           messageId={m.client_message_id}
                           setIsEditing={setEditingChatItem}
                           sendDate={m.created_at}
                           variant={isSentByMe ? 'sender' : 'receiver'}
                           author={m.author}
-                          content={content}
+                          content={content || m.text}
                         />
                       )}
                     </ChatReplyItemWrapper>

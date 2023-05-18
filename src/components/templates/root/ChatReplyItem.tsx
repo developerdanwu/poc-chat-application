@@ -10,7 +10,43 @@ import {
 } from '@/components/modules/TextEditor/utils';
 import { Paragraph } from '@tiptap/extension-paragraph';
 
+const ChatReplyItemHeader = ({
+  differenceBetweenLastMessage,
+  firstName,
+  lastName,
+  sendDate,
+}: {
+  sendDate: string;
+  firstName: string;
+  lastName: string;
+  differenceBetweenLastMessage: number | undefined;
+}) => {
+  const { getFullName } = useApiTransformUtils();
+  const fullName = getFullName({
+    firstName: firstName,
+    lastName: lastName,
+    fallback: 'Untitled',
+  });
+
+  if (
+    differenceBetweenLastMessage === undefined ||
+    differenceBetweenLastMessage > 5
+  ) {
+    return (
+      <div className="flex items-center space-x-2 text-sm font-semibold">
+        <p>{fullName}</p>
+        <div className="text-xs font-normal text-warm-gray-400">
+          {dayjs.utc(sendDate).local().format('hh:mm a')}
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+};
+
 const ChatReplyItem = ({
+  differenceBetweenLastMessage,
   messageId,
   setIsEditing,
   author,
@@ -18,8 +54,9 @@ const ChatReplyItem = ({
   sendDate,
   content,
 }: {
+  differenceBetweenLastMessage: number | undefined;
   messageId: number;
-  content: any;
+  content: string;
   setIsEditing: React.Dispatch<React.SetStateAction<number | undefined>>;
   author: RouterOutput['messaging']['getMessages']['messages'][number]['author'];
   sendDate: string;
@@ -57,12 +94,13 @@ const ChatReplyItem = ({
       </div>
 
       <div className="flex w-full flex-col space-y-2">
-        <div className="flex items-center space-x-2 text-sm font-semibold">
-          <p>{fullName}</p>
-          <div className="text-xs font-normal text-warm-gray-400">
-            {dayjs.utc(sendDate).local().format('hh:mm a')}
-          </div>
-        </div>
+        <ChatReplyItemHeader
+          sendDate={sendDate}
+          differenceBetweenLastMessage={differenceBetweenLastMessage}
+          lastName={author.last_name}
+          firstName={author.first_name}
+        />
+
         <div>
           <EditorContent editor={editor} />
         </div>

@@ -36,7 +36,7 @@ const ChatReplyEditingItem = ({
   setIsEditing,
 }: {
   setIsEditing: React.Dispatch<React.SetStateAction<number | undefined>>;
-  content: any;
+  content: string;
 }) => {
   const editChatForm = useForm();
 
