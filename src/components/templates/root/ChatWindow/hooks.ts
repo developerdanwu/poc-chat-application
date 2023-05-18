@@ -66,7 +66,6 @@ export const useChatWindowLogic = ({ chatroomId }: { chatroomId: string }) => {
     }, []);
   }, [messageGroupKeys, messagesGroupedByDate]);
 
-  console.log('ROWS', formattedMessages);
   return {
     formattedMessages: formattedMessages,
     messages,

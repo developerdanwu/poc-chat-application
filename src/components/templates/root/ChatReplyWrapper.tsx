@@ -24,7 +24,7 @@ const ChatReplyWrapper = ({
   return (
     <div
       data-communicator={variant === 'sender' ? 'sender' : 'receiver'}
-      className="chat chat-start"
+      className="chat chat-start px-6"
     >
       <Avatar alt={fullName.slice(0, 2)} />
       <div className="flex flex-col space-y-2">
