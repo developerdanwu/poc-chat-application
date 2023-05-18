@@ -22,8 +22,6 @@ const ChatReplyAvatar = ({
     fallback: 'Untitled',
   });
 
-  console.log('DIFF', differenceBetweenLastMessage);
-
   if (
     differenceBetweenLastMessage === undefined ||
     differenceBetweenLastMessage > 5
@@ -33,7 +31,7 @@ const ChatReplyAvatar = ({
 
   return (
     <div className="invisible w-10 pt-[2px] text-xs font-normal text-warm-gray-400 group-hover:visible">
-      {dayjs(sendDate).format('hh:mm')}
+      {dayjs.utc(sendDate).local().format('hh:mm')}
     </div>
   );
 };
@@ -53,12 +51,6 @@ const ChatReplyItemWrapper = ({
   children: React.ReactNode;
   communicator: 'sender' | 'receiver';
 }) => {
-  const { getFullName } = useApiTransformUtils();
-  const fullName = getFullName({
-    firstName: author.first_name,
-    lastName: author.last_name,
-    fallback: 'Untitled',
-  });
   return (
     <div
       data-communicator={communicator}

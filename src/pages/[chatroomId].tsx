@@ -60,15 +60,17 @@ const ChatroomId: NextPageWithLayout = () => {
           };
         }
 
+        const flatMapMessages = old.pages.flatMap((page) => page.messages);
+
         const newMessage = {
           client_message_id:
-            old.pages[old.pages.length - 1]?.messages?.[
-              (old.pages?.[old.pages.length - 1]?.messages?.length ?? 1) - 1
-            ]?.client_message_id || 999,
+            flatMapMessages.length > 0
+              ? flatMapMessages[0]!.client_message_id + 1
+              : 1,
           text: variables.text,
           content: variables.content,
-          created_at: dayjs().utc().toISOString(),
-          updated_at: dayjs().utc().toISOString(),
+          created_at: dayjs.utc().toISOString(),
+          updated_at: dayjs.utc().toISOString(),
           author: {
             author_id: 999,
             user_id: user?.user?.id || '',

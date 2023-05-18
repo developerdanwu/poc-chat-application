@@ -144,16 +144,7 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
         {Object.entries(formattedMessages || {})
           .sort((a, b) => (dayjs(a[0]).isBefore(dayjs(b[0])) ? 1 : -1))
           .map(([date, messages]) => {
-            const messagesHashmap = messages.reduce<
-              Record<
-                string,
-                RouterOutput['messaging']['getMessages']['messages'][number]
-              >
-            >((acc, nextVal) => {
-              acc[nextVal.client_message_id] = nextVal;
-
-              return acc;
-            }, {});
+            const reversedMessages = [...messages].reverse();
             return (
               <div
                 key={date}
@@ -168,19 +159,18 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
                 >
                   {date}
                 </div>
-                {messages.reverse().map((m) => {
+                {reversedMessages.map((m, index) => {
                   const isSentByMe = m.author.user_id === user.user?.id;
                   const content = safeGenerateMessageContent(
                     JSON.parse(m.content)
                   );
 
-                  const previousMessage =
-                    messagesHashmap[m.client_message_id - 1];
+                  const previousMessage = reversedMessages[index - 1];
+
                   const differenceBetweenLastMessage = previousMessage
-                    ? dayjs(m.created_at).diff(
-                        dayjs(previousMessage.created_at),
-                        'minute'
-                      )
+                    ? dayjs
+                        .utc(m.created_at)
+                        .diff(dayjs.utc(previousMessage.created_at), 'minute')
                     : undefined;
                   return (
                     <ChatReplyItemWrapper
