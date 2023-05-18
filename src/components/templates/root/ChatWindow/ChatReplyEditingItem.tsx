@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { cn } from '@/utils/utils';
 import { EditorContent, useEditor } from '@tiptap/react';
@@ -57,6 +57,8 @@ const ChatReplyEditingItem = ({
     },
   });
 
+  const formRef = useRef<HTMLFormElement>(null);
+
   const editMessage = api.messaging.editMessage.useMutation({
     onMutate: (data) => {
       const oldData = trpcUtils.messaging.getMessages.getInfiniteData({
@@ -87,6 +89,8 @@ const ChatReplyEditingItem = ({
         };
       });
 
+      setIsEditing(undefined);
+
       return {
         oldData,
       };
@@ -108,7 +112,11 @@ const ChatReplyEditingItem = ({
     extensions: [
       TipTapStarterKit,
       TextEditorParagraph({
-        onClickEnter: () => {},
+        onClickEnter: () => {
+          formRef.current?.dispatchEvent(
+            new Event('submit', { cancelable: true, bubbles: true })
+          );
+        },
       }),
       TiptapCodeBlockLight,
     ],
@@ -135,13 +143,13 @@ const ChatReplyEditingItem = ({
   return (
     <FormProvider {...editChatForm}>
       <form
+        ref={formRef}
         onSubmit={editChatForm.handleSubmit((data) => {
           editMessage.mutate({
             clientMessageId,
             text: data.text,
             content: data.content,
           });
-          setIsEditing(undefined);
         })}
         className={cn(
           'group w-full rounded-lg border-2 border-warm-gray-400 bg-warm-gray-50 px-3 py-2',
@@ -167,6 +175,7 @@ const ChatReplyEditingItem = ({
               cancel
             </button>
             <button
+              type={'submit'}
               // disabled={!formState.isValid}
               className={cn('btn-primary btn-sm btn', {
                 // 'btn-disabled': !formState.isValid,

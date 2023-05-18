@@ -62,17 +62,12 @@ const ChatReplyItem = ({
   sendDate: string;
   variant?: 'sender' | 'receiver';
 }) => {
-  const { getFullName } = useApiTransformUtils();
   const editor = useEditor({
     extensions: [TipTapStarterKit, Paragraph, TiptapCodeBlockLight],
     editable: false,
     content,
   });
-  const fullName = getFullName({
-    firstName: author.first_name,
-    lastName: author.last_name,
-    fallback: 'Untitled',
-  });
+
   return (
     <>
       <div
