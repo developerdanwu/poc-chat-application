@@ -1,5 +1,5 @@
-import { type Editor, EditorContent, useEditor } from "@tiptap/react";
-import cn from "clsx";
+import { type Editor, EditorContent, useEditor } from '@tiptap/react';
+import cn from 'clsx';
 import {
   RiBold,
   RiCodeBoxLine,
@@ -7,61 +7,59 @@ import {
   RiItalic,
   RiSendPlane2Fill,
   RiStrikethrough,
-} from "react-icons/ri";
-import { useFormContext } from "react-hook-form";
-import { Paragraph } from "@tiptap/extension-paragraph";
-import { useEffect } from "react";
+} from 'react-icons/ri';
+import { useFormContext } from 'react-hook-form';
+import { Paragraph } from '@tiptap/extension-paragraph';
+import { useEffect } from 'react';
 import {
   TiptapCodeBlockLight,
   TipTapStarterKit,
-} from "@/components/modules/TextEditor/utils";
+} from '@/components/modules/TextEditor/utils';
 
-const MenuBar = ({ editor }: { editor: Editor }) => {
+export const MenuBar = ({ editor }: { editor: Editor }) => {
   return (
     <div className="flex h-full w-full items-center space-x-2">
       <button
         type="button"
-        disabled={editor.isActive("codeBlock")}
+        disabled={editor.isActive('codeBlock')}
         onClick={() => editor.commands.toggleBold()}
-        className={cn("btn-outline btn-square btn-xs btn grid border-0", {
-          "btn-active": editor.isActive("bold"),
-          "btn-disabled": editor.isActive("codeBlock"),
+        className={cn('btn-outline btn-square btn-xs btn grid border-0', {
+          'btn-active': editor.isActive('bold'),
+          'btn-disabled': editor.isActive('codeBlock'),
         })}
       >
         <RiBold size="18px" />
       </button>
       <button
         type="button"
-        disabled={editor.isActive("codeBlock")}
+        disabled={editor.isActive('codeBlock')}
         onClick={() => editor.commands.toggleItalic()}
-        className={cn("btn-outline btn-square btn-xs btn grid border-0", {
-          "btn-active": editor.isActive("italic"),
-          "btn-disabled": editor.isActive("codeBlock"),
+        className={cn('btn-outline btn-square btn-xs btn grid border-0', {
+          'btn-active': editor.isActive('italic'),
+          'btn-disabled': editor.isActive('codeBlock'),
         })}
       >
         <RiItalic size="18px" />
       </button>
       <button
         type="button"
-        disabled={editor.isActive("codeBlock")}
+        disabled={editor.isActive('codeBlock')}
         onClick={() => editor.commands.toggleStrike()}
-        className={cn("btn-outline btn-square btn-xs btn grid border-0", {
-          "btn-active": editor.isActive("strike"),
-          "btn-disabled": editor.isActive("codeBlock"),
+        className={cn('btn-outline btn-square btn-xs btn grid border-0', {
+          'btn-active': editor.isActive('strike'),
+          'btn-disabled': editor.isActive('codeBlock'),
         })}
       >
         <RiStrikethrough size="18px" />
       </button>
-      <div
-        className="divider divider-horizontal before:bg-neutral after:bg-neutral"
-      />
+      <div className="divider divider-horizontal before:bg-neutral after:bg-neutral" />
       <button
         type="button"
-        disabled={editor.isActive("codeBlock")}
+        disabled={editor.isActive('codeBlock')}
         onClick={() => editor.commands.toggleCode()}
-        className={cn("btn-outline btn-square btn-xs btn grid border-0", {
-          "btn-active": editor.isActive("code"),
-          "btn-disabled": editor.isActive("codeBlock"),
+        className={cn('btn-outline btn-square btn-xs btn grid border-0', {
+          'btn-active': editor.isActive('code'),
+          'btn-disabled': editor.isActive('codeBlock'),
         })}
       >
         <RiCodeLine size="18px" />
@@ -70,8 +68,8 @@ const MenuBar = ({ editor }: { editor: Editor }) => {
       <button
         type="button"
         onClick={() => editor.commands.toggleCodeBlock()}
-        className={cn("btn-outline btn-square btn-xs btn grid border-0", {
-          "btn-active": editor.isActive("codeBlock"),
+        className={cn('btn-outline btn-square btn-xs btn grid border-0', {
+          'btn-active': editor.isActive('codeBlock'),
         })}
       >
         <RiCodeBoxLine size="18px" />
@@ -87,8 +85,8 @@ const SendBar = () => {
       <div></div>
       <button
         disabled={!formState.isValid}
-        className={cn("btn-primary btn-sm btn", {
-          "btn-disabled": !formState.isValid,
+        className={cn('btn-primary btn-sm btn', {
+          'btn-disabled': !formState.isValid,
         })}
       >
         <RiSendPlane2Fill />
@@ -105,7 +103,7 @@ const TextEditorParagraph = ({
   return Paragraph.extend({
     addKeyboardShortcuts() {
       return {
-        "Shift-Enter": () => {
+        'Shift-Enter': () => {
           return this.editor.commands.newlineInCode();
         },
         // override enter command to submit form
@@ -139,12 +137,12 @@ const TextEditor = ({
     content,
     editorProps: {
       attributes: {
-        form: "chatForm",
-        class: "border-0 max-h-[55vh] overflow-auto w-full py-3",
+        form: 'chatForm',
+        class: 'border-0 max-h-[55vh] overflow-auto w-full py-3',
       },
     },
     onUpdate: ({ editor }) => {
-      chatForm.setValue("text", editor.getText());
+      chatForm.setValue('text', editor.getText());
       onChange(editor.getJSON());
     },
   });
@@ -153,7 +151,7 @@ const TextEditor = ({
     if (!editor) return;
     const { from, to } = editor.state.selection;
     editor.commands.setContent(content, false, {
-      preserveWhitespace: "full",
+      preserveWhitespace: 'full',
     });
     editor.commands.setTextSelection({ from, to });
   }, [editor, content]);
@@ -164,9 +162,9 @@ const TextEditor = ({
   return (
     <div
       className={cn(
-        "group w-full rounded-lg border-2 border-warm-gray-400 px-3 py-2",
+        'group w-full rounded-lg border-2 border-warm-gray-400 bg-warm-gray-50 px-3 py-2',
         {
-          "!border-warm-gray-600": editor.isFocused,
+          '!border-warm-gray-600': editor.isFocused,
         }
       )}
     >
