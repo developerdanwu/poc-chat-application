@@ -16,6 +16,7 @@ import { useUser } from '@clerk/nextjs';
 import utc from 'dayjs/plugin/utc';
 import ChatReplyEditingItem from '@/components/templates/root/ChatWindow/ChatReplyEditingItem';
 import ChatReplyItemWrapper from '@/components/templates/root/ChatWindow/ChatReplyItemWrapper';
+import RadialProgress from '@/components/elements/RadialProgress';
 
 dayjs.extend(advancedFormat);
 dayjs.extend(utc);
@@ -76,7 +77,13 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
   const formattedMessages = messagesArray?.reduce<
     Record<string, RouterOutput['messaging']['getMessages']['messages']>
   >((acc, nextVal) => {
-    const date = dayjs.utc(nextVal.created_at).local().format('dddd, MMMM Do');
+    const date = dayjs
+      .utc(nextVal.created_at)
+      .local()
+      .hour(0)
+      .minute(0)
+      .second(0)
+      .format();
     if (!acc[date]) {
       acc[date] = [];
     }
@@ -128,7 +135,7 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
       )}
       <InfiniteScroll
         pageStart={0}
-        className="flex flex-col space-y-4 py-3"
+        className="flex flex-col py-3"
         hasMore={messages.hasNextPage}
         reversed={true}
         getScrollParent={() => {
@@ -138,26 +145,32 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
           messages.fetchNextPage();
         }}
         isReverse={true}
-        loader={<div>LOADING</div>}
+        loader={
+          <div className={'flex justify-center py-2'}>
+            <RadialProgress />
+          </div>
+        }
         useWindow={false}
       >
         {Object.entries(formattedMessages || {})
-          .sort((a, b) => (dayjs(a[0]).isBefore(dayjs(b[0])) ? 1 : -1))
+          .sort((a, b) => {
+            return dayjs(a[0]).isAfter(dayjs(b[0]), 'day') ? 1 : -1;
+          })
           .map(([date, messages]) => {
             const reversedMessages = [...messages].reverse();
             return (
               <div
                 key={date}
                 className={cn(
-                  'relative flex flex-col after:absolute after:top-[10px] after:w-full after:border-t after:border-black after:content-[""]'
+                  'relative flex flex-col after:absolute after:top-[20px] after:w-full after:border-t after:border-black after:content-[""]'
                 )}
               >
                 <div
                   className={cn(
-                    'sticky top-2 z-50 self-center rounded-full border border-black bg-white px-4 text-sm font-semibold'
+                    'sticky top-2 z-50 my-2 self-center rounded-full border border-black bg-white px-4 text-sm font-semibold'
                   )}
                 >
-                  {date}
+                  {dayjs(date).format('dddd, MMMM Do')}
                 </div>
                 {reversedMessages.map((m, index) => {
                   const isSentByMe = m.author.user_id === user.user?.id;
@@ -172,8 +185,14 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
                         .utc(m.created_at)
                         .diff(dayjs.utc(previousMessage.created_at), 'minute')
                     : undefined;
+
+                  const isLastMessageSenderEqualToCurrentMessageSender =
+                    previousMessage?.author.author_id === m.author.author_id;
                   return (
                     <ChatReplyItemWrapper
+                      isLastMessageSenderEqualToCurrentMessageSender={
+                        isLastMessageSenderEqualToCurrentMessageSender
+                      }
                       sendDate={m.created_at}
                       differenceBetweenLastMessage={
                         differenceBetweenLastMessage
@@ -193,6 +212,9 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
                         />
                       ) : (
                         <ChatReplyItem
+                          isLastMessageSenderEqualToCurrentMessageSender={
+                            isLastMessageSenderEqualToCurrentMessageSender
+                          }
                           differenceBetweenLastMessage={
                             differenceBetweenLastMessage
                           }

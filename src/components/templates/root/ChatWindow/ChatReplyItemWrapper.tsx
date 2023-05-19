@@ -9,11 +9,13 @@ const ChatReplyAvatar = ({
   firstName,
   lastName,
   sendDate,
+  isLastMessageSenderEqualToCurrentMessageSender,
 }: {
   sendDate: string;
   firstName: string;
   lastName: string;
   differenceBetweenLastMessage: number | undefined;
+  isLastMessageSenderEqualToCurrentMessageSender: boolean;
 }) => {
   const { getFullName } = useApiTransformUtils();
   const fullName = getFullName({
@@ -23,6 +25,7 @@ const ChatReplyAvatar = ({
   });
 
   if (
+    !isLastMessageSenderEqualToCurrentMessageSender ||
     differenceBetweenLastMessage === undefined ||
     differenceBetweenLastMessage > 5
   ) {
@@ -37,6 +40,7 @@ const ChatReplyAvatar = ({
 };
 
 const ChatReplyItemWrapper = ({
+  isLastMessageSenderEqualToCurrentMessageSender,
   sendDate,
   differenceBetweenLastMessage,
   isEditing,
@@ -44,6 +48,7 @@ const ChatReplyItemWrapper = ({
   communicator,
   author,
 }: {
+  isLastMessageSenderEqualToCurrentMessageSender: boolean;
   differenceBetweenLastMessage: number | undefined;
   sendDate: string;
   isEditing: boolean;
@@ -60,6 +65,9 @@ const ChatReplyItemWrapper = ({
       })}
     >
       <ChatReplyAvatar
+        isLastMessageSenderEqualToCurrentMessageSender={
+          isLastMessageSenderEqualToCurrentMessageSender
+        }
         sendDate={sendDate}
         differenceBetweenLastMessage={differenceBetweenLastMessage}
         lastName={author.last_name}

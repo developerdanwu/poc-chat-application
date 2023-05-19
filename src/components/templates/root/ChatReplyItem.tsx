@@ -11,11 +11,13 @@ import {
 import { Paragraph } from '@tiptap/extension-paragraph';
 
 const ChatReplyItemHeader = ({
+  isLastMessageSenderEqualToCurrentMessageSender,
   differenceBetweenLastMessage,
   firstName,
   lastName,
   sendDate,
 }: {
+  isLastMessageSenderEqualToCurrentMessageSender: boolean;
   sendDate: string;
   firstName: string;
   lastName: string;
@@ -29,6 +31,7 @@ const ChatReplyItemHeader = ({
   });
 
   if (
+    !isLastMessageSenderEqualToCurrentMessageSender ||
     differenceBetweenLastMessage === undefined ||
     differenceBetweenLastMessage > 5
   ) {
@@ -46,6 +49,7 @@ const ChatReplyItemHeader = ({
 };
 
 const ChatReplyItem = ({
+  isLastMessageSenderEqualToCurrentMessageSender,
   differenceBetweenLastMessage,
   messageId,
   setIsEditing,
@@ -54,6 +58,7 @@ const ChatReplyItem = ({
   sendDate,
   content,
 }: {
+  isLastMessageSenderEqualToCurrentMessageSender: boolean;
   differenceBetweenLastMessage: number | undefined;
   messageId: number;
   content: string;
@@ -90,6 +95,9 @@ const ChatReplyItem = ({
 
       <div className="flex w-full flex-col space-y-2">
         <ChatReplyItemHeader
+          isLastMessageSenderEqualToCurrentMessageSender={
+            isLastMessageSenderEqualToCurrentMessageSender
+          }
           sendDate={sendDate}
           differenceBetweenLastMessage={differenceBetweenLastMessage}
           lastName={author.last_name}
