@@ -33,6 +33,8 @@ export type Message = {
   chatroom_id: string;
   created_at: Generated<Timestamp>;
   updated_at: Timestamp;
+  status: string;
+  visibility: string;
 };
 export type DB = {
   author: Author;

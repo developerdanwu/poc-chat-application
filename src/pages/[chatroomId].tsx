@@ -1,5 +1,5 @@
 import { type NextPageWithLayout } from '@/pages/_app';
-import { cn } from '@/utils/utils';
+import { cn } from '@/lib/utils';
 import ChatSidebar from '@/components/templates/root/ChatSidebar/ChatSidebar';
 import React, { useRef } from 'react';
 import { useRouter } from 'next/router';
@@ -7,7 +7,7 @@ import ChatTopControls from '@/components/templates/root/ChatTopControls';
 import ChatWindow from '@/components/templates/root/ChatWindow/ChatWindow';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import TextEditor from '@/components/modules/TextEditor/TextEditor';
-import { api } from '@/utils/api';
+import { api } from '@/lib/api';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
 import dayjs from 'dayjs';

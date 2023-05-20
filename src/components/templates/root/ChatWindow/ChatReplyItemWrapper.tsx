@@ -1,5 +1,5 @@
 import React from 'react';
-import { cn, useApiTransformUtils } from '@/utils/utils';
+import { cn, useApiTransformUtils } from '@/lib/utils';
 import Avatar from '@/components/elements/Avatar';
 import { RouterOutput } from '@/server/api/root';
 import dayjs from 'dayjs';

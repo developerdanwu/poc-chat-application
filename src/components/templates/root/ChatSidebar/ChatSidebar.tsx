@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { api } from '@/utils/api';
-import { cn, useApiTransformUtils } from '@/utils/utils';
+import { api } from '@/lib/api';
+import { cn, useApiTransformUtils } from '@/lib/utils';
 import Input from '@/components/elements/Input';
 import ThreadListItem from '@/components/templates/root/ThreadListItem';
-import { notEmpty } from '@/utils/ts-utils';
+import { notEmpty } from '@/lib/ts-utils';
 import { useRouter } from 'next/router';
 import { useDebounce } from 'react-use';
 import RadialProgress from '@/components/elements/RadialProgress';

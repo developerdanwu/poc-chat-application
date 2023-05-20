@@ -1,6 +1,6 @@
 import { type AppProps } from 'next/app';
 
-import { api } from '@/utils/api';
+import { api } from '@/lib/api';
 
 import '@/styles/globals.css';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
@@ -13,11 +13,8 @@ import {
 import { type ReactElement, type ReactNode, useEffect } from 'react';
 import { type NextPage } from 'next';
 import { configureAbly, usePresence } from '@ably-labs/react-hooks';
-import { ablyChannelKeyStore } from '@/utils/useAblyWebsocket';
-import { create } from 'zustand';
-import { Types } from 'ably';
-import produce from 'immer';
-import PresenceMessage = Types.PresenceMessage;
+import { ablyChannelKeyStore } from '@/lib/useAblyWebsocket';
+import { useAppStore } from '@/lib/useAppStore';
 
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
   getLayout?: (page: ReactElement) => ReactNode;
@@ -31,40 +28,6 @@ configureAbly({
   authUrl: 'http://localhost:3000/api/ably-auth',
   authMethod: 'GET',
 });
-
-export const useAppStore = create<{
-  onlinePresence: Record<string, PresenceMessage>;
-  addOnlinePresence: (presenceMessage: PresenceMessage) => void;
-  removeOnlinePresence: (clientId: string) => void;
-  setOnlinePresence: (presenceMessages: PresenceMessage[]) => void;
-}>((setState) => ({
-  onlinePresence: {},
-  addOnlinePresence: (presenceMessage) => {
-    setState((prev) => ({
-      onlinePresence: produce(prev.onlinePresence, (draft) => {
-        draft[presenceMessage.clientId] = presenceMessage;
-      }),
-    }));
-  },
-  setOnlinePresence: (presenceMessages: PresenceMessage[]) => {
-    setState(() => ({
-      onlinePresence: presenceMessages.reduce<Record<string, PresenceMessage>>(
-        (acc, nextVal) => {
-          acc[nextVal.clientId] = nextVal;
-          return acc;
-        },
-        {}
-      ),
-    }));
-  },
-  removeOnlinePresence: (clientId: string) => {
-    setState((prev) => ({
-      onlinePresence: produce(prev.onlinePresence, (draft) => {
-        delete draft[clientId];
-      }),
-    }));
-  },
-}));
 
 const useSyncOnlinePresence = () => {
   // subscribe to only set function to prevent global re-render on state change

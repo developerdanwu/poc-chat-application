@@ -1,16 +1,16 @@
-import React from "react";
-import { cn } from "@/utils/utils";
-import ChatSidebar from "@/components/templates/root/ChatSidebar/ChatSidebar";
-import { type NextPageWithLayout } from "@/pages/_app";
-import { MainChatWrapper } from "@/pages/[chatroomId]";
-import { Controller, FormProvider, useForm } from "react-hook-form";
-import TextEditor from "@/components/modules/TextEditor/TextEditor";
-import { zodResolver } from "@hookform/resolvers/zod";
-import z from "zod";
-import AuthorsAutocomplete from "@/components/templates/new-message/AuthorsAutocomplete";
-import { api } from "@/utils/api";
-import { useRouter } from "next/router";
-import ScrollArea from "@/components/elements/ScrollArea";
+import React from 'react';
+import { cn } from '@/lib/utils';
+import ChatSidebar from '@/components/templates/root/ChatSidebar/ChatSidebar';
+import { type NextPageWithLayout } from '@/pages/_app';
+import { MainChatWrapper } from '@/pages/[chatroomId]';
+import { Controller, FormProvider, useForm } from 'react-hook-form';
+import TextEditor from '@/components/modules/TextEditor/TextEditor';
+import { zodResolver } from '@hookform/resolvers/zod';
+import z from 'zod';
+import AuthorsAutocomplete from '@/components/templates/new-message/AuthorsAutocomplete';
+import { api } from '@/lib/api';
+import { useRouter } from 'next/router';
+import ScrollArea from '@/components/elements/ScrollArea';
 
 const NewMessage: NextPageWithLayout = () => {
   const newMessageForm = useForm({
@@ -23,8 +23,8 @@ const NewMessage: NextPageWithLayout = () => {
     ),
     defaultValues: {
       authorId: NaN,
-      text: "",
-      content: "",
+      text: '',
+      content: '',
     },
   });
   const router = useRouter();
@@ -80,14 +80,10 @@ const NewMessage: NextPageWithLayout = () => {
   return (
     <>
       <FormProvider {...newMessageForm}>
-        <div
-          className="flex w-full flex-[0_0_60px] items-center border-b-2 border-black px-6"
-        >
+        <div className="flex w-full flex-[0_0_60px] items-center border-b-2 border-black px-6">
           <p className="font-semibold">New message</p>
         </div>
-        <div
-          className="flex w-full flex-[0_0_60px] items-center items-center border-b-2 border-black px-6"
-        >
+        <div className="flex w-full flex-[0_0_60px] items-center items-center border-b-2 border-black px-6">
           <div className="flex w-full items-center space-x-2">
             <p className="leading-[0px]">To:</p>
             <AuthorsAutocomplete />
@@ -97,11 +93,11 @@ const NewMessage: NextPageWithLayout = () => {
           componentProps={{
             root: {
               className:
-                "flex overflow-hidden h-full w-full rounded-xl bg-base-100",
+                'flex overflow-hidden h-full w-full rounded-xl bg-base-100',
             },
             viewport: {
               // ref: scrollAreaRef,
-              className: "h-full w-full",
+              className: 'h-full w-full',
             },
           }}
         ></ScrollArea>
@@ -109,7 +105,7 @@ const NewMessage: NextPageWithLayout = () => {
           id="message-text-input-form"
           className="flex w-full items-center justify-between space-x-4 bg-transparent bg-secondary px-6 py-3"
           onSubmit={newMessageForm.handleSubmit((data) => {
-            console.log(data, "DATA");
+            console.log(data, 'DATA');
           })}
           // onSubmit={chatForm.handleSubmit((data) => {
           //   sendMessage.mutate({
@@ -150,10 +146,10 @@ NewMessage.getLayout = function getLayout(page) {
   return (
     <div
       className={cn(
-        "flex h-screen w-screen flex-row items-center justify-center  bg-warm-gray-50"
+        'flex h-screen w-screen flex-row items-center justify-center  bg-warm-gray-50'
       )}
     >
-      <div className={cn("flex h-full w-full flex-row")}>
+      <div className={cn('flex h-full w-full flex-row')}>
         <ChatSidebar />
         <MainChatWrapper>{page}</MainChatWrapper>
       </div>

@@ -1,5 +1,5 @@
 import React, { RefObject, useMemo, useRef, useState } from 'react';
-import { api } from '@/utils/api';
+import { api } from '@/lib/api';
 import ScrollArea from '@/components/elements/ScrollArea';
 import { generateHTML } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
@@ -7,7 +7,7 @@ import { CodeBlockLowlight } from '@tiptap/extension-code-block-lowlight';
 import { lowlight } from 'lowlight';
 import dayjs from 'dayjs';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
-import { cn, useApiTransformUtils } from '@/utils/utils';
+import { cn, useApiTransformUtils } from '@/lib/utils';
 import { type RouterOutput } from '@/server/api/root';
 import Avatar from '@/components/elements/Avatar';
 import InfiniteScroll from 'react-infinite-scroller';
@@ -82,7 +82,6 @@ const ChatWindow = ({
       }, []),
     [messages.data?.pages]
   );
-
   const user = useUser();
 
   const formattedMessages = messagesArray?.reduce<

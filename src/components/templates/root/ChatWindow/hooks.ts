@@ -1,6 +1,6 @@
 import { useChannel } from '@ably-labs/react-hooks';
-import { ablyChannelKeyStore } from '@/utils/useAblyWebsocket';
-import { api } from '@/utils/api';
+import { ablyChannelKeyStore } from '@/lib/useAblyWebsocket';
+import { api } from '@/lib/api';
 import { useUser } from '@clerk/nextjs';
 import { RouterOutput } from '@/server/api/root';
 import dayjs from 'dayjs';

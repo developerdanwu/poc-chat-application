@@ -1,10 +1,10 @@
-import React, { forwardRef } from "react";
-import { type ClassValue } from "clsx";
-import { cn } from "@/utils/utils";
+import React, { forwardRef } from 'react';
+import { type ClassValue } from 'clsx';
+import { cn } from '@/lib/utils';
 
 const Input = forwardRef<
   HTMLInputElement,
-  Omit<React.InputHTMLAttributes<HTMLInputElement>, "className"> & {
+  Omit<React.InputHTMLAttributes<HTMLInputElement>, 'className'> & {
     className?: ClassValue;
   }
 >(function Input({ className, ...restProps }, ref) {
@@ -13,7 +13,7 @@ const Input = forwardRef<
       ref={ref}
       type="text"
       placeholder="Type here"
-      className={cn("input input-xs h-auto w-full rounded-sm py-2", className)}
+      className={cn('input input-xs h-auto w-full rounded-sm py-2', className)}
       {...restProps}
     />
   );

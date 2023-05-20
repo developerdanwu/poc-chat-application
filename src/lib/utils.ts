@@ -1,7 +1,7 @@
 import origCN, { type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { useUser } from '@clerk/nextjs';
-import { useAppStore } from '@/pages/_app';
+import { useAppStore } from '@/lib/useAppStore';
 
 const getFullName = ({
   firstName,

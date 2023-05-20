@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { cn } from '@/utils/utils';
+import { cn } from '@/lib/utils';
 import { EditorContent, useEditor } from '@tiptap/react';
 import {
   TiptapCodeBlockLight,
@@ -9,7 +9,7 @@ import {
 import { Paragraph } from '@tiptap/extension-paragraph';
 import { MenuBar } from '@/components/modules/TextEditor/TextEditor';
 import { safeGenerateMessageContent } from '@/components/templates/root/ChatWindow/ChatWindow';
-import { api } from '@/utils/api';
+import { api } from '@/lib/api';
 import produce from 'immer';
 import { InfiniteData } from '@tanstack/react-query';
 import { RouterOutput } from '@/server/api/root';

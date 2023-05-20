@@ -1,6 +1,6 @@
-import { notEmpty } from '@/utils/ts-utils';
-import { api } from '@/utils/api';
-import { useApiTransformUtils } from '@/utils/utils';
+import { notEmpty } from '@/lib/ts-utils';
+import { api } from '@/lib/api';
+import { useApiTransformUtils } from '@/lib/utils';
 
 const ChatTopControls = ({ chatroomId }: { chatroomId: string }) => {
   const chatroomDetail = api.messaging.getChatroom.useQuery(
@@ -38,7 +38,9 @@ const ChatTopControls = ({ chatroomId }: { chatroomId: string }) => {
           .filter(notEmpty)
           .join(',')}
       </p>
-      {onlineUserPrescence ? <div>online</div> : null}
+      {onlineUserPrescence ? (
+        <div className={'h-3 w-3 rounded-full bg-green-600'} />
+      ) : null}
     </div>
   );
 };

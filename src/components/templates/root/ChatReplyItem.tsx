@@ -1,7 +1,7 @@
 import React from 'react';
 import dayjs from 'dayjs';
 import { type RouterOutput } from '@/server/api/root';
-import { cn, useApiTransformUtils } from '@/utils/utils';
+import { cn, useApiTransformUtils } from '@/lib/utils';
 import { RiEdit2Fill, RiMore2Fill } from 'react-icons/ri';
 import { EditorContent, useEditor } from '@tiptap/react';
 import {
@@ -83,12 +83,12 @@ const ChatReplyItem = ({
         {variant === 'sender' && (
           <button
             onClick={() => setIsEditing(messageId)}
-            className={'btn-outline btn-square btn-xs btn border-0'}
+            className={'btn-outline btn-xs btn-square btn border-0'}
           >
             <RiEdit2Fill size={16} />
           </button>
         )}
-        <button className={'btn-outline btn-square btn-xs btn border-0'}>
+        <button className={'btn-outline btn-xs btn-square btn border-0'}>
           <RiMore2Fill size={16} />
         </button>
       </div>
