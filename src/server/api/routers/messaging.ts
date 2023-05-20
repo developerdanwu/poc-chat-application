@@ -1,4 +1,8 @@
-import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
+import {
+  ablyRest,
+  createTRPCRouter,
+  protectedProcedure,
+} from '@/server/api/trpc';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { ChatGPTAPI } from 'chatgpt';
@@ -6,6 +10,7 @@ import { env } from '@/env.mjs';
 import { sql } from 'kysely';
 import { v4 as uuid } from 'uuid';
 import dayjs from 'dayjs';
+import { ablyChannelKeyStore } from '@/utils/useAblyWebsocket';
 
 const gpt = new ChatGPTAPI({
   apiKey: env.OPENAI_ACCESS_TOKEN as string,
@@ -361,7 +366,6 @@ export const messaging = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       const limit = input.take || 10;
-
       const messages = await ctx.db
         .selectFrom((eb) => {
           return eb
@@ -375,46 +379,34 @@ export const messaging = createTRPCRouter({
                   : []),
               ]);
             })
-            .orderBy('client_message_id', input.orderBy || 'desc')
             .limit(limit)
+            .orderBy('client_message_id', input.orderBy || 'desc')
             .as('message');
         })
         .select([
-          sql<
-            {
-              client_message_id: number;
-              content: string;
-              author: {
-                author_id: number;
-                first_name: string;
-                last_name: string;
-                user_id: string;
-              };
-              text: string;
-              created_at: string;
-              updated_at: string;
-            }[]
-          >`JSON_ARRAYAGG(
-                JSON_OBJECT(
-                  'client_message_id', client_message_id,
-                  'text', text,
-                  'content', content,
-                  'created_at', message.created_at,
-                  'updated_at', message.updated_at, 
-                  'author', JSON_OBJECT(
-                    'user_id', author.user_id,
-                    'author_id', author.author_id,
-                    'first_name', author.first_name, 
-                    'last_name', author.last_name))
-                     )`.as('messages'),
-          ctx.db.fn.min('client_message_id').as('next_cursor'),
+          'client_message_id',
+          'text',
+          'content',
+          'message.created_at',
+          'message.updated_at',
+          sql<{
+            author_id: number;
+            first_name: string;
+            last_name: string;
+            user_id: string;
+          }>`JSON_OBJECT('author_id', author.author_id, 'first_name', author.first_name, 'last_name', author.last_name, 'user_id', author.user_id)`.as(
+            'author'
+          ),
+          // ctx.db.fn.min('client_message_id').as('next_cursor'),
         ])
         .innerJoin('author', 'author.author_id', 'message.author_id')
-        .executeTakeFirst();
+        .orderBy('client_message_id', input.orderBy || 'desc')
+        .execute();
 
+      console.log(messages);
       return {
-        messages: messages?.messages || [],
-        next_cursor: messages?.next_cursor || 0,
+        messages: messages || [],
+        next_cursor: Math.min(...messages.map((m) => m.client_message_id)) || 0,
       };
     }),
   sendMessage: protectedProcedure
@@ -427,22 +419,55 @@ export const messaging = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      await ctx.db.transaction().execute(async (trx) => {
-        await trx
-          .insertInto('message')
-          .values((eb) => ({
-            text: input.text,
-            type: 'text',
-            content: input.content,
-            author_id: eb
-              .selectFrom('author')
-              .select('author_id')
-              .where('author.user_id', '=', ctx.auth.userId),
-            chatroom_id: input.chatroomId,
-            updated_at: dayjs.utc().toDate(),
-          }))
-          .execute();
-      });
+      const insertedMessage = await ctx.db
+        .transaction()
+        .execute(async (trx) => {
+          return await trx
+            .insertInto('message')
+            .values((eb) => ({
+              text: input.text,
+              type: 'text',
+              content: input.content,
+              author_id: eb
+                .selectFrom('author')
+                .select('author_id')
+                .where('author.user_id', '=', ctx.auth.userId),
+              chatroom_id: input.chatroomId,
+              updated_at: dayjs.utc().toDate(),
+            }))
+            .executeTakeFirst();
+        });
+
+      const message = await ctx.db
+        .selectFrom('message')
+        .select([
+          'client_message_id',
+          'text',
+          'message.created_at',
+          'message.updated_at',
+          'content',
+          sql<{
+            first_name: string;
+            last_name: string;
+            author_id: number;
+            user_id: string;
+          }>`JSON_OBJECT('first_name',author.first_name, 'last_name', author.last_name, 'email', author.email, 'author_id', author.author_id, 'role', author.role, 'user_id', author.user_id)`.as(
+            'author'
+          ),
+        ])
+        .innerJoin('author', 'author.author_id', 'message.author_id')
+        .where(
+          'client_message_id',
+          '=',
+          insertedMessage.insertId as unknown as number
+        )
+        .executeTakeFirst();
+
+      await ablyRest.channels
+        .get(ablyChannelKeyStore.chatroom(input.chatroomId))
+        .publish('message', message);
+
+      return message;
     }),
   editMessage: protectedProcedure
     .input(

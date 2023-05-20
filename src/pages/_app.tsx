@@ -12,6 +12,7 @@ import {
 } from '@clerk/nextjs';
 import { type ReactElement, type ReactNode } from 'react';
 import { type NextPage } from 'next';
+import { configureAbly } from '@ably-labs/react-hooks';
 
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
   getLayout?: (page: ReactElement) => ReactNode;
@@ -21,12 +22,15 @@ type AppPropsWithLayout = AppProps & {
   Component: NextPageWithLayout;
 };
 
+configureAbly({
+  authUrl: 'http://localhost:3000/api/ably-auth',
+});
+
 const MyApp = ({
   Component,
   pageProps: { ...pageProps },
 }: AppPropsWithLayout) => {
   const getLayout = Component.getLayout ?? ((page) => page);
-  // useAblyWebsocket();
 
   return (
     <>

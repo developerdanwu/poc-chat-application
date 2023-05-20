@@ -1,7 +1,7 @@
 import { type NextPageWithLayout } from '@/pages/_app';
 import { cn } from '@/utils/utils';
 import ChatSidebar from '@/components/templates/root/ChatSidebar/ChatSidebar';
-import React from 'react';
+import React, { useRef } from 'react';
 import { useRouter } from 'next/router';
 import ChatTopControls from '@/components/templates/root/ChatTopControls';
 import ChatWindow from '@/components/templates/root/ChatWindow/ChatWindow';
@@ -10,10 +10,9 @@ import TextEditor from '@/components/modules/TextEditor/TextEditor';
 import { api } from '@/utils/api';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
-import { getQueryKey } from '@trpc/react-query';
 import dayjs from 'dayjs';
 import produce from 'immer';
-import { type InfiniteData, useQueryClient } from '@tanstack/react-query';
+import { type InfiniteData } from '@tanstack/react-query';
 import { type RouterOutput } from '@/server/api/root';
 import { useUser } from '@clerk/nextjs';
 
@@ -34,20 +33,11 @@ const ChatroomId: NextPageWithLayout = () => {
   const chatroomId =
     typeof router.query.chatroomId === 'string' ? router.query.chatroomId : '';
   const trpcUtils = api.useContext();
-  const queryClient = useQueryClient();
   const user = useUser();
+  const chatBottomRef = useRef<HTMLDivElement>(null);
+
   const sendMessage = api.messaging.sendMessage.useMutation({
-    onSettled: () => {
-      queryClient.invalidateQueries(
-        getQueryKey(
-          api.messaging.getMessages,
-          {
-            chatroomId,
-          },
-          'query'
-        )
-      );
-    },
+    mutationKey: ['sendMessage', chatroomId],
     onMutate: (variables) => {
       const oldData = trpcUtils.messaging.getMessages.getInfiniteData({
         chatroomId,
@@ -69,8 +59,8 @@ const ChatroomId: NextPageWithLayout = () => {
               : 1,
           text: variables.text,
           content: variables.content,
-          created_at: dayjs.utc().toISOString(),
-          updated_at: dayjs.utc().toISOString(),
+          created_at: dayjs.utc().toDate(),
+          updated_at: dayjs.utc().toDate(),
           author: {
             author_id: 999,
             user_id: user?.user?.id || '',
@@ -112,6 +102,7 @@ const ChatroomId: NextPageWithLayout = () => {
       });
 
       chatForm.reset();
+
       return {
         oldData,
       };
@@ -148,6 +139,7 @@ const ChatroomId: NextPageWithLayout = () => {
         <MainChatWrapper>
           <ChatTopControls chatroomId={chatroomId} />
           <ChatWindow
+            chatBottomRef={chatBottomRef}
             key={router.query.chatroomId}
             chatroomId={router.query.chatroomId}
           />

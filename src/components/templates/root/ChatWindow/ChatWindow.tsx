@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { RefObject, useMemo, useRef, useState } from 'react';
 import { api } from '@/utils/api';
 import ScrollArea from '@/components/elements/ScrollArea';
 import { generateHTML } from '@tiptap/core';
@@ -17,6 +17,10 @@ import utc from 'dayjs/plugin/utc';
 import ChatReplyEditingItem from '@/components/templates/root/ChatWindow/ChatReplyEditingItem';
 import ChatReplyItemWrapper from '@/components/templates/root/ChatWindow/ChatReplyItemWrapper';
 import RadialProgress from '@/components/elements/RadialProgress';
+import {
+  useChatWindowScroll,
+  useMessageUpdate,
+} from '@/components/templates/root/ChatWindow/hooks';
 
 dayjs.extend(advancedFormat);
 dayjs.extend(utc);
@@ -40,7 +44,13 @@ export const safeGenerateMessageContent = (content: any) => {
   }
 };
 
-const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
+const ChatWindow = ({
+  chatroomId,
+  chatBottomRef,
+}: {
+  chatroomId: string;
+  chatBottomRef: RefObject<HTMLDivElement>;
+}) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [editingChatItem, setEditingChatItem] = useState<undefined | number>(
     undefined
@@ -63,15 +73,21 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
   const filteredChatroomUsers = filterAuthedUserFromChatroomAuthors(
     chatroomDetails.data?.authors ?? []
   );
+  const messagesArray = useMemo(
+    () =>
+      messages.data?.pages.reduce<
+        RouterOutput['messaging']['getMessages']['messages']
+      >((acc, nextVal) => {
+        nextVal.messages.forEach((m) => {
+          acc.push(m);
+        });
+        return acc;
+      }, []),
+    [messages.data?.pages]
+  );
 
-  const messagesArray = messages.data?.pages.reduce<
-    RouterOutput['messaging']['getMessages']['messages']
-  >((acc, nextVal) => {
-    nextVal.messages.forEach((m) => {
-      acc.push(m);
-    });
-    return acc;
-  }, []);
+  console.log('DATAA', messages.data);
+
   const user = useUser();
 
   const formattedMessages = messagesArray?.reduce<
@@ -91,8 +107,8 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
     return acc;
   }, {});
 
-  // useMessageUpdate(chatroomId);
-  // useChatWindowScroll(scrollAreaRef);
+  useMessageUpdate({ chatroomId });
+  useChatWindowScroll({ scrollAreaRef, chatBottomRef, chatroomId });
 
   return (
     <ScrollArea
@@ -158,6 +174,7 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
           })
           .map(([date, messages]) => {
             const reversedMessages = [...messages].reverse();
+            console.log('REVVV', reversedMessages);
             return (
               <div
                 key={date}
@@ -233,6 +250,7 @@ const ChatWindow = ({ chatroomId }: { chatroomId: string }) => {
             );
           })}
       </InfiniteScroll>
+      <div ref={chatBottomRef} />
     </ScrollArea>
   );
 };

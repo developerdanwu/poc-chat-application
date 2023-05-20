@@ -1,11 +1,11 @@
 import { useChannel } from '@ably-labs/react-hooks';
 import { ablyChannelKeyStore } from '@/utils/useAblyWebsocket';
 import { api } from '@/utils/api';
-import produce from 'immer';
 import { useUser } from '@clerk/nextjs';
 import { RouterOutput } from '@/server/api/root';
 import dayjs from 'dayjs';
 import { useEffect, useMemo } from 'react';
+import produce from 'immer';
 
 export const useChatWindowLogic = ({ chatroomId }: { chatroomId: string }) => {
   const messages = api.messaging.getMessages.useInfiniteQuery(
@@ -74,23 +74,24 @@ export const useChatWindowLogic = ({ chatroomId }: { chatroomId: string }) => {
   };
 };
 
-export const useChatWindowScroll = (
-  scrollAreaRef: React.RefObject<HTMLDivElement>
-) => {
+export const useChatWindowScroll = ({
+  chatroomId,
+  chatBottomRef,
+  scrollAreaRef,
+}: {
+  scrollAreaRef: React.RefObject<HTMLDivElement>;
+  chatroomId: string;
+  chatBottomRef: React.RefObject<HTMLDivElement>;
+}) => {
   useEffect(() => {
     const listener = (event: Event) => {
-      if (
-        event.currentTarget instanceof HTMLElement &&
-        event.target instanceof HTMLElement
-      ) {
-        const sentBy = event.target.getAttribute('data-communicator');
+      if (chatBottomRef.current) {
+        // if user sends message, scroll to bottom of conversation
 
-        event.currentTarget.scroll({
-          top: event.currentTarget.scrollHeight,
-          behavior: 'smooth',
-        });
+        chatBottomRef.current.scrollIntoView();
       }
     };
+
     if (scrollAreaRef.current) {
       scrollAreaRef.current.addEventListener('DOMNodeInserted', listener);
     }
@@ -107,40 +108,72 @@ export const useChatWindowScroll = (
   }, []);
 };
 
-export const useMessageUpdate = (chatroomId: string) => {
-  const trpcUtils = api.useContext();
+export const useMessageUpdate = ({ chatroomId }: { chatroomId: string }) => {
   const currentUser = useUser();
-  useChannel(ablyChannelKeyStore.chatroom(chatroomId), (message) => {
-    if (message.data.author.userId !== currentUser.user?.id) {
-      trpcUtils.messaging.getMessages.setInfiniteData({ chatroomId }, (old) => {
-        if (!old) {
-          return {
-            pages: [],
-            pageParams: [],
-          };
-        }
+  const trpcUtils = api.useContext();
+  useChannel(ablyChannelKeyStore.chatroom(chatroomId), async (message) => {
+    const typedMessage =
+      message.data as RouterOutput['messaging']['sendMessage'];
 
-        if (old.pages.length === 0) {
-          return {
-            pages: [
-              {
-                messages: [message.data],
-                next_cursor: null,
+    if (typedMessage) {
+      if (typedMessage.author.user_id !== currentUser.user?.id) {
+        trpcUtils.messaging.getMessages.setInfiniteData(
+          { chatroomId },
+          (old) => {
+            if (!old) {
+              return {
+                pages: [{ messages: [], next_cursor: 0 }],
+                pageParams: [],
+              };
+            }
+
+            const newMessage = {
+              client_message_id: typedMessage.client_message_id,
+              text: typedMessage.text,
+              content: typedMessage.content,
+              created_at: typedMessage.created_at,
+              updated_at: typedMessage.updated_at,
+              author: {
+                user_id: typedMessage.author.user_id,
+                author_id: typedMessage.author.author_id,
+                last_name: typedMessage.author.last_name,
+                first_name: typedMessage.author.first_name,
               },
-            ],
-            pageParams: [],
-          };
-        }
+            };
 
-        const newState = produce(old.pages, (draft) => {
-          draft[0]?.messages.unshift(message.data);
-        });
+            if (old.pages.length === 0) {
+              return {
+                pages: [
+                  {
+                    messages: [newMessage],
+                    next_cursor: 0,
+                  },
+                ],
+                pageParams: [],
+              };
+            }
 
-        return {
-          pages: newState,
-          pageParams: old.pageParams,
-        };
-      });
+            const newState = produce(old.pages, (draft) => {
+              if (draft[0] && draft[0].messages.length < 10) {
+                draft[0]?.messages.unshift(newMessage);
+                return draft;
+              }
+
+              draft.unshift({
+                messages: [newMessage],
+                next_cursor: null as unknown as number,
+              });
+
+              return draft;
+            });
+
+            return {
+              pages: newState || [],
+              pageParams: old.pageParams,
+            };
+          }
+        );
+      }
     }
   });
 };
