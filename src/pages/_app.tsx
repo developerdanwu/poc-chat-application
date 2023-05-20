@@ -10,11 +10,10 @@ import {
   SignedIn,
   SignedOut,
 } from '@clerk/nextjs';
-import { type ReactElement, type ReactNode, useEffect } from 'react';
+import { type ReactElement, type ReactNode } from 'react';
 import { type NextPage } from 'next';
-import { configureAbly, usePresence } from '@ably-labs/react-hooks';
-import { ablyChannelKeyStore } from '@/lib/useAblyWebsocket';
-import { useAppStore } from '@/lib/useAppStore';
+import { configureAbly } from '@ably-labs/react-hooks';
+import { useSyncOnlinePresence } from '@/lib/ably';
 
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
   getLayout?: (page: ReactElement) => ReactNode;
@@ -28,23 +27,6 @@ configureAbly({
   authUrl: 'http://localhost:3000/api/ably-auth',
   authMethod: 'GET',
 });
-
-const useSyncOnlinePresence = () => {
-  // subscribe to only set function to prevent global re-render on state change
-  const { setOnlinePresence } = useAppStore((state) => ({
-    setOnlinePresence: state.setOnlinePresence,
-  }));
-
-  // should only use usePresence hook once and sync with global store because each call counts as 1 call to ably === $$$
-  const [onlineUsers] = usePresence<any>({
-    channelName: ablyChannelKeyStore.online,
-  });
-
-  // HACK: sync presence state with global store
-  useEffect(() => {
-    setOnlinePresence(onlineUsers);
-  }, [setOnlinePresence, onlineUsers]);
-};
 
 const MyApp = ({
   Component,

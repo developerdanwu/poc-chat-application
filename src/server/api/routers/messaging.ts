@@ -10,7 +10,7 @@ import { env } from '@/env.mjs';
 import { sql } from 'kysely';
 import { v4 as uuid } from 'uuid';
 import dayjs from 'dayjs';
-import { ablyChannelKeyStore } from '@/lib/useAblyWebsocket';
+import { ablyChannelKeyStore } from '@/lib/ably';
 
 const gpt = new ChatGPTAPI({
   apiKey: env.OPENAI_ACCESS_TOKEN as string,

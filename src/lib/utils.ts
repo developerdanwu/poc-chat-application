@@ -1,7 +1,7 @@
 import origCN, { type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { useUser } from '@clerk/nextjs';
-import { useAppStore } from '@/lib/useAppStore';
+import { useAblyStore } from '@/lib/ably';
 
 const getFullName = ({
   firstName,
@@ -29,7 +29,7 @@ const getFullName = ({
 
 export const useApiTransformUtils = () => {
   const user = useUser();
-  const onlineUsers = useAppStore((state) => state.onlinePresence);
+  const onlineUsers = useAblyStore((state) => state.onlinePresence);
   const filterAuthedUserFromChatroomAuthors = <T extends { user_id: string }>(
     authors: T[]
   ) => authors?.filter((author) => author.user_id !== user?.user?.id);

@@ -1,5 +1,5 @@
 import { useChannel } from '@ably-labs/react-hooks';
-import { ablyChannelKeyStore } from '@/lib/useAblyWebsocket';
+import { ablyChannelKeyStore } from '@/lib/ably';
 import { api } from '@/lib/api';
 import { useUser } from '@clerk/nextjs';
 import { RouterOutput } from '@/server/api/root';
