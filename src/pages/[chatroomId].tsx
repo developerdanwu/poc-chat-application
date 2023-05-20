@@ -15,6 +15,7 @@ import produce from 'immer';
 import { type InfiniteData } from '@tanstack/react-query';
 import { type RouterOutput } from '@/server/api/root';
 import { useUser } from '@clerk/nextjs';
+import { useMessageUpdate } from '@/components/templates/root/ChatWindow/hooks';
 
 export const MainChatWrapper = ({
   children,
@@ -35,6 +36,8 @@ const ChatroomId: NextPageWithLayout = () => {
   const trpcUtils = api.useContext();
   const user = useUser();
   const chatBottomRef = useRef<HTMLDivElement>(null);
+
+  useMessageUpdate({ chatroomId });
 
   const sendMessage = api.messaging.sendMessage.useMutation({
     mutationKey: ['sendMessage', chatroomId],

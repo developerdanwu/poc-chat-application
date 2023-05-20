@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { getAuth } from '@clerk/nextjs/server';
 import { ablyRest } from '@/server/api/trpc';
+import { getAuth } from '@clerk/nextjs/server';
 
 export default async function handler(
   req: NextApiRequest,
@@ -8,17 +8,21 @@ export default async function handler(
 ) {
   if (req.method === 'GET') {
     try {
-      const auth = await getAuth(req);
-      if (auth.userId) {
-        const token = await ablyRest.auth.createTokenRequest({
-          clientId: auth.userId,
-        });
+      const auth = getAuth(req);
 
-        console.log('TOKEN', token);
-        return res.status(200).send(token);
+      console.log('AUTHEN', auth.userId);
+      if (!auth.userId) {
+        return res.status(401).send('Not Authorized');
       }
-      return res.status(401);
+
+      const token = await ablyRest.auth.createTokenRequest({
+        clientId: auth?.userId,
+      });
+
+      console.log('TOKEN', token);
+      return res.status(200).send(token);
     } catch (e) {
+      console.log('err', e);
       return res.status(500).send('An unexpected error occurred.');
     }
   }

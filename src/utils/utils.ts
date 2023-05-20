@@ -1,8 +1,9 @@
 import origCN, { type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { useUser } from '@clerk/nextjs';
+import { useAppStore } from '@/pages/_app';
 
-export const getFullName = ({
+const getFullName = ({
   firstName,
   lastName,
   fallback,
@@ -28,11 +29,17 @@ export const getFullName = ({
 
 export const useApiTransformUtils = () => {
   const user = useUser();
+  const onlineUsers = useAppStore((state) => state.onlinePresence);
   const filterAuthedUserFromChatroomAuthors = <T extends { user_id: string }>(
     authors: T[]
   ) => authors?.filter((author) => author.user_id !== user?.user?.id);
 
+  const getUserPrescence = (userId: string) => {
+    return Object.values(onlineUsers).find((u) => u.clientId === userId);
+  };
+
   return {
+    getUserPrescence,
     filterAuthedUserFromChatroomAuthors,
     getFullName,
   };

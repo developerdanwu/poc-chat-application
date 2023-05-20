@@ -17,10 +17,7 @@ import utc from 'dayjs/plugin/utc';
 import ChatReplyEditingItem from '@/components/templates/root/ChatWindow/ChatReplyEditingItem';
 import ChatReplyItemWrapper from '@/components/templates/root/ChatWindow/ChatReplyItemWrapper';
 import RadialProgress from '@/components/elements/RadialProgress';
-import {
-  useChatWindowScroll,
-  useMessageUpdate,
-} from '@/components/templates/root/ChatWindow/hooks';
+import { useChatWindowScroll } from '@/components/templates/root/ChatWindow/hooks';
 
 dayjs.extend(advancedFormat);
 dayjs.extend(utc);
@@ -86,8 +83,6 @@ const ChatWindow = ({
     [messages.data?.pages]
   );
 
-  console.log('DATAA', messages.data);
-
   const user = useUser();
 
   const formattedMessages = messagesArray?.reduce<
@@ -107,7 +102,6 @@ const ChatWindow = ({
     return acc;
   }, {});
 
-  useMessageUpdate({ chatroomId });
   useChatWindowScroll({ scrollAreaRef, chatBottomRef, chatroomId });
 
   return (
@@ -174,7 +168,6 @@ const ChatWindow = ({
           })
           .map(([date, messages]) => {
             const reversedMessages = [...messages].reverse();
-            console.log('REVVV', reversedMessages);
             return (
               <div
                 key={date}

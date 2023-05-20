@@ -19,7 +19,7 @@ model Message {
   clientMessageId Int      @id @default(autoincrement()) @map("client_message_id")
   text            String   @db.LongText
   timestamp       DateTime @default(now())
-  type            String
+  type            String // message, ai-response
   content         String   @db.LongText
   authorId        Int      @map("author_id")
   author          Author   @relation(fields: [authorId], references: [authorId])
@@ -27,6 +27,8 @@ model Message {
   chatroom        Chatroom @relation(fields: [chatroomId], references: [id], onDelete: Cascade)
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
+  status          String // queued, sent, 
+  visibility      String // me, all
 
   @@index([authorId])
   @@index([chatroomId])
