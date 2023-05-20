@@ -366,48 +366,55 @@ export const messaging = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       const limit = input.take || 10;
-      const messages = await ctx.db
-        .selectFrom((eb) => {
-          return eb
-            .selectFrom('message')
-            .selectAll()
-            .where(({ cmpr, and }) => {
-              return and([
-                cmpr('chatroom_id', '=', input.chatroomId),
-                ...(input.cursor !== null && input.cursor !== undefined
-                  ? [cmpr('client_message_id', '<', input.cursor)]
-                  : []),
-              ]);
-            })
-            .limit(limit)
-            .orderBy('client_message_id', input.orderBy || 'desc')
-            .as('message');
-        })
-        .select([
-          'client_message_id',
-          'text',
-          'content',
-          'message.created_at',
-          'message.updated_at',
-          sql<{
-            author_id: number;
-            first_name: string;
-            last_name: string;
-            user_id: string;
-          }>`JSON_OBJECT('author_id', author.author_id, 'first_name', author.first_name, 'last_name', author.last_name, 'user_id', author.user_id)`.as(
-            'author'
-          ),
-          // ctx.db.fn.min('client_message_id').as('next_cursor'),
-        ])
-        .innerJoin('author', 'author.author_id', 'message.author_id')
-        .orderBy('client_message_id', input.orderBy || 'desc')
-        .execute();
 
-      console.log(messages);
-      return {
-        messages: messages || [],
-        next_cursor: Math.min(...messages.map((m) => m.client_message_id)) || 0,
-      };
+      try {
+        const messages = await ctx.db
+          .selectFrom((eb) => {
+            return eb
+              .selectFrom('message')
+              .selectAll()
+              .where(({ cmpr, and }) => {
+                return and([
+                  cmpr('chatroom_id', '=', input.chatroomId),
+                  ...(input.cursor !== null && input.cursor !== undefined
+                    ? [cmpr('client_message_id', '<', input.cursor)]
+                    : []),
+                ]);
+              })
+              .limit(limit)
+              .orderBy('client_message_id', input.orderBy || 'desc')
+              .as('message');
+          })
+          .select([
+            'client_message_id',
+            'text',
+            'content',
+            'message.created_at',
+            'message.updated_at',
+            sql<{
+              author_id: number;
+              first_name: string;
+              last_name: string;
+              user_id: string;
+            }>`JSON_OBJECT('author_id', author.author_id, 'first_name', author.first_name, 'last_name', author.last_name, 'user_id', author.user_id)`.as(
+              'author'
+            ),
+          ])
+          .innerJoin('author', 'author.author_id', 'message.author_id')
+          .orderBy('client_message_id', input.orderBy || 'desc')
+          .execute();
+
+        return {
+          messages: messages || [],
+          next_cursor:
+            Math.min(...messages.map((m) => m.client_message_id)) || 0,
+        };
+      } catch (e) {
+        return {
+          messages: [],
+          next_cursor: 0,
+        };
+      }
     }),
   sendMessage: protectedProcedure
     .input(

@@ -11,7 +11,7 @@ const ChatReplyAvatar = ({
   sendDate,
   isLastMessageSenderEqualToCurrentMessageSender,
 }: {
-  sendDate: string;
+  sendDate: Date;
   firstName: string;
   lastName: string;
   differenceBetweenLastMessage: number | undefined;
@@ -50,7 +50,7 @@ const ChatReplyItemWrapper = ({
 }: {
   isLastMessageSenderEqualToCurrentMessageSender: boolean;
   differenceBetweenLastMessage: number | undefined;
-  sendDate: string;
+  sendDate: Date;
   isEditing: boolean;
   author: RouterOutput['messaging']['getMessages']['messages'][number]['author'];
   children: React.ReactNode;

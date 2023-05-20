@@ -18,7 +18,7 @@ const ChatReplyItemHeader = ({
   sendDate,
 }: {
   isLastMessageSenderEqualToCurrentMessageSender: boolean;
-  sendDate: string;
+  sendDate: Date;
   firstName: string;
   lastName: string;
   differenceBetweenLastMessage: number | undefined;
@@ -64,7 +64,7 @@ const ChatReplyItem = ({
   content: string;
   setIsEditing: React.Dispatch<React.SetStateAction<number | undefined>>;
   author: RouterOutput['messaging']['getMessages']['messages'][number]['author'];
-  sendDate: string;
+  sendDate: Date;
   variant?: 'sender' | 'receiver';
 }) => {
   const editor = useEditor({
