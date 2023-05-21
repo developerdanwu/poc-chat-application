@@ -23,6 +23,7 @@ const editMessage = protectedProcedure
         return await trx
           .updateTable('message')
           .set({
+            is_edited: true,
             text: input.text,
             content: input.content,
             updated_at: dayjs.utc().toISOString(),

@@ -35,6 +35,7 @@ const getMessages = protectedProcedure
         .select([
           'client_message_id',
           'text',
+          'is_edited',
           'content',
           'message.created_at',
           'message.updated_at',

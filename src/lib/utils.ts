@@ -48,3 +48,11 @@ export const useApiTransformUtils = () => {
 export const cn = (...inputs: ClassValue[]) => {
   return twMerge(origCN(inputs));
 };
+
+export const safeJSONParse = (content: any) => {
+  try {
+    return JSON.parse(content);
+  } catch {
+    return false;
+  }
+};

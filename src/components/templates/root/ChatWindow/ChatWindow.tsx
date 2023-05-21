@@ -1,10 +1,6 @@
 import React, { RefObject, useMemo, useRef, useState } from 'react';
 import { api } from '@/lib/api';
 import ScrollArea from '@/components/elements/ScrollArea';
-import { generateHTML } from '@tiptap/core';
-import StarterKit from '@tiptap/starter-kit';
-import { CodeBlockLowlight } from '@tiptap/extension-code-block-lowlight';
-import { lowlight } from 'lowlight';
 import dayjs from 'dayjs';
 import { cn, useApiTransformUtils } from '@/lib/utils';
 import { type RouterOutput } from '@/server/api/root';
@@ -16,26 +12,6 @@ import ChatReplyEditingItem from '@/components/templates/root/ChatWindow/ChatRep
 import ChatReplyItemWrapper from '@/components/templates/root/ChatWindow/ChatReplyItemWrapper';
 import RadialProgress from '@/components/elements/RadialProgress';
 import { useChatWindowScroll } from '@/components/templates/root/ChatWindow/hooks';
-
-export const safeGenerateMessageContent = (content: any) => {
-  try {
-    return generateHTML(content, [
-      StarterKit.configure({
-        codeBlock: false,
-      }),
-      CodeBlockLowlight.configure({
-        HTMLAttributes: {
-          spellcheck: 'false',
-          autocomplete: 'false',
-        },
-        languageClassPrefix: 'codeblock-language-',
-        lowlight,
-      }),
-    ]);
-  } catch (e) {
-    return false;
-  }
-};
 
 const ChatWindow = ({
   chatroomId,
@@ -179,9 +155,6 @@ const ChatWindow = ({
                 </div>
                 {reversedMessages.map((m, index) => {
                   const isSentByMe = m.author.user_id === user.user?.id;
-                  const content = safeGenerateMessageContent(
-                    JSON.parse(m.content)
-                  );
 
                   const previousMessage = reversedMessages[index - 1];
 
@@ -224,11 +197,13 @@ const ChatWindow = ({
                             differenceBetweenLastMessage
                           }
                           messageId={m.client_message_id}
+                          isEdited={m.is_edited}
                           setIsEditing={setEditingChatItem}
                           sendDate={m.created_at}
                           variant={isSentByMe ? 'sender' : 'receiver'}
                           author={m.author}
-                          content={content || m.text}
+                          text={m.text}
+                          content={m.content}
                         />
                       )}
                     </ChatReplyItemWrapper>

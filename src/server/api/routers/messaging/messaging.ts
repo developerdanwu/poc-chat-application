@@ -16,7 +16,6 @@ const gpt = new ChatGPTAPI({
 export const messaging = createTRPCRouter({
   getAllAuthors,
   startNewChat,
-  // TODO: improve database searching
   getChatrooms,
   getChatroom,
   getMessages,

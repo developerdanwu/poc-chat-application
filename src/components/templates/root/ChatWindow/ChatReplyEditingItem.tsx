@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { cn } from '@/lib/utils';
+import { cn, safeJSONParse } from '@/lib/utils';
 import { EditorContent, useEditor } from '@tiptap/react';
 import {
   TiptapCodeBlockLight,
@@ -8,7 +8,6 @@ import {
 } from '@/components/modules/TextEditor/utils';
 import { Paragraph } from '@tiptap/extension-paragraph';
 import { MenuBar } from '@/components/modules/TextEditor/TextEditor';
-import { safeGenerateMessageContent } from '@/components/templates/root/ChatWindow/ChatWindow';
 import { api } from '@/lib/api';
 import produce from 'immer';
 import { InfiniteData } from '@tanstack/react-query';
@@ -120,10 +119,7 @@ const ChatReplyEditingItem = ({
       }),
       TiptapCodeBlockLight,
     ],
-    content:
-      safeGenerateMessageContent(
-        JSON.parse(editChatForm.getValues('content'))
-      ) || text,
+    content: safeJSONParse(editChatForm.getValues('content')) || text,
     editorProps: {
       attributes: {
         form: 'chatForm',

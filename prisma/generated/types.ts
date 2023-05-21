@@ -52,6 +52,7 @@ export type Message = {
   chatroom_id: string;
   created_at: Generated<Timestamp>;
   updated_at: Timestamp;
+  is_edited: Generated<boolean>;
   status: MessageStatus;
   visibility: MessageVisibility;
 };

@@ -1,7 +1,7 @@
 import React from 'react';
 import dayjs from 'dayjs';
 import { type RouterOutput } from '@/server/api/root';
-import { cn, useApiTransformUtils } from '@/lib/utils';
+import { cn, safeJSONParse, useApiTransformUtils } from '@/lib/utils';
 import { RiEdit2Fill, RiMore2Fill } from 'react-icons/ri';
 import { EditorContent, useEditor } from '@tiptap/react';
 import {
@@ -49,6 +49,8 @@ const ChatReplyItemHeader = ({
 };
 
 const ChatReplyItem = ({
+  text,
+  isEdited,
   isLastMessageSenderEqualToCurrentMessageSender,
   differenceBetweenLastMessage,
   messageId,
@@ -58,6 +60,8 @@ const ChatReplyItem = ({
   sendDate,
   content,
 }: {
+  text: string;
+  isEdited: boolean;
   isLastMessageSenderEqualToCurrentMessageSender: boolean;
   differenceBetweenLastMessage: number | undefined;
   messageId: number;
@@ -70,8 +74,14 @@ const ChatReplyItem = ({
   const editor = useEditor({
     extensions: [TipTapStarterKit, Paragraph, TiptapCodeBlockLight],
     editable: false,
-    content,
+    content: safeJSONParse(content) || text,
   });
+
+  console.log(safeJSONParse(content));
+
+  if (!editor) {
+    return null;
+  }
 
   return (
     <>
@@ -83,12 +93,12 @@ const ChatReplyItem = ({
         {variant === 'sender' && (
           <button
             onClick={() => setIsEditing(messageId)}
-            className={'btn-outline btn-xs btn-square btn border-0'}
+            className={'btn-outline btn-square btn-xs btn border-0'}
           >
             <RiEdit2Fill size={16} />
           </button>
         )}
-        <button className={'btn-outline btn-xs btn-square btn border-0'}>
+        <button className={'btn-outline btn-square btn-xs btn border-0'}>
           <RiMore2Fill size={16} />
         </button>
       </div>
@@ -104,8 +114,9 @@ const ChatReplyItem = ({
           firstName={author.first_name}
         />
 
-        <div>
+        <div className={'relative flex flex-col space-y-2'}>
           <EditorContent editor={editor} />
+          {isEdited && <p className={'text-xs text-warm-gray-400'}>(edited)</p>}
         </div>
       </div>
     </>
