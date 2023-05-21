@@ -175,15 +175,16 @@ const startNewChat = protectedProcedure
         });
       }
 
+      const firstNewChatroom = findNewChatroom[0];
       // if no chatroom throw error
-      if (!findNewChatroom[0]) {
+      if (!firstNewChatroom) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Error finding chatroom',
         });
       }
 
-      return findNewChatroom[0];
+      return firstNewChatroom;
     } catch (e) {
       throw new TRPCError({
         cause: e,
