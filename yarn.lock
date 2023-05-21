@@ -5374,10 +5374,10 @@ prettier@^2.8.1:
   resolved "https://registry.npmjs.org/prettier/-/prettier-2.8.7.tgz"
   integrity sha512-yPngTo3aXUUmyuTjeTUT75txrf+aMh9FiD7q9ZE/i6r0bPb22g4FsE6Y338PQX1bmfy08i9QQCB7/rcUAVntfw==
 
-prisma-kysely@^1.2.1:
-  version "1.2.1"
-  resolved "https://registry.npmjs.org/prisma-kysely/-/prisma-kysely-1.2.1.tgz"
-  integrity sha512-S5pDWxfQezAokjan9A1/f6sQMWMy1KWod0L3XuTEim705qNd2CCiQtabuVJhuKK05x0w/zqcbjeihRQVc+iGWA==
+prisma-kysely@^1.4.1:
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/prisma-kysely/-/prisma-kysely-1.4.1.tgz#54a0c6ce96e2f975afc2d30e9c106a88801c6226"
+  integrity sha512-Ij3AlPMoJLrgtUSG+jrKc1AU5JgJOTUpVDe4s5V9SNTh6xVdl4pTWmPXZHEfgUQnawlSSGKpQv1cM+WzuSnQBQ==
   dependencies:
     "@prisma/generator-helper" "4.13.0"
     "@prisma/internals" "4.13.0"

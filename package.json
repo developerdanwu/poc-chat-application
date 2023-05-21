@@ -58,7 +58,7 @@
     "next": "^13.2.1",
     "openai": "^3.2.1",
     "postgres": "^3.3.4",
-    "prisma-kysely": "^1.2.1",
+    "prisma-kysely": "^1.4.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-hook-form": "^7.43.8",
