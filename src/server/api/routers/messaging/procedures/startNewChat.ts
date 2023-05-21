@@ -60,9 +60,30 @@ const startNewChat = protectedProcedure
         });
       }
 
+      const firstChatroom = chatroom[0];
       // if there is 1 element return the chatroom
-      if (chatroom[0]) {
-        return chatroom[0];
+      if (firstChatroom) {
+        // create new message
+        await ctx.db
+          .insertInto('message')
+          .values((eb) => {
+            return {
+              text: input.text,
+              type: MessageType.MESSAGE,
+              content: input.content,
+              status: MessageStatus.SENT,
+              visibility: MessageVisibility.ALL,
+              author_id: eb
+                .selectFrom('author')
+                .select('author_id')
+                .where('author.user_id', '=', ctx.auth.userId),
+              chatroom_id: firstChatroom.id,
+              updated_at: dayjs.utc().toISOString(),
+            };
+          })
+          .execute();
+
+        return firstChatroom;
       }
 
       // create new chatroom if no chatroom found
