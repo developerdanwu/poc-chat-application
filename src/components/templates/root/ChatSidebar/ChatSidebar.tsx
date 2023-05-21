@@ -54,7 +54,7 @@ const ChatSidebar = () => {
         {chatrooms.isLoading ? (
           <RadialProgress className="self-center" />
         ) : (
-          chatrooms.data?.chatrooms?.map((chatroom) => {
+          chatrooms.data?.map((chatroom) => {
             return (
               <Link key={chatroom.id} href={`/${chatroom.id}`}>
                 <ThreadListItem
