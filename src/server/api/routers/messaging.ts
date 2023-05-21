@@ -128,19 +128,21 @@ export const messaging = createTRPCRouter({
           // create new message
           await trx
             .insertInto('message')
-            .values((eb) => ({
-              text: input.text,
-              type: MessageType.MESSAGE,
-              content: input.content,
-              status: MessageStatus.SENT,
-              visibility: MessageVisibility.ALL,
-              author_id: eb
-                .selectFrom('author')
-                .select('author_id')
-                .where('author.user_id', '=', ctx.auth.userId),
-              chatroom_id: newChatroomId,
-              updated_at: dayjs.utc().toISOString(),
-            }))
+            .values((eb) => {
+              return {
+                text: input.text,
+                type: MessageType.MESSAGE,
+                content: input.content,
+                status: MessageStatus.SENT,
+                visibility: MessageVisibility.ALL,
+                author_id: eb
+                  .selectFrom('author')
+                  .select('author_id')
+                  .where('author.user_id', '=', ctx.auth.userId),
+                chatroom_id: newChatroomId,
+                updated_at: dayjs.utc().toISOString(),
+              };
+            })
             .execute();
         });
 

@@ -1,4 +1,5 @@
 import type { ColumnType } from 'kysely';
+
 export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
   : ColumnType<T, T | undefined, T>;
@@ -7,7 +8,7 @@ export type MessageType = 'MESSAGE' | 'AI_RESPONSE';
 export const MessageType = {
   MESSAGE: 'MESSAGE',
   AI_RESPONSE: 'AI_RESPONSE',
-};
+} as const;
 export type MessageStatus = 'QUEUED' | 'SENT' | 'DELIVERED' | 'READ' | 'FAILED';
 export const MessageStatus = {
   QUEUED: 'QUEUED',
@@ -15,12 +16,12 @@ export const MessageStatus = {
   DELIVERED: 'DELIVERED',
   READ: 'READ',
   FAILED: 'FAILED',
-};
+} as const;
 export type MessageVisibility = 'ME' | 'ALL';
 export const MessageVisibility = {
   ME: 'ME',
   ALL: 'ALL',
-};
+} as const;
 export type Author = {
   first_name: string;
   last_name: string;
