@@ -6,6 +6,11 @@ import { type ClerkWebhookEvent } from '@/server/webhooks';
 import { type User } from '@clerk/nextjs/api';
 import { db } from '@/server/db';
 import dayjs from 'dayjs';
+import advancedFormat from 'dayjs/plugin/advancedFormat';
+import utc from 'dayjs/plugin/utc';
+
+dayjs.extend(advancedFormat);
+dayjs.extend(utc);
 
 const secret = env.WEBHOOK_SECRET;
 type UnwantedKeys =
@@ -90,7 +95,7 @@ export default async function handler(
                   last_name: msg ? msg.data.last_name : '',
                   email: msg ? msg.data.email_addresses[0]?.email_address : '',
                   role: 'user',
-                  updated_at: dayjs().utc().toDate(),
+                  updated_at: dayjs.utc().toISOString(),
                 })
                 .execute();
             });
@@ -116,7 +121,7 @@ export default async function handler(
                     email: msg
                       ? msg.data.email_addresses[0]?.email_address
                       : '',
-                    updated_at: dayjs().utc().toDate(),
+                    updated_at: dayjs.utc().toISOString(),
                   })
                   .where(({ cmpr }) => cmpr('user_id', '=', msg!.data.id))
                   .execute();
@@ -132,12 +137,13 @@ export default async function handler(
                   last_name: msg ? msg.data.last_name : '',
                   email: msg ? msg.data.email_addresses[0]?.email_address : '',
                   role: 'user',
-                  updated_at: dayjs().utc().toDate(),
+                  updated_at: dayjs.utc().toISOString(),
                 })
                 .execute();
             });
             return res.status(200).send('ok');
           } catch (e) {
+            console.log('ERROR', e);
             return res.status(500).send('Database error');
           }
         }

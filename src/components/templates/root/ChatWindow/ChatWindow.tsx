@@ -6,21 +6,17 @@ import StarterKit from '@tiptap/starter-kit';
 import { CodeBlockLowlight } from '@tiptap/extension-code-block-lowlight';
 import { lowlight } from 'lowlight';
 import dayjs from 'dayjs';
-import advancedFormat from 'dayjs/plugin/advancedFormat';
 import { cn, useApiTransformUtils } from '@/lib/utils';
 import { type RouterOutput } from '@/server/api/root';
 import Avatar from '@/components/elements/Avatar';
 import InfiniteScroll from 'react-infinite-scroller';
 import ChatReplyItem from '@/components/templates/root/ChatReplyItem';
 import { useUser } from '@clerk/nextjs';
-import utc from 'dayjs/plugin/utc';
 import ChatReplyEditingItem from '@/components/templates/root/ChatWindow/ChatReplyEditingItem';
 import ChatReplyItemWrapper from '@/components/templates/root/ChatWindow/ChatReplyItemWrapper';
 import RadialProgress from '@/components/elements/RadialProgress';
 import { useChatWindowScroll } from '@/components/templates/root/ChatWindow/hooks';
 
-dayjs.extend(advancedFormat);
-dayjs.extend(utc);
 export const safeGenerateMessageContent = (content: any) => {
   try {
     return generateHTML(content, [

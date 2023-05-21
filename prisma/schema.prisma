@@ -6,29 +6,46 @@ generator client {
 }
 
 datasource db {
-  provider     = "mysql"
+  provider     = "postgresql"
   // NOTE: When using postgresql, mysql or sqlserver, uncomment the @db.Text annotations in model Account below
   // Further reading:
   // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
   // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
   url          = env("DATABASE_URL")
-  relationMode = "prisma"
+  relationMode = "foreignKeys"
+}
+
+enum MessageType {
+  MESSAGE
+  AI_RESPONSE
+}
+
+enum MessageStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+enum MessageVisibility {
+  ME
+  ALL
 }
 
 model Message {
-  clientMessageId Int      @id @default(autoincrement()) @map("client_message_id")
-  text            String   @db.LongText
-  timestamp       DateTime @default(now())
-  type            String // message, ai-response
-  content         String   @db.LongText
-  authorId        Int      @map("author_id")
-  author          Author   @relation(fields: [authorId], references: [authorId])
-  chatroomId      String   @map("chatroom_id")
-  chatroom        Chatroom @relation(fields: [chatroomId], references: [id], onDelete: Cascade)
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
-  status          String // queued, sent, 
-  visibility      String // me, all
+  clientMessageId Int               @id @default(autoincrement()) @map("client_message_id")
+  text            String            @db.Text
+  type            MessageType
+  content         String            @db.Text
+  authorId        Int               @map("author_id")
+  author          Author            @relation(fields: [authorId], references: [authorId])
+  chatroomId      String            @map("chatroom_id")
+  chatroom        Chatroom          @relation(fields: [chatroomId], references: [id], onDelete: Cascade)
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+  status          MessageStatus
+  visibility      MessageVisibility
 
   @@index([authorId])
   @@index([chatroomId])
@@ -64,7 +81,7 @@ model AuthorsOnChatrooms {
 }
 
 model Chatroom {
-  id        String               @id @default(dbgenerated("(uuid())"))
+  id        String               @id @default(dbgenerated("uuid_generate_v4()"))
   messages  Message[]
   noOfUsers Int                  @map("no_of_users")
   createdAt DateTime             @default(now()) @map("created_at")

@@ -14,6 +14,9 @@ import { type ReactElement, type ReactNode } from 'react';
 import { type NextPage } from 'next';
 import { configureAbly } from '@ably-labs/react-hooks';
 import { useSyncOnlinePresence } from '@/lib/ably';
+import dayjs from 'dayjs';
+import advancedFormat from 'dayjs/plugin/advancedFormat';
+import utc from 'dayjs/plugin/utc';
 
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
   getLayout?: (page: ReactElement) => ReactNode;
@@ -27,6 +30,9 @@ configureAbly({
   authUrl: 'http://localhost:3000/api/ably-auth',
   authMethod: 'GET',
 });
+
+dayjs.extend(advancedFormat);
+dayjs.extend(utc);
 
 const MyApp = ({
   Component,

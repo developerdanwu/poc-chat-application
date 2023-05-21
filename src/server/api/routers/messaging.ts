@@ -11,6 +11,11 @@ import { sql } from 'kysely';
 import { v4 as uuid } from 'uuid';
 import dayjs from 'dayjs';
 import { ablyChannelKeyStore } from '@/lib/ably';
+import {
+  MessageStatus,
+  MessageType,
+  MessageVisibility,
+} from '../../../../prisma/generated/types';
 
 const gpt = new ChatGPTAPI({
   apiKey: env.OPENAI_ACCESS_TOKEN as string,
@@ -51,7 +56,7 @@ export const messaging = createTRPCRouter({
           ),
           sql<
             { author_id: number }[]
-          >`JSON_ARRAYAGG(JSON_OBJECT('author_id', author.author_id, 'first_name', author.first_name, 'last_name', author.last_name, 'user_id', author.user_id))`.as(
+          >`JSON_AGG(JSON_BUILD_OBJECT('author_id', author.author_id, 'first_name', author.first_name, 'last_name', author.last_name, 'user_id', author.user_id))`.as(
             'authors'
           ),
         ])
@@ -72,8 +77,7 @@ export const messaging = createTRPCRouter({
           ])
         )
         .groupBy('id')
-        // @ts-expect-error idk why this is happening
-        .having((eb) => eb.cmpr('user_count', '=', 2))
+        .having((eb) => eb.cmpr('no_of_users', '=', 2))
         .execute();
 
       if (chatroom.length > 1) {
@@ -88,22 +92,23 @@ export const messaging = createTRPCRouter({
         return chatroom[0];
       }
 
+      const newChatroomId = uuid();
+
       // create new chatroom if no chatroom found
       const chatroomTransaction = await ctx.db
         .transaction()
         .execute(async (trx) => {
-          const newChatroomId = uuid();
           await trx
             .insertInto('chatroom')
             .values({
               no_of_users: 2,
-              updated_at: dayjs.utc().toDate(),
+              updated_at: dayjs.utc().toISOString(),
               id: newChatroomId,
             })
             .execute();
 
           // add author to chatroom
-          await trx
+          const test = trx
             .insertInto('_authors_on_chatrooms')
             .values((eb) => [
               {
@@ -125,65 +130,65 @@ export const messaging = createTRPCRouter({
             .insertInto('message')
             .values((eb) => ({
               text: input.text,
-              type: 'text',
+              type: MessageType.MESSAGE,
               content: input.content,
+              status: MessageStatus.SENT,
+              visibility: MessageVisibility.ALL,
               author_id: eb
                 .selectFrom('author')
                 .select('author_id')
                 .where('author.user_id', '=', ctx.auth.userId),
               chatroom_id: newChatroomId,
-              updated_at: dayjs.utc().toDate(),
+              updated_at: dayjs.utc().toISOString(),
             }))
             .execute();
-
-          // id is unique so must only return 1
-          // get chatrooms
-          const chatroom = await ctx.db
-            .selectFrom('chatroom')
-            .select([
-              'id',
-              sql<number>`COUNT(DISTINCT _authors_on_chatrooms.author_id)`.as(
-                'user_count'
-              ),
-              sql<
-                { author_id: number }[]
-              >`JSON_ARRAYAGG(JSON_OBJECT('author_id', author.author_id, 'first_name', author.first_name, 'last_name', author.last_name, 'user_id', author.user_id))`.as(
-                'authors'
-              ),
-            ])
-            .innerJoin(
-              '_authors_on_chatrooms',
-              '_authors_on_chatrooms.chatroom_id',
-              'chatroom.id'
-            )
-            .innerJoin(
-              'author',
-              'author.author_id',
-              '_authors_on_chatrooms.author_id'
-            )
-            .where(({ cmpr }) => cmpr('chatroom.id', '=', newChatroomId))
-            .groupBy('id')
-            .execute();
-
-          if (chatroom.length > 1) {
-            throw new TRPCError({
-              code: 'INTERNAL_SERVER_ERROR',
-              message: 'Error creating chatroom',
-            });
-          }
-
-          // if no chatroom throw error
-          if (!chatroom[0]) {
-            throw new TRPCError({
-              code: 'INTERNAL_SERVER_ERROR',
-              message: 'Error finding chatroom',
-            });
-          }
-
-          return chatroom[0];
         });
 
-      return chatroomTransaction;
+      // id is unique so must only return 1
+      // get chatrooms
+      const findNewChatroom = await ctx.db
+        .selectFrom('chatroom')
+        .select([
+          'id',
+          sql<number>`COUNT(DISTINCT _authors_on_chatrooms.author_id)`.as(
+            'user_count'
+          ),
+          sql<
+            { author_id: number }[]
+          >`JSON_AGG(JSON_BUILD_OBJECT('author_id', author.author_id, 'first_name', author.first_name, 'last_name', author.last_name, 'user_id', author.user_id))`.as(
+            'authors'
+          ),
+        ])
+        .innerJoin(
+          '_authors_on_chatrooms',
+          '_authors_on_chatrooms.chatroom_id',
+          'chatroom.id'
+        )
+        .innerJoin(
+          'author',
+          'author.author_id',
+          '_authors_on_chatrooms.author_id'
+        )
+        .where(({ cmpr }) => cmpr('chatroom.id', '=', newChatroomId))
+        .groupBy('id')
+        .execute();
+
+      if (findNewChatroom.length > 1) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Error creating chatroom',
+        });
+      }
+
+      // if no chatroom throw error
+      if (!findNewChatroom[0]) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Error finding chatroom',
+        });
+      }
+
+      return findNewChatroom[0];
     }),
   getUserId: protectedProcedure.query(({ ctx }) => {
     return {
@@ -225,7 +230,7 @@ export const messaging = createTRPCRouter({
                 user_id: string;
               }[];
             }[]
-          >`JSON_ARRAYAGG(JSON_OBJECT('id', chatroom.id, 'no_of_users', chatroom.no_of_users, 'created_at', chatroom.created_at, 'updated_at', chatroom.updated_at, 'authors', chatroom_authors.authors))`.as(
+          >`JSON_AGG(JSON_BUILD_OBJECT('id', chatroom.id, 'no_of_users', chatroom.no_of_users, 'created_at', chatroom.created_at, 'updated_at', chatroom.updated_at, 'authors', chatroom_authors.authors))`.as(
             'chatrooms'
           ),
         ])
@@ -249,7 +254,7 @@ export const messaging = createTRPCRouter({
                 first_name: string;
                 last_name: string;
                 user_id: string;
-              }>`JSON_ARRAYAGG(JSON_OBJECT('author_id', author.author_id, 'first_name', author.first_name, 'last_name', author.last_name, 'user_id', author.user_id))`.as(
+              }>`JSON_AGG(JSON_BUILD_OBJECT('author_id', author.author_id, 'first_name', author.first_name, 'last_name', author.last_name, 'user_id', author.user_id))`.as(
                 'authors'
               ),
               'chatroom.created_at as created_at',
@@ -302,8 +307,9 @@ export const messaging = createTRPCRouter({
           'chatroom.id'
         )
         .where('a.user_id', '=', ctx.auth.userId)
-        .groupBy('author_id')
+        .groupBy('a.author_id')
         .executeTakeFirst();
+
       return chatrooms;
     }),
   getChatroom: protectedProcedure
@@ -327,7 +333,7 @@ export const messaging = createTRPCRouter({
               last_name: string;
               user_id: string;
             }[]
-          >`JSON_ARRAYAGG(JSON_OBJECT('author_id', author.author_id, 'first_name', author.first_name, 'last_name', author.last_name, 'user_id', author.user_id))`.as(
+          >`JSON_AGG(JSON_BUILD_OBJECT('author_id', author.author_id, 'first_name', author.first_name, 'last_name', author.last_name, 'user_id', author.user_id))`.as(
             'authors'
           ),
         ])
@@ -396,7 +402,7 @@ export const messaging = createTRPCRouter({
               first_name: string;
               last_name: string;
               user_id: string;
-            }>`JSON_OBJECT('author_id', author.author_id, 'first_name', author.first_name, 'last_name', author.last_name, 'user_id', author.user_id)`.as(
+            }>`JSON_BUILD_OBJECT('author_id', author.author_id, 'first_name', author.first_name, 'last_name', author.last_name, 'user_id', author.user_id)`.as(
               'author'
             ),
           ])
@@ -427,23 +433,22 @@ export const messaging = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const insertedMessage = await ctx.db
-        .transaction()
-        .execute(async (trx) => {
-          return await trx
-            .insertInto('message')
-            .values((eb) => ({
-              text: input.text,
-              type: 'text',
-              content: input.content,
-              author_id: eb
-                .selectFrom('author')
-                .select('author_id')
-                .where('author.user_id', '=', ctx.auth.userId),
-              chatroom_id: input.chatroomId,
-              updated_at: dayjs.utc().toDate(),
-            }))
-            .executeTakeFirst();
-        });
+        .insertInto('message')
+        .values((eb) => ({
+          text: input.text,
+          type: MessageType.MESSAGE,
+          status: MessageStatus.SENT,
+          visibility: MessageVisibility.ALL,
+          content: input.content,
+          author_id: eb
+            .selectFrom('author')
+            .select('author_id')
+            .where('author.user_id', '=', ctx.auth.userId),
+          chatroom_id: input.chatroomId,
+          updated_at: dayjs.utc().toISOString(),
+        }))
+        .returning('client_message_id')
+        .executeTakeFirst();
 
       const message = await ctx.db
         .selectFrom('message')
@@ -458,7 +463,7 @@ export const messaging = createTRPCRouter({
             last_name: string;
             author_id: number;
             user_id: string;
-          }>`JSON_OBJECT('first_name',author.first_name, 'last_name', author.last_name, 'email', author.email, 'author_id', author.author_id, 'role', author.role, 'user_id', author.user_id)`.as(
+          }>`JSON_BUILD_OBJECT('first_name',author.first_name, 'last_name', author.last_name, 'email', author.email, 'author_id', author.author_id, 'role', author.role, 'user_id', author.user_id)`.as(
             'author'
           ),
         ])
@@ -466,7 +471,7 @@ export const messaging = createTRPCRouter({
         .where(
           'client_message_id',
           '=',
-          insertedMessage.insertId as unknown as number
+          insertedMessage?.client_message_id as unknown as number
         )
         .executeTakeFirst();
 
