@@ -21,65 +21,58 @@ const sendMessage = protectedProcedure
     })
   )
   .mutation(async ({ ctx, input }) => {
-    const insertedMessage = await ctx.db
-      .insertInto('message')
-      .values((eb) => ({
-        text: input.text,
-        type: MessageType.MESSAGE,
-        status: MessageStatus.SENT,
-        visibility: MessageVisibility.ALL,
-        content: input.content,
-        author_id: eb
-          .selectFrom('author')
-          .select('author_id')
-          .where('author.user_id', '=', ctx.auth.userId),
-        chatroom_id: input.chatroomId,
-        updated_at: dayjs.utc().toISOString(),
-      }))
-      .returning('client_message_id')
-      .executeTakeFirst();
+    try {
+      const insertedMessage = await ctx.db
+        .insertInto('message')
+        .values((eb) => ({
+          text: input.text,
+          type: MessageType.MESSAGE,
+          status: MessageStatus.SENT,
+          visibility: MessageVisibility.ALL,
+          content: input.content,
+          author_id: eb
+            .selectFrom('author')
+            .select('author_id')
+            .where('author.user_id', '=', ctx.auth.userId),
+          chatroom_id: input.chatroomId,
+          updated_at: dayjs.utc().toISOString(),
+        }))
+        .returning('client_message_id')
+        .executeTakeFirstOrThrow();
 
-    // if no client message id returned ca assume message was not inserted
-    if (!insertedMessage?.client_message_id) {
-      throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Error inserting message',
-      });
-    }
+      const message = await ctx.db
+        .selectFrom('message')
+        .select([
+          'client_message_id',
+          'text',
+          'message.created_at',
+          'message.updated_at',
+          'content',
+          sql<{
+            first_name: string;
+            last_name: string;
+            author_id: number;
+            user_id: string;
+          }>`JSON_BUILD_OBJECT('first_name',author.first_name, 'last_name', author.last_name, 'email', author.email, 'author_id', author.author_id, 'role', author.role, 'user_id', author.user_id)`.as(
+            'author'
+          ),
+        ])
+        .innerJoin('author', 'author.author_id', 'message.author_id')
+        .where('client_message_id', '=', insertedMessage.client_message_id)
+        .executeTakeFirstOrThrow();
 
-    const message = await ctx.db
-      .selectFrom('message')
-      .select([
-        'client_message_id',
-        'text',
-        'message.created_at',
-        'message.updated_at',
-        'content',
-        sql<{
-          first_name: string;
-          last_name: string;
-          author_id: number;
-          user_id: string;
-        }>`JSON_BUILD_OBJECT('first_name',author.first_name, 'last_name', author.last_name, 'email', author.email, 'author_id', author.author_id, 'role', author.role, 'user_id', author.user_id)`.as(
-          'author'
-        ),
-      ])
-      .innerJoin('author', 'author.author_id', 'message.author_id')
-      .where('client_message_id', '=', insertedMessage.client_message_id)
-      .executeTakeFirst();
+      await ablyRest.channels
+        .get(ablyChannelKeyStore.chatroom(input.chatroomId))
+        .publish('message', message);
 
-    if (!message) {
+      return message;
+    } catch (e) {
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
         message: 'Error retrieving message',
+        cause: e,
       });
     }
-
-    await ablyRest.channels
-      .get(ablyChannelKeyStore.chatroom(input.chatroomId))
-      .publish('message', message);
-
-    return message;
   });
 
 export default sendMessage;

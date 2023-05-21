@@ -57,6 +57,7 @@ const getMessages = protectedProcedure
       };
     } catch (e) {
       return {
+        // TODO: should throw 500?
         messages: [],
         next_cursor: 0,
       };

@@ -14,7 +14,7 @@ const getAllAuthors = protectedProcedure
       .where('author.user_id', '!=', ctx.auth.userId)
       .execute();
 
-    return results;
+    return results || [];
   });
 
 export default getAllAuthors;

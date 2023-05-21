@@ -12,35 +12,38 @@ const editMessage = protectedProcedure
     })
   )
   .mutation(async ({ ctx, input }) => {
-    const author = await ctx.db
-      .selectFrom('author')
-      .selectAll()
-      .where(({ cmpr }) => cmpr('user_id', '=', ctx.auth.userId))
-      .executeTakeFirst();
+    try {
+      const author = await ctx.db
+        .selectFrom('author')
+        .selectAll()
+        .where(({ cmpr }) => cmpr('user_id', '=', ctx.auth.userId))
+        .executeTakeFirstOrThrow();
 
-    if (!author) {
+      await ctx.db.transaction().execute(async (trx) => {
+        return await trx
+          .updateTable('message')
+          .set({
+            text: input.text,
+            content: input.content,
+            updated_at: dayjs.utc().toISOString(),
+          })
+          .where(({ cmpr, and }) =>
+            and([
+              cmpr('client_message_id', '=', input.clientMessageId),
+              // redundant check
+              cmpr('author_id', '=', author.author_id),
+            ])
+          )
+          .returning('client_message_id')
+          .executeTakeFirstOrThrow();
+      });
+    } catch (e) {
       throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Error finding author',
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Error updating message',
+        cause: e,
       });
     }
-
-    await ctx.db.transaction().execute(async (trx) => {
-      await trx
-        .updateTable('message')
-        .set({
-          text: input.text,
-          content: input.content,
-          updated_at: dayjs.utc().toISOString(),
-        })
-        .where(({ cmpr, and }) =>
-          and([
-            cmpr('client_message_id', '=', input.clientMessageId),
-            cmpr('author_id', '=', author.author_id),
-          ])
-        )
-        .execute();
-    });
   });
 
 export default editMessage;
