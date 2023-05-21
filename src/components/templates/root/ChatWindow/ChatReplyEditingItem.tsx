@@ -77,6 +77,7 @@ const ChatReplyEditingItem = ({
               if (message.client_message_id === data.clientMessageId) {
                 message.text = data.text;
                 message.content = data.content;
+                message.is_edited = true;
               }
             });
           });
