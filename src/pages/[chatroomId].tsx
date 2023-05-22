@@ -5,8 +5,7 @@ import React, { useMemo, useRef } from 'react';
 import { useRouter } from 'next/router';
 import ChatTopControls from '@/components/templates/root/ChatTopControls';
 import ChatWindow from '@/components/templates/root/ChatWindow/ChatWindow';
-import { Controller, FormProvider, useForm } from 'react-hook-form';
-import TextEditor from '@/components/modules/TextEditor/TextEditor';
+import { FormProvider, useForm } from 'react-hook-form';
 import { api } from '@/lib/api';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
@@ -17,6 +16,10 @@ import { type RouterOutput } from '@/server/api/root';
 import { useUser } from '@clerk/nextjs';
 import { useMessageUpdate } from '@/components/templates/root/ChatWindow/hooks';
 import { Extension } from '@tiptap/core';
+import HookFormTiptapEditor from '@/components/modules/TextEditor/HookFormTiptapEditor';
+import { EditorContent } from '@tiptap/react';
+import TextEditorSendBar from '@/components/templates/root/TextEditorSendBar';
+import EditorMenuBar from '@/components/modules/TextEditor/EditorMenuBar';
 
 export const MainChatWrapper = ({
   children,
@@ -156,6 +159,12 @@ const ChatroomId: NextPageWithLayout = () => {
     },
   });
 
+  // useEffect(() => {
+  //   if (chatForm.formState.isSubmitSuccessful) {
+  //     chatForm.reset();
+  //   }
+  // }, [chatForm, chatForm.formState.isSubmitSuccessful]);
+
   return (
     <>
       {typeof router.query.chatroomId === 'string' && (
@@ -179,23 +188,44 @@ const ChatroomId: NextPageWithLayout = () => {
                 });
               })}
             >
-              <Controller
-                control={chatForm.control}
-                render={({ field: { onChange, value } }) => {
+              <HookFormTiptapEditor
+                extensions={[SubmitFormOnEnter]}
+                fieldName={'content'}
+              >
+                {(editor) => {
                   return (
-                    <TextEditor
-                      componentProps={{
-                        editor: {
-                          extensions: [SubmitFormOnEnter],
-                        },
-                      }}
-                      onChange={onChange}
-                      content={value}
-                    />
+                    <div
+                      className={cn(
+                        'group w-full rounded-lg border-2 border-warm-gray-400 bg-warm-gray-50 px-3 py-2',
+                        {
+                          '!border-warm-gray-600': editor.isFocused,
+                        }
+                      )}
+                    >
+                      <EditorMenuBar editor={editor} />
+                      <EditorContent editor={editor} />
+                      <TextEditorSendBar />
+                    </div>
                   );
                 }}
-                name="content"
-              />
+                {/*<Controller*/}
+                {/*  control={chatForm.control}*/}
+                {/*  render={({ field: { onChange, value } }) => {*/}
+                {/*    return (*/}
+                {/*      <TextEditor*/}
+                {/*        componentProps={{*/}
+                {/*          editor: {*/}
+                {/*            extensions: [SubmitFormOnEnter],*/}
+                {/*          },*/}
+                {/*        }}*/}
+                {/*        onChange={onChange}*/}
+                {/*        content={value}*/}
+                {/*      />*/}
+                {/*    );*/}
+                {/*  }}*/}
+                {/*  name="content"*/}
+                {/*/>*/}
+              </HookFormTiptapEditor>
             </form>
           </FormProvider>
         </MainChatWrapper>

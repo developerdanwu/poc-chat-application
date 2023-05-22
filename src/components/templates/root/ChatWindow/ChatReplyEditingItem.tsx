@@ -7,11 +7,12 @@ import {
   TipTapStarterKit,
 } from '@/components/modules/TextEditor/utils';
 import { Paragraph } from '@tiptap/extension-paragraph';
-import { MenuBar } from '@/components/modules/TextEditor/TextEditor';
 import { api } from '@/lib/api';
 import produce from 'immer';
 import { InfiniteData } from '@tanstack/react-query';
 import { RouterOutput } from '@/server/api/root';
+import EditorMenuBar from '@/components/modules/TextEditor/EditorMenuBar';
+import HookFormTiptapEditor from '@/components/modules/TextEditor/HookFormTiptapEditor';
 
 const TextEditorParagraph = ({
   onClickEnter,
@@ -140,6 +141,7 @@ const ChatReplyEditingItem = ({
   return (
     <FormProvider {...editChatForm}>
       <form
+        className={'w-full'}
         ref={formRef}
         onSubmit={editChatForm.handleSubmit((data) => {
           editMessage.mutate({
@@ -148,40 +150,49 @@ const ChatReplyEditingItem = ({
             content: data.content,
           });
         })}
-        className={cn(
-          'group w-full rounded-lg border-2 border-warm-gray-400 bg-warm-gray-50 px-3 py-2',
-          {
-            '!border-warm-gray-600': editor.isFocused,
-          }
-        )}
       >
-        <MenuBar editor={editor} />
-        <EditorContent editor={editor} />
-        <div className="flex justify-between">
-          <div></div>
-          <div className={'flex space-x-2'}>
-            <button
-              onClick={() => {
-                setIsEditing(undefined);
-              }}
-              // disabled={!formState.isValid}
-              className={cn('btn-outline btn-sm btn', {
-                // 'btn-disabled': !formState.isValid,
-              })}
-            >
-              cancel
-            </button>
-            <button
-              type={'submit'}
-              // disabled={!formState.isValid}
-              className={cn('btn-primary btn-sm btn', {
-                // 'btn-disabled': !formState.isValid,
-              })}
-            >
-              save
-            </button>
-          </div>
-        </div>
+        <HookFormTiptapEditor fieldName={'content'}>
+          {(editor) => {
+            return (
+              <div
+                className={cn(
+                  'group w-full rounded-lg border-2 border-warm-gray-400 bg-warm-gray-50 px-3 py-2',
+                  {
+                    '!border-warm-gray-600': editor.isFocused,
+                  }
+                )}
+              >
+                <EditorMenuBar editor={editor} />
+                <EditorContent editor={editor} />
+                <div className="flex justify-between">
+                  <div></div>
+                  <div className={'flex space-x-2'}>
+                    <button
+                      onClick={() => {
+                        setIsEditing(undefined);
+                      }}
+                      // disabled={!formState.isValid}
+                      className={cn('btn-outline btn-sm btn', {
+                        // 'btn-disabled': !formState.isValid,
+                      })}
+                    >
+                      cancel
+                    </button>
+                    <button
+                      type={'submit'}
+                      // disabled={!formState.isValid}
+                      className={cn('btn-primary btn-sm btn', {
+                        // 'btn-disabled': !formState.isValid,
+                      })}
+                    >
+                      save
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          }}
+        </HookFormTiptapEditor>
       </form>
     </FormProvider>
   );

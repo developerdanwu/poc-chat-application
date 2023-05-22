@@ -3,14 +3,16 @@ import { cn } from '@/lib/utils';
 import ChatSidebar from '@/components/templates/root/ChatSidebar/ChatSidebar';
 import { type NextPageWithLayout } from '@/pages/_app';
 import { MainChatWrapper } from '@/pages/[chatroomId]';
-import { Controller, FormProvider, useForm } from 'react-hook-form';
-import TextEditor from '@/components/modules/TextEditor/TextEditor';
+import { FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
 import AuthorsAutocomplete from '@/components/templates/new-message/AuthorsAutocomplete';
 import { api } from '@/lib/api';
 import { useRouter } from 'next/router';
-import ScrollArea from '@/components/elements/ScrollArea';
+import HookFormTiptapEditor from '@/components/modules/TextEditor/HookFormTiptapEditor';
+import { EditorContent } from '@tiptap/react';
+import TextEditorSendBar from '@/components/templates/root/TextEditorSendBar';
+import EditorMenuBar from '@/components/modules/TextEditor/EditorMenuBar';
 
 const NewMessage: NextPageWithLayout = () => {
   const newMessageForm = useForm({
@@ -89,53 +91,47 @@ const NewMessage: NextPageWithLayout = () => {
             <AuthorsAutocomplete />
           </div>
         </div>
-        <ScrollArea
-          componentProps={{
-            root: {
-              className:
-                'flex overflow-hidden h-full w-full rounded-xl bg-base-100',
-            },
-            viewport: {
-              // ref: scrollAreaRef,
-              className: 'h-full w-full',
-            },
-          }}
-        ></ScrollArea>
+        {/*<ScrollArea*/}
+        {/*  componentProps={{*/}
+        {/*    root: {*/}
+        {/*      className:*/}
+        {/*        'flex overflow-hidden h-full w-full rounded-xl bg-base-100',*/}
+        {/*    },*/}
+        {/*    viewport: {*/}
+        {/*      // ref: scrollAreaRef,*/}
+        {/*      className: 'h-full w-full',*/}
+        {/*    },*/}
+        {/*  }}*/}
+        {/*></ScrollArea>*/}
         <form
           id="message-text-input-form"
           className="flex w-full items-center justify-between space-x-4 bg-transparent bg-secondary px-6 py-3"
           onSubmit={newMessageForm.handleSubmit((data) => {
-            console.log(data, 'DATA');
+            startNewChat.mutate({
+              authorId: data.authorId,
+              text: data.text,
+              content: JSON.stringify(data.content),
+            });
           })}
-          // onSubmit={chatForm.handleSubmit((data) => {
-          //   sendMessage.mutate({
-          //     ...data,
-          //     chatroomId,
-          //   });
-          // })}
         >
-          <Controller
-            control={newMessageForm.control}
-            render={({ field: { onChange, value } }) => {
+          <HookFormTiptapEditor fieldName={'content'}>
+            {(editor) => {
               return (
-                <TextEditor
-                  onClickEnter={() => {
-                    newMessageForm.handleSubmit((data) => {
-                      console.log(JSON.stringify(data.content));
-                      startNewChat.mutate({
-                        authorId: data.authorId,
-                        text: data.text,
-                        content: JSON.stringify(data.content),
-                      });
-                    })();
-                  }}
-                  onChange={onChange}
-                  content={value}
-                />
+                <div
+                  className={cn(
+                    'group w-full rounded-lg border-2 border-warm-gray-400 bg-warm-gray-50 px-3 py-2',
+                    {
+                      '!border-warm-gray-600': editor.isFocused,
+                    }
+                  )}
+                >
+                  <EditorMenuBar editor={editor} />
+                  <EditorContent editor={editor} />
+                  <TextEditorSendBar />
+                </div>
               );
             }}
-            name="content"
-          />
+          </HookFormTiptapEditor>
         </form>
       </FormProvider>
     </>

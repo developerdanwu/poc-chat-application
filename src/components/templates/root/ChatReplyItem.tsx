@@ -77,8 +77,6 @@ const ChatReplyItem = ({
     content: safeJSONParse(content) || text,
   });
 
-  console.log(safeJSONParse(content));
-
   if (!editor) {
     return null;
   }
