@@ -49,16 +49,13 @@ const HookFormTiptapEditor = ({
             content={safeJSONParse(value) || text}
             onUpdate={({ editor, ...restUpdateProps }) => {
               setValue('text', editor.getText());
-              onChange(JSON.stringify(editor.getJSON()));
+              onChange(editor.getJSON());
               restProps.onUpdate?.({ editor, ...restUpdateProps });
             }}
           >
             {(editor) => {
               return (
-                <TiptapEditorContent
-                  editor={editor}
-                  content={safeJSONParse(value) || text}
-                >
+                <TiptapEditorContent editor={editor} content={value}>
                   {children(editor)}
                 </TiptapEditorContent>
               );
