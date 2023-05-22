@@ -81,6 +81,7 @@ const ChatroomId: NextPageWithLayout = () => {
               : 1,
           text: variables.text,
           content: variables.content,
+          is_edited: false,
           created_at: dayjs.utc().toDate(),
           updated_at: dayjs.utc().toDate(),
           author: {
