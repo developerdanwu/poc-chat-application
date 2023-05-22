@@ -1,11 +1,7 @@
 import React, { useRef } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { cn, safeJSONParse } from '@/lib/utils';
-import { EditorContent, useEditor } from '@tiptap/react';
-import {
-  TiptapCodeBlockLight,
-  TipTapStarterKit,
-} from '@/components/modules/TextEditor/utils';
+import { cn } from '@/lib/utils';
+import { EditorContent } from '@tiptap/react';
 import { Paragraph } from '@tiptap/extension-paragraph';
 import { api } from '@/lib/api';
 import produce from 'immer';
@@ -108,35 +104,6 @@ const ChatReplyEditingItem = ({
       }
     },
   });
-
-  const editor = useEditor({
-    extensions: [
-      TipTapStarterKit,
-      TextEditorParagraph({
-        onClickEnter: () => {
-          formRef.current?.dispatchEvent(
-            new Event('submit', { cancelable: true, bubbles: true })
-          );
-        },
-      }),
-      TiptapCodeBlockLight,
-    ],
-    content: safeJSONParse(editChatForm.getValues('content')) || text,
-    editorProps: {
-      attributes: {
-        form: 'chatForm',
-        class: 'border-0 max-h-[55vh] overflow-auto w-full py-3',
-      },
-    },
-    onUpdate: ({ editor }) => {
-      editChatForm.setValue('text', editor.getText());
-      editChatForm.setValue('content', JSON.stringify(editor.getJSON()));
-    },
-  });
-
-  if (!editor) {
-    return null;
-  }
 
   return (
     <FormProvider {...editChatForm}>

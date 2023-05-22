@@ -41,6 +41,18 @@ const ChatroomId: NextPageWithLayout = () => {
   const user = useUser();
   const chatBottomRef = useRef<HTMLDivElement>(null);
   const chatFormRef = useRef<HTMLFormElement>(null);
+  const chatForm = useForm({
+    resolver: zodResolver(
+      z.object({
+        text: z.string().min(1),
+        content: z.any(),
+      })
+    ),
+    defaultValues: {
+      text: '',
+      content: '',
+    },
+  });
 
   useMessageUpdate({ chatroomId });
 
@@ -146,25 +158,6 @@ const ChatroomId: NextPageWithLayout = () => {
     },
   });
 
-  const chatForm = useForm({
-    resolver: zodResolver(
-      z.object({
-        text: z.string().min(1),
-        content: z.any(),
-      })
-    ),
-    defaultValues: {
-      text: '',
-      content: '',
-    },
-  });
-
-  // useEffect(() => {
-  //   if (chatForm.formState.isSubmitSuccessful) {
-  //     chatForm.reset();
-  //   }
-  // }, [chatForm, chatForm.formState.isSubmitSuccessful]);
-
   return (
     <>
       {typeof router.query.chatroomId === 'string' && (
@@ -208,23 +201,6 @@ const ChatroomId: NextPageWithLayout = () => {
                     </div>
                   );
                 }}
-                {/*<Controller*/}
-                {/*  control={chatForm.control}*/}
-                {/*  render={({ field: { onChange, value } }) => {*/}
-                {/*    return (*/}
-                {/*      <TextEditor*/}
-                {/*        componentProps={{*/}
-                {/*          editor: {*/}
-                {/*            extensions: [SubmitFormOnEnter],*/}
-                {/*          },*/}
-                {/*        }}*/}
-                {/*        onChange={onChange}*/}
-                {/*        content={value}*/}
-                {/*      />*/}
-                {/*    );*/}
-                {/*  }}*/}
-                {/*  name="content"*/}
-                {/*/>*/}
               </HookFormTiptapEditor>
             </form>
           </FormProvider>

@@ -7,7 +7,7 @@ import { EditorContent, useEditor } from '@tiptap/react';
 import {
   TiptapCodeBlockLight,
   TipTapStarterKit,
-} from '@/components/modules/TextEditor/utils';
+} from '@/components/modules/TextEditor/extensions';
 import { Paragraph } from '@tiptap/extension-paragraph';
 
 const ChatReplyItemHeader = ({

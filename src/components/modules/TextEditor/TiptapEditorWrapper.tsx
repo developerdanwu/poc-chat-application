@@ -3,7 +3,7 @@ import { Editor, EditorOptions, useEditor } from '@tiptap/react';
 import {
   TiptapCodeBlockLight,
   TipTapStarterKit,
-} from '@/components/modules/TextEditor/utils';
+} from '@/components/modules/TextEditor/extensions';
 import { Paragraph } from '@tiptap/extension-paragraph';
 import { EditorProps } from '@tiptap/pm/view';
 import { cn } from '@/lib/utils';
