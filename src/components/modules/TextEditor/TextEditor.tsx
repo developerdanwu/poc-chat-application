@@ -1,4 +1,9 @@
-import { type Editor, EditorContent, useEditor } from '@tiptap/react';
+import {
+  type Editor,
+  EditorContent,
+  EditorOptions,
+  useEditor,
+} from '@tiptap/react';
 import cn from 'clsx';
 import {
   RiBold,
@@ -118,11 +123,15 @@ const TextEditorParagraph = ({
 };
 
 const TextEditor = ({
+  componentProps,
   onChange,
   content,
-  onClickEnter,
 }: {
-  onClickEnter: () => void;
+  componentProps?: {
+    editor: {
+      extensions?: EditorOptions['extensions'];
+    };
+  };
   onChange: (...event: any[]) => void;
   content: any;
 }) => {
@@ -130,8 +139,11 @@ const TextEditor = ({
 
   const editor = useEditor({
     extensions: [
+      ...(componentProps?.editor.extensions
+        ? componentProps?.editor.extensions
+        : []),
       TipTapStarterKit,
-      TextEditorParagraph({ onClickEnter }),
+      Paragraph,
       TiptapCodeBlockLight,
     ],
     content,

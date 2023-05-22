@@ -1,7 +1,7 @@
 import { type NextPageWithLayout } from '@/pages/_app';
 import { cn } from '@/lib/utils';
 import ChatSidebar from '@/components/templates/root/ChatSidebar/ChatSidebar';
-import React, { useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { useRouter } from 'next/router';
 import ChatTopControls from '@/components/templates/root/ChatTopControls';
 import ChatWindow from '@/components/templates/root/ChatWindow/ChatWindow';
@@ -16,6 +16,7 @@ import { type InfiniteData } from '@tanstack/react-query';
 import { type RouterOutput } from '@/server/api/root';
 import { useUser } from '@clerk/nextjs';
 import { useMessageUpdate } from '@/components/templates/root/ChatWindow/hooks';
+import { Extension } from '@tiptap/core';
 
 export const MainChatWrapper = ({
   children,
@@ -36,8 +37,26 @@ const ChatroomId: NextPageWithLayout = () => {
   const trpcUtils = api.useContext();
   const user = useUser();
   const chatBottomRef = useRef<HTMLDivElement>(null);
+  const chatFormRef = useRef<HTMLFormElement>(null);
 
   useMessageUpdate({ chatroomId });
+
+  const SubmitFormOnEnter = useMemo(
+    () =>
+      Extension.create({
+        addKeyboardShortcuts() {
+          return {
+            Enter: () => {
+              chatFormRef.current?.dispatchEvent(
+                new Event('submit', { cancelable: true, bubbles: true })
+              );
+              return true;
+            },
+          };
+        },
+      }),
+    []
+  );
 
   const sendMessage = api.messaging.sendMessage.useMutation({
     mutationKey: ['sendMessage', chatroomId],
@@ -148,11 +167,13 @@ const ChatroomId: NextPageWithLayout = () => {
           />
           <FormProvider {...chatForm}>
             <form
+              ref={chatFormRef}
               id="message-text-input-form"
               className="flex w-full items-center justify-between space-x-4 bg-transparent bg-secondary px-6 py-3"
               onSubmit={chatForm.handleSubmit((data) => {
                 sendMessage.mutate({
                   ...data,
+                  content: JSON.stringify(data.content),
                   chatroomId,
                 });
               })}
@@ -162,14 +183,10 @@ const ChatroomId: NextPageWithLayout = () => {
                 render={({ field: { onChange, value } }) => {
                   return (
                     <TextEditor
-                      onClickEnter={() => {
-                        chatForm.handleSubmit((data) => {
-                          sendMessage.mutate({
-                            ...data,
-                            content: JSON.stringify(data.content),
-                            chatroomId,
-                          });
-                        })();
+                      componentProps={{
+                        editor: {
+                          extensions: [SubmitFormOnEnter],
+                        },
                       }}
                       onChange={onChange}
                       content={value}
