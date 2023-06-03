@@ -25,8 +25,8 @@ const ChatTopControls = ({ chatroomId }: { chatroomId: string }) => {
       : undefined;
 
   return (
-    <div className="flex w-full flex-[0_0_60px] items-center justify-start border-b border-slate-300">
-      <p className=" px-6 text-lead">
+    <div className="flex w-full flex-[0_0_48px] items-center justify-start border-b border-slate-300">
+      <p className=" px-6 text-lg font-semibold text-slate-900">
         {filteredChatroomUsers
           ?.map((author) =>
             getFullName({

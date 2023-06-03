@@ -11,6 +11,8 @@ import {
   AvatarImage,
 } from '@/components/elements/avatar';
 import { type RouterOutput } from '@/server/api/root';
+import { IconButton } from '@/components/elements/IconButton';
+import { XIcon } from 'lucide-react';
 
 const AuthorsAutocomplete = () => {
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -87,21 +89,29 @@ const AuthorsAutocomplete = () => {
     }) {
       switch (type) {
         case useCombobox.stateChangeTypes.InputKeyDownEnter:
-        case useCombobox.stateChangeTypes.ItemClick:
-          {
-            if (newSelectedItem) {
-              setSelectedItems((prev) => [...prev, newSelectedItem]);
-            }
+        case useCombobox.stateChangeTypes.ItemClick: {
+          if (newSelectedItem) {
+            setSelectedItems((prev) => [...prev, newSelectedItem]);
+            break;
           }
+          if (!newSelectedItem) {
+            setSelectedItems((prev) => []);
+            break;
+          }
+          break;
+        }
+        case useCombobox.stateChangeTypes.InputChange: {
+          if (!newInputValue) {
+            setInputValue('');
+            break;
+          }
+          if (newInputValue) {
+            setInputValue(newInputValue);
+            break;
+          }
+          break;
+        }
 
-          break;
-        case useCombobox.stateChangeTypes.InputChange:
-          {
-            if (newInputValue) {
-              setInputValue(newInputValue);
-            }
-          }
-          break;
         default:
           break;
       }
@@ -118,15 +128,44 @@ const AuthorsAutocomplete = () => {
   return (
     <div className="relative flex flex-1 flex-col justify-center self-center">
       <div className="flex w-full items-center justify-between">
-        <input
-          autoFocus
-          spellCheck="false"
-          placeholder="@friend"
-          className="relative w-full bg-transparent outline-none"
-          style={{ padding: '4px' }}
-          {...getInputProps(getDropdownProps({ preventKeyAction: isOpen }))}
-          data-testid="combobox-input"
-        />
+        <div className="inline-flex">
+          {selectedItems.map((item) => {
+            return (
+              <div
+                key={item.author_id}
+                className="flex items-center space-x-1 rounded-full border border-slate-300 bg-slate-100"
+              >
+                <Avatar size="sm">
+                  <AvatarImage
+                    src="https://github.com/shadcn.png"
+                    alt="@shadcn"
+                  />
+                  <AvatarFallback>{item.first_name.slice(0, 2)}</AvatarFallback>
+                </Avatar>
+                <p className="whitespace-nowrap text-body text-slate-500">
+                  {item.first_name} {item.last_name}
+                </p>
+                <IconButton
+                  onClick={() => removeSelectedItem(item)}
+                  variant="ghost"
+                  size="sm"
+                >
+                  <XIcon size={12} />
+                </IconButton>
+              </div>
+            );
+          })}
+          <input
+            autoFocus
+            spellCheck="false"
+            placeholder="@friend"
+            className="relative w-full bg-transparent outline-none"
+            style={{ padding: '4px' }}
+            {...getInputProps(getDropdownProps({ preventKeyAction: isOpen }))}
+            data-testid="combobox-input"
+          />
+        </div>
+
         {allAuthors.isLoading && <RadialProgress size={16} />}
       </div>
 
@@ -164,14 +203,16 @@ const AuthorsAutocomplete = () => {
                       src="https://github.com/shadcn.png"
                       alt="@shadcn"
                     />
-                    <AvatarFallback>item.first_name.slice(0, 2)</AvatarFallback>
+                    <AvatarFallback>
+                      {item.first_name.slice(0, 2)}
+                    </AvatarFallback>
                   </Avatar>
                   <p
                     className={cn(
-                      'select-none pl-3 text-xs font-normal leading-4 text-slate-900'
+                      ' select-none whitespace-nowrap pl-3 text-xs font-normal leading-4 text-slate-900'
                     )}
                   >
-                    {item.first_name}
+                    {item.first_name} {item.last_name}
                   </p>
                 </div>
                 <p

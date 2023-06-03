@@ -41,12 +41,12 @@ const ChatSidebar = () => {
     <div className="flex h-full flex-[0_0_256px] flex-col overflow-hidden border-r border-slate-300 bg-slate-900">
       <div
         className={cn(
-          'flex h-full w-full flex-[0_0_60px] items-center justify-between border-b border-slate-300 px-5'
+          'flex h-full w-full flex-[0_0_48px] items-center justify-between border-b border-slate-300 px-5'
         )}
       >
         <div className="text-h4 text-white">{user.user?.firstName}</div>
         <Link href="/new-message">
-          <IconButton size="lg" variant="white" className="rounded-full">
+          <IconButton variant="white" className="rounded-full">
             <PencilIcon size={16} />
           </IconButton>
         </Link>

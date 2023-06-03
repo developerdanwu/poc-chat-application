@@ -82,10 +82,10 @@ const NewMessage: NextPageWithLayout = () => {
   return (
     <>
       <FormProvider {...newMessageForm}>
-        <div className="flex w-full flex-[0_0_60px] items-center border-b border-slate-300 px-6">
+        <div className="flex w-full flex-[0_0_48px] items-center border-b border-slate-300 px-6">
           <p className="font-semibold">New message</p>
         </div>
-        <div className="flex w-full flex-[0_0_60px] items-center items-center border-b border-slate-300 px-6">
+        <div className="flex w-full flex-[0_0_48px] items-center border-b border-slate-300 px-6">
           <div className="flex w-full items-center space-x-2">
             <p className="leading-[0px]">To:</p>
             <AuthorsAutocomplete />
