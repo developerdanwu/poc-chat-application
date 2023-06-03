@@ -11,8 +11,8 @@ import { api } from '@/lib/api';
 import { useRouter } from 'next/router';
 import HookFormTiptapEditor from '@/components/modules/TextEditor/HookFormTiptapEditor';
 import { EditorContent } from '@tiptap/react';
-import TextEditorSendBar from '@/components/templates/root/TextEditorSendBar';
 import EditorMenuBar from '@/components/modules/TextEditor/EditorMenuBar';
+import ScrollArea from '@/components/elements/ScrollArea';
 
 const NewMessage: NextPageWithLayout = () => {
   const newMessageForm = useForm({
@@ -82,27 +82,27 @@ const NewMessage: NextPageWithLayout = () => {
   return (
     <>
       <FormProvider {...newMessageForm}>
-        <div className="flex w-full flex-[0_0_60px] items-center border-b-2 border-black px-6">
+        <div className="flex w-full flex-[0_0_60px] items-center border-b border-slate-300 px-6">
           <p className="font-semibold">New message</p>
         </div>
-        <div className="flex w-full flex-[0_0_60px] items-center items-center border-b-2 border-black px-6">
+        <div className="flex w-full flex-[0_0_60px] items-center items-center border-b border-slate-300 px-6">
           <div className="flex w-full items-center space-x-2">
             <p className="leading-[0px]">To:</p>
             <AuthorsAutocomplete />
           </div>
         </div>
-        {/*<ScrollArea*/}
-        {/*  componentProps={{*/}
-        {/*    root: {*/}
-        {/*      className:*/}
-        {/*        'flex overflow-hidden h-full w-full rounded-xl bg-base-100',*/}
-        {/*    },*/}
-        {/*    viewport: {*/}
-        {/*      // ref: scrollAreaRef,*/}
-        {/*      className: 'h-full w-full',*/}
-        {/*    },*/}
-        {/*  }}*/}
-        {/*></ScrollArea>*/}
+        <ScrollArea
+          componentProps={{
+            root: {
+              className:
+                'flex overflow-hidden h-full w-full rounded-xl bg-base-100',
+            },
+            viewport: {
+              // ref: scrollAreaRef,
+              className: 'h-full w-full',
+            },
+          }}
+        ></ScrollArea>
         <form
           id="message-text-input-form"
           className="flex w-full items-center justify-between space-x-4 bg-transparent bg-secondary px-6 py-3"
@@ -114,20 +114,27 @@ const NewMessage: NextPageWithLayout = () => {
             });
           })}
         >
-          <HookFormTiptapEditor fieldName="content">
+          <HookFormTiptapEditor
+            editorProps={{
+              attributes: {
+                class: cn('border-0 max-h-[55vh] overflow-auto w-full py-3'),
+              },
+            }}
+            // extensions={[SubmitFormOnEnter]}
+            fieldName="content"
+          >
             {(editor) => {
               return (
                 <div
                   className={cn(
-                    'group w-full rounded-lg border-2 border-warm-gray-400 bg-warm-gray-50 px-3 py-2',
+                    'border-warm-gray-400  group w-full rounded-lg border border-slate-300 px-3 py-3',
                     {
-                      '!border-warm-gray-600': editor.isFocused,
+                      'border-slate-400': editor.isFocused,
                     }
                   )}
                 >
                   <EditorMenuBar editor={editor} />
                   <EditorContent editor={editor} />
-                  <TextEditorSendBar />
                 </div>
               );
             }}
@@ -142,7 +149,7 @@ NewMessage.getLayout = function getLayout(page) {
   return (
     <div
       className={cn(
-        'flex h-screen w-screen flex-row items-center justify-center  bg-warm-gray-50'
+        'bg-warm-gray-50 flex h-screen w-screen flex-row items-center  justify-center'
       )}
     >
       <div className={cn('flex h-full w-full flex-row')}>

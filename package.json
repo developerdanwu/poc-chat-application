@@ -62,6 +62,7 @@
     "postgres": "^3.3.4",
     "prisma-kysely": "^1.4.1",
     "react": "18.2.0",
+    "react-aria": "^3.25.0",
     "react-dom": "18.2.0",
     "react-hook-form": "^7.43.8",
     "react-icons": "^4.8.0",

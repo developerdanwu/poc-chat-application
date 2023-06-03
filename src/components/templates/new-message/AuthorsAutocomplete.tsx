@@ -3,9 +3,13 @@ import { useCombobox } from 'downshift';
 import { api } from '@/lib/api';
 import { useDebounce } from 'react-use';
 import { cn, useApiTransformUtils } from '@/lib/utils';
-import Avatar from '@/components/elements/Avatar';
 import RadialProgress from '@/components/elements/RadialProgress';
 import { useFormContext } from 'react-hook-form';
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from '@/components/elements/avatar';
 
 const AuthorsAutocomplete = () => {
   const [search, setSearch] = useState('');
@@ -61,22 +65,13 @@ const AuthorsAutocomplete = () => {
   }, [isSubmitSuccessful, selectItem, setInputValue]);
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        width: 'fit-content',
-        justifyContent: 'center',
-        alignSelf: 'center',
-      }}
-      className="relative flex-1"
-    >
+    <div className="relative flex flex-1 flex-col justify-center self-center">
       <div className="flex w-full items-center justify-between">
         <input
           autoFocus
           spellCheck="false"
           placeholder="@friend"
-          className="relative bg-transparent outline-none"
+          className="relative w-full bg-transparent outline-none"
           style={{ padding: '4px' }}
           {...getInputProps()}
           data-testid="combobox-input"
@@ -87,7 +82,7 @@ const AuthorsAutocomplete = () => {
       {isOpen && !allAuthors.isLoading && (
         <ul
           {...getMenuProps()}
-          className="z-50 w-full rounded-sm border-2 border-black bg-warm-gray-50 p-3"
+          className="z-50 w-full rounded-md border border-slate-300 bg-white py-3"
           style={{
             listStyle: 'none',
             position: 'absolute',
@@ -102,21 +97,24 @@ const AuthorsAutocomplete = () => {
                 {...getItemProps({ item, index, key: item.author_id })}
                 key={item.author_id}
                 className={cn(
-                  'flex w-full cursor-pointer items-center rounded-sm py-2 px-3 hover:bg-warm-gray-300',
+                  'hover:bg-warm-gray-300 flex w-full cursor-pointer items-center py-2 px-3',
                   {
-                    'bg-warm-gray-300': highlightedIndex === index,
-                    'bg-gray-900 hover:bg-gray-900': selected,
+                    'bg-slate-100': highlightedIndex === index,
+                    'bg-slate-200 hover:bg-slate-300': selected,
                   }
                 )}
               >
                 <div className="flex items-center">
-                  <Avatar size="xs" alt={item.first_name.slice(0, 2)} />
+                  <Avatar size="sm">
+                    <AvatarImage
+                      src="https://github.com/shadcn.png"
+                      alt="@shadcn"
+                    />
+                    <AvatarFallback>item.first_name.slice(0, 2)</AvatarFallback>
+                  </Avatar>
                   <p
                     className={cn(
-                      'select-none pl-3 text-xs font-normal leading-4',
-                      {
-                        'text-white': selected,
-                      }
+                      'select-none pl-3 text-xs font-normal leading-4 text-slate-900'
                     )}
                   >
                     {item.first_name}
@@ -124,10 +122,7 @@ const AuthorsAutocomplete = () => {
                 </div>
                 <p
                   className={cn(
-                    'select-none pl-3 text-xs font-normal leading-4 text-warm-gray-400',
-                    {
-                      'text-white': selected,
-                    }
+                    'select-none pl-3 text-xs font-normal leading-4 text-slate-400'
                   )}
                 >
                   #{item.author_id}
