@@ -39,7 +39,7 @@ const AuthorsAutocomplete = () => {
   const { getSelectedItemProps, getDropdownProps, removeSelectedItem } =
     useMultipleSelection({
       selectedItems,
-      onStateChange({ selectedItems: newSelectedItems, type }) {
+      onStateChange({ selectedItems: newSelectedItems, type, activeIndex }) {
         switch (type) {
           case useMultipleSelection.stateChangeTypes
             .SelectedItemKeyDownBackspace:
@@ -67,6 +67,7 @@ const AuthorsAutocomplete = () => {
   } = useCombobox({
     inputValue,
     selectedItem: null,
+    defaultHighlightedIndex: 0,
     stateReducer(state, actionAndChanges) {
       const { changes, type } = actionAndChanges;
       switch (type) {
@@ -90,7 +91,12 @@ const AuthorsAutocomplete = () => {
         case useCombobox.stateChangeTypes.InputKeyDownEnter:
         case useCombobox.stateChangeTypes.ItemClick: {
           if (newSelectedItem) {
-            setSelectedItems((prev) => [...prev, newSelectedItem]);
+            setSelectedItems((prev) => [
+              ...prev.filter(
+                (item) => item.author_id !== newSelectedItem.author_id
+              ),
+              newSelectedItem,
+            ]);
             setInputValue('');
             break;
           }
@@ -118,26 +124,27 @@ const AuthorsAutocomplete = () => {
       }
     },
     onInputValueChange: (changes) => {
-      console.log('CHANGED', changes);
+      if (changes.inputValue) {
+        setInputValue(changes.inputValue);
+      }
+      console.log('CHANGED');
     },
-    itemToString: (item) =>
-      getFullName({
-        firstName: item?.first_name,
-        lastName: item?.last_name,
-        fallback: 'Untitled',
-      }),
     items: allAuthors.data || [],
   });
 
   return (
     <div className="relative flex flex-1 flex-col justify-center self-center">
       <div className="flex w-full items-center justify-between">
-        <div className="inline-flex w-full">
-          {selectedItems.map((item) => {
+        <div className="inline-flex w-full space-x-1">
+          {selectedItems.map((item, index) => {
             return (
               <div
-                key={item.author_id}
+                key={`selected-item-${index}`}
                 className="flex items-center space-x-1 rounded-full border border-slate-300 bg-slate-100"
+                {...getSelectedItemProps({
+                  selectedItem: item,
+                  index,
+                })}
               >
                 <Avatar size="sm">
                   <AvatarImage
@@ -150,7 +157,10 @@ const AuthorsAutocomplete = () => {
                   {item.first_name} {item.last_name}
                 </p>
                 <IconButton
-                  onClick={() => removeSelectedItem(item)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeSelectedItem(item);
+                  }}
                   variant="ghost"
                   size="sm"
                 >
@@ -173,7 +183,6 @@ const AuthorsAutocomplete = () => {
                 if (e.key === 'Backspace' && !inputValue) {
                   setSelectedItems((prev) => prev.slice(0, -1));
                 }
-                console.log('KEYYY', e.key);
               },
             })}
             data-testid="combobox-input"
@@ -226,7 +235,11 @@ const AuthorsAutocomplete = () => {
                       ' select-none whitespace-nowrap pl-3 text-xs font-normal leading-4 text-slate-900'
                     )}
                   >
-                    {item.first_name} {item.last_name}
+                    {getFullName({
+                      firstName: item.first_name,
+                      lastName: item.last_name,
+                      fallback: 'Untitled',
+                    })}
                   </p>
                 </div>
                 <p
