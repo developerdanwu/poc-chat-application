@@ -36,7 +36,6 @@ const AuthorsAutocomplete = () => {
     [inputValue]
   );
 
-  console.log('SELECTED', selectedItems);
   const { getSelectedItemProps, getDropdownProps, removeSelectedItem } =
     useMultipleSelection({
       selectedItems,
@@ -92,10 +91,12 @@ const AuthorsAutocomplete = () => {
         case useCombobox.stateChangeTypes.ItemClick: {
           if (newSelectedItem) {
             setSelectedItems((prev) => [...prev, newSelectedItem]);
+            setInputValue('');
             break;
           }
           if (!newSelectedItem) {
-            setSelectedItems((prev) => []);
+            setSelectedItems([]);
+            setInputValue('');
             break;
           }
           break;
@@ -116,6 +117,9 @@ const AuthorsAutocomplete = () => {
           break;
       }
     },
+    onInputValueChange: (changes) => {
+      console.log('CHANGED', changes);
+    },
     itemToString: (item) =>
       getFullName({
         firstName: item?.first_name,
@@ -128,7 +132,7 @@ const AuthorsAutocomplete = () => {
   return (
     <div className="relative flex flex-1 flex-col justify-center self-center">
       <div className="flex w-full items-center justify-between">
-        <div className="inline-flex">
+        <div className="inline-flex w-full">
           {selectedItems.map((item) => {
             return (
               <div
@@ -158,10 +162,20 @@ const AuthorsAutocomplete = () => {
           <input
             autoFocus
             spellCheck="false"
-            placeholder="@friend"
+            placeholder={selectedItems.length < 1 ? '@friend' : ''}
             className="relative w-full bg-transparent outline-none"
             style={{ padding: '4px' }}
-            {...getInputProps(getDropdownProps({ preventKeyAction: isOpen }))}
+            {...getInputProps({
+              ...getDropdownProps({
+                preventKeyAction: isOpen,
+              }),
+              onKeyDown: (e) => {
+                if (e.key === 'Backspace' && !inputValue) {
+                  setSelectedItems((prev) => prev.slice(0, -1));
+                }
+                console.log('KEYYY', e.key);
+              },
+            })}
             data-testid="combobox-input"
           />
         </div>
@@ -169,7 +183,7 @@ const AuthorsAutocomplete = () => {
         {allAuthors.isLoading && <RadialProgress size={16} />}
       </div>
 
-      {isOpen && !allAuthors.isLoading && (
+      {isOpen && (
         <ul
           {...getMenuProps()}
           className="z-50 w-full rounded-md border border-slate-300 bg-white py-3"
