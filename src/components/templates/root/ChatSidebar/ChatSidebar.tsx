@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { api } from '@/lib/api';
 import { cn, useApiTransformUtils } from '@/lib/utils';
-import Input from '@/components/elements/Input';
 import ThreadListItem from '@/components/templates/root/ThreadListItem';
 import { notEmpty } from '@/lib/ts-utils';
 import { useRouter } from 'next/router';
 import { useDebounce } from 'react-use';
 import RadialProgress from '@/components/elements/RadialProgress';
 import Link from 'next/link';
-import { RiPencilLine } from 'react-icons/ri';
+import { useUser } from '@clerk/nextjs';
+import { IconButton } from '@/components/elements/IconButton';
+import { PencilIcon } from 'lucide-react';
 
 const ChatSidebar = () => {
   const router = useRouter();
@@ -17,6 +18,7 @@ const ChatSidebar = () => {
   const chatrooms = api.messaging.getChatrooms.useQuery({
     searchKeyword: debouncedSearch,
   });
+  const user = useUser();
 
   const { filterAuthedUserFromChatroomAuthors, getFullName } =
     useApiTransformUtils();
@@ -32,27 +34,23 @@ const ChatSidebar = () => {
     typeof router.query.chatroomId === 'string' ? router.query.chatroomId : '';
 
   return (
-    <div className="flex h-full flex-[0_0_256px] flex-col overflow-hidden border-r-2 border-black bg-warm-gray-200 ">
+    <div className="flex h-full flex-[0_0_256px] flex-col overflow-hidden border-r-2 border-black bg-slate-900">
       <div
         className={cn(
-          'mb-4 flex h-full w-full flex-[0_0_60px] items-center space-x-2 border-b-2 border-black px-3'
+          'mb-4 flex h-full w-full flex-[0_0_60px] items-center justify-between border-b border-slate-300 px-5'
         )}
       >
-        <Input
-          spellCheck={false}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+        <div className={'text-h4 text-white'}>{user.user?.firstName}</div>
         <Link href="/new-message">
-          <button className={cn('btn-outline btn-sm btn-circle btn')}>
-            <RiPencilLine />
-          </button>
+          <IconButton size={'lg'} variant={'white'} className={'rounded-full'}>
+            <PencilIcon size={16} />
+          </IconButton>
         </Link>
       </div>
 
       <div className="flex w-full flex-col overflow-auto p-3">
         {chatrooms.isLoading ? (
-          <RadialProgress className="self-center" />
+          <RadialProgress size={20} />
         ) : (
           chatrooms.data?.map((chatroom) => {
             return (

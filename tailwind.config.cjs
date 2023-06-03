@@ -1,70 +1,89 @@
-// @ts-ignore
+// @ts-nocheck
+const {fontFamily} = require("tailwindcss/defaultTheme");
 /** @type {import('tailwindcss').Config} */
 const config = {
+    darkMode: ['class'],
     content: ["./src/**/*.{js,ts,jsx,tsx}"],
     theme: {
+        container: {
+            center: true,
+            padding: '2rem',
+            screens: {
+                '2xl': '1400px',
+            },
+        },
         extend: {
+            fontSize: {
+                h1: ['48px', {lineHeight: '48px', letterSpacing: '-1.2%', fontWeight: '800'}],
+                h2: ['30px', {lineHeight: '36px', letterSpacing: '-0.75%', fontWeight: '600'}],
+                h3: ['24px', {lineHeight: '32px', letterSpacing: '-0.6%'}],
+                h4: ['20px', {lineHeight: '28px', letterSpacing: '-0.5%'}],
+                p: ['16px', {lineHeight: '28px', letterSpacing: '0%'}],
+                lead: ['20px', {lineHeight: '28px', letterSpacing: '0%'}],
+                large: ['18px', {lineHeight: '28px', letterSpacing: '0%'}],
+                small: ['14px', {lineHeight: '14px', letterSpacing: '0%'}],
+                subtle: ['14px', {lineHeight: '20px', letterSpacing: '0%'}],
+            },
             colors: {
-                'warm-gray': {
-                    50: '#fafaf9',
-                    100: '#f5f5f4',
-                    200: '#e7e5e4',
-                    300: '#d6d3d1',
-                    400: '#a8a29e',
-                    500: '#78716c',
-                    600: '#57534e',
-                    700: '#44403c',
-                    800: '#292524',
-                    900: '#1c1917',
-                }
+                border: 'hsl(var(--border))',
+                input: 'hsl(var(--input))',
+                ring: 'hsl(var(--ring))',
+                background: 'hsl(var(--background))',
+                foreground: 'hsl(var(--foreground))',
+                primary: {
+                    DEFAULT: 'hsl(var(--primary))',
+                    foreground: 'hsl(var(--primary-foreground))',
+                },
+                secondary: {
+                    DEFAULT: 'hsl(var(--secondary))',
+                    foreground: 'hsl(var(--secondary-foreground))',
+                },
+                destructive: {
+                    DEFAULT: 'hsl(var(--destructive))',
+                    foreground: 'hsl(var(--destructive-foreground))',
+                },
+                muted: {
+                    DEFAULT: 'hsl(var(--muted))',
+                    foreground: 'hsl(var(--muted-foreground))',
+                },
+                accent: {
+                    DEFAULT: 'hsl(var(--accent))',
+                    foreground: 'hsl(var(--accent-foreground))',
+                },
+                popover: {
+                    DEFAULT: 'hsl(var(--popover))',
+                    foreground: 'hsl(var(--popover-foreground))',
+                },
+                card: {
+                    DEFAULT: 'hsl(var(--card))',
+                    foreground: 'hsl(var(--card-foreground))',
+                },
+            },
+            borderRadius: {
+                lg: `var(--radius)`,
+                md: `calc(var(--radius) - 2px)`,
+                sm: 'calc(var(--radius) - 4px)',
+            },
+            fontFamily: {
+                sans: ['var(--font-sans)', ...fontFamily.sans],
             },
             keyframes: {
-                'loading-fade': {
-                    '0%': {
-                        opacity: '0',
-                    },
-                    '50%': {
-                        opacity: '80%'
-                    },
-                    '100%': {
-                        opacity: '0'
-                    }
+                'accordion-down': {
+                    from: {height: 0},
+                    to: {height: 'var(--radix-accordion-content-height)'},
                 },
-                'pulse': {
-                    '0%': {
-                        opacity: '40%',
-                    },
-                    '50%': {
-                        opacity: '80%'
-                    },
-                    '100%': {
-                        opacity: '40%'
-                    }
-                }
-            }
+                'accordion-up': {
+                    from: {height: 'var(--radix-accordion-content-height)'},
+                    to: {height: 0},
+                },
+            },
+            animation: {
+                'accordion-down': 'accordion-down 0.2s ease-out',
+                'accordion-up': 'accordion-up 0.2s ease-out',
+            },
         },
-        animation: {
-            'typing-dot': 'loading-fade 1.4s ease-in-out infinite',
-            'pulse': 'pulse 2s ease-in-out infinite'
-        }
     },
-    daisyui: {
-        themes: [{
-            default: {
-                primary: '#2A6EFF',
-                'base-100': '#F8F8F8',
-                'base-200': "#A8A8A8",
-                "base-300": "#212121",
-                secondary: '#F6F8FC',
-                neutral: '#DBDADA',
-                'neutral-focus': '#BFBFBF',
-                'neutral-content': '#F2F1F1',
-            }
-        }]
-    },
-    // @ts-expect-error
-    plugins: [require("daisyui"), require("tailwindcss-animation-delay"),
-    ],
+    plugins: [require('tailwindcss-animate')],
 };
 
 module.exports = config;

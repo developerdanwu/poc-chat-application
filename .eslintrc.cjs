@@ -12,7 +12,7 @@ const config = {
                 "@typescript-eslint/no-floating-promises": "off",
                 "@typescript-eslint/no-misused-promises": "off",
             },
-            files: ["*.ts", "*.tsx"],
+            files: ["*.ts", "*.tsx", "*.js"],
             parserOptions: {
                 project: path.join(__dirname, "tsconfig.json"),
             },

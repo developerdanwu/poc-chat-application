@@ -1,6 +1,10 @@
 import React from 'react';
-import Avatar from '@/components/elements/Avatar';
 import { cn } from '@/lib/utils';
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from '@/components/elements/avatar';
 
 const ThreadListItem = ({
   name,
@@ -14,18 +18,24 @@ const ThreadListItem = ({
   return (
     <div
       className={cn(
-        'flex w-full cursor-pointer items-center justify-between rounded-sm py-2 px-3 hover:bg-warm-gray-300',
+        'hover:bg-warm-gray-300 flex w-full cursor-pointer items-center justify-between rounded-sm py-2 px-3',
         {
           'bg-gray-900 hover:bg-gray-900': selected,
         }
       )}
     >
       <div className="flex items-center">
-        <Avatar size="xs" alt={name.slice(0, 2)} />
+        <Avatar>
+          <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+          <AvatarFallback>CN</AvatarFallback>
+        </Avatar>
         <p
-          className={cn('select-none pl-3 text-xs font-normal leading-4', {
-            'text-white': selected,
-          })}
+          className={cn(
+            'select-none pl-3 text-xs font-normal leading-4 text-white',
+            {
+              'text-white': selected,
+            }
+          )}
         >
           {name}
         </p>
@@ -33,7 +43,7 @@ const ThreadListItem = ({
 
       <p
         className={cn(
-          'select-none text-xs font-normal leading-4 text-warm-gray-400',
+          'text-warm-gray-400 select-none text-xs font-normal leading-4',
           {
             'text-white': selected,
           }
