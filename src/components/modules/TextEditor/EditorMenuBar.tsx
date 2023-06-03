@@ -1,5 +1,4 @@
 import { type Editor } from '@tiptap/react';
-import cn from 'clsx';
 import {
   RiBold,
   RiCodeBoxLine,
@@ -7,65 +6,63 @@ import {
   RiItalic,
   RiStrikethrough,
 } from 'react-icons/ri';
+import { IconButton } from '@/components/elements/IconButton';
+import { Separator } from '@/components/elements/separator';
 
 const EditorMenuBar = ({ editor }: { editor: Editor }) => {
   return (
-    <div className="flex h-full w-full items-center space-x-2">
-      <button
+    <div className="flex h-5 w-full items-center space-x-2">
+      <IconButton
         type="button"
+        size="sm"
+        variant="ghost"
+        state={editor.isActive('bold') ? 'active' : 'default'}
         disabled={editor.isActive('codeBlock')}
         onClick={() => editor.commands.toggleBold()}
-        className={cn('btn-outline btn-square btn-xs btn grid border-0', {
-          'btn-active': editor.isActive('bold'),
-          'btn-disabled': editor.isActive('codeBlock'),
-        })}
       >
         <RiBold size="18px" />
-      </button>
-      <button
+      </IconButton>
+      <IconButton
+        size="sm"
         type="button"
+        variant="ghost"
+        state={editor.isActive('italic') ? 'active' : 'default'}
         disabled={editor.isActive('codeBlock')}
         onClick={() => editor.commands.toggleItalic()}
-        className={cn('btn-outline btn-square btn-xs btn grid border-0', {
-          'btn-active': editor.isActive('italic'),
-          'btn-disabled': editor.isActive('codeBlock'),
-        })}
       >
         <RiItalic size="18px" />
-      </button>
-      <button
+      </IconButton>
+      <IconButton
+        size="sm"
         type="button"
+        variant="ghost"
+        state={editor.isActive('strike') ? 'active' : 'default'}
         disabled={editor.isActive('codeBlock')}
         onClick={() => editor.commands.toggleStrike()}
-        className={cn('btn-outline btn-square btn-xs btn grid border-0', {
-          'btn-active': editor.isActive('strike'),
-          'btn-disabled': editor.isActive('codeBlock'),
-        })}
       >
         <RiStrikethrough size="18px" />
-      </button>
-      <div className="divider divider-horizontal before:bg-neutral after:bg-neutral" />
-      <button
+      </IconButton>
+      <Separator orientation="vertical" />
+      <IconButton
+        size="sm"
         type="button"
+        variant="ghost"
+        state={editor.isActive('code') ? 'active' : 'default'}
         disabled={editor.isActive('codeBlock')}
         onClick={() => editor.commands.toggleCode()}
-        className={cn('btn-outline btn-square btn-xs btn grid border-0', {
-          'btn-active': editor.isActive('code'),
-          'btn-disabled': editor.isActive('codeBlock'),
-        })}
       >
         <RiCodeLine size="18px" />
-      </button>
+      </IconButton>
 
-      <button
+      <IconButton
+        size="sm"
         type="button"
+        variant="ghost"
+        state={editor.isActive('codeBlock') ? 'active' : 'default'}
         onClick={() => editor.commands.toggleCodeBlock()}
-        className={cn('btn-outline btn-square btn-xs btn grid border-0', {
-          'btn-active': editor.isActive('codeBlock'),
-        })}
       >
         <RiCodeBoxLine size="18px" />
-      </button>
+      </IconButton>
     </div>
   );
 };

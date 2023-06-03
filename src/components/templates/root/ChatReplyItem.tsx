@@ -1,8 +1,7 @@
 import React from 'react';
 import dayjs from 'dayjs';
 import { type RouterOutput } from '@/server/api/root';
-import { cn, safeJSONParse, useApiTransformUtils } from '@/lib/utils';
-import { RiEdit2Fill, RiMore2Fill } from 'react-icons/ri';
+import { safeJSONParse, useApiTransformUtils } from '@/lib/utils';
 import { EditorContent, useEditor } from '@tiptap/react';
 import {
   TiptapCodeBlockLight,
@@ -91,23 +90,23 @@ const ChatReplyItem = ({
 
   return (
     <>
-      <div
-        className={cn(
-          'bg-warm-gray-100 invisible absolute -top-4 right-6 z-50 flex items-center justify-center space-x-1  rounded-md border border-black p-1 group-hover:visible'
-        )}
-      >
-        {variant === 'sender' && (
-          <button
-            onClick={() => setIsEditing(messageId)}
-            className="btn-outline btn-square btn-xs btn border-0"
-          >
-            <RiEdit2Fill size={16} />
-          </button>
-        )}
-        <button className="btn-outline btn-square btn-xs btn border-0">
-          <RiMore2Fill size={16} />
-        </button>
-      </div>
+      {/*<div*/}
+      {/*  className={cn(*/}
+      {/*    'invisible absolute -top-4 right-6 z-50 flex items-center justify-center space-x-1 rounded-md  border border-black bg-white p-1 group-hover:visible'*/}
+      {/*  )}*/}
+      {/*>*/}
+      {/*  {variant === 'sender' && (*/}
+      {/*    <button*/}
+      {/*      onClick={() => setIsEditing(messageId)}*/}
+      {/*      className="btn-outline btn-square btn-xs btn border-0"*/}
+      {/*    >*/}
+      {/*      <RiEdit2Fill size={16} />*/}
+      {/*    </button>*/}
+      {/*  )}*/}
+      {/*  <button className="btn-outline btn-square btn-xs btn border-0">*/}
+      {/*    <RiMore2Fill size={16} />*/}
+      {/*  </button>*/}
+      {/*</div>*/}
 
       <div className="flex w-full flex-col space-y-2">
         <ChatReplyItemHeader

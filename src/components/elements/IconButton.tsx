@@ -24,8 +24,13 @@ const iconButtonVariants = cva(
         sm: 'h-6 w-6 rounded-md',
         lg: 'text-md h-10 w-10 rounded-md',
       },
+      state: {
+        default: '',
+        active: 'bg-slate-200',
+      },
     },
     defaultVariants: {
+      state: 'default',
       variant: 'default',
       size: 'default',
     },
@@ -39,11 +44,11 @@ export interface IconButtonProps
 }
 
 const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, state, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : 'button';
     return (
       <Comp
-        className={cn(iconButtonVariants({ variant, size, className }))}
+        className={cn(iconButtonVariants({ variant, size, className, state }))}
         ref={ref}
         {...props}
       />

@@ -123,9 +123,9 @@ const ChatReplyEditingItem = ({
             return (
               <div
                 className={cn(
-                  'group w-full rounded-lg border-2 border-warm-gray-400 bg-warm-gray-50 px-3 py-2',
+                  'border-warm-gray-400  group w-full rounded-lg border px-3 py-2',
                   {
-                    '!border-warm-gray-600': editor.isFocused,
+                    'border-warm-gray-600': editor.isFocused,
                   }
                 )}
               >

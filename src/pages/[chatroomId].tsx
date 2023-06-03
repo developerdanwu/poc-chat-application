@@ -27,7 +27,7 @@ export const MainChatWrapper = ({
   children: React.ReactNode;
 }) => {
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center overflow-hidden bg-warm-gray-50 ">
+    <div className="bg-warm-gray-50 flex h-full w-full flex-col items-center justify-center overflow-hidden ">
       {children}
     </div>
   );
@@ -189,9 +189,9 @@ const ChatroomId: NextPageWithLayout = () => {
                   return (
                     <div
                       className={cn(
-                        'group w-full rounded-lg border-2 border-warm-gray-400 bg-warm-gray-50 px-3 py-2',
+                        'border-warm-gray-400  group w-full rounded-lg border border-slate-300 px-3 py-3',
                         {
-                          '!border-warm-gray-600': editor.isFocused,
+                          'border-slate-400': editor.isFocused,
                         }
                       )}
                     >
@@ -214,7 +214,7 @@ ChatroomId.getLayout = function getLayout(page) {
   return (
     <div
       className={cn(
-        'flex h-screen w-screen flex-row items-center justify-center  bg-warm-gray-50'
+        'bg-warm-gray-50 flex h-screen w-screen flex-row items-center  justify-center'
       )}
     >
       <div className={cn('flex h-full w-full flex-row')}>
