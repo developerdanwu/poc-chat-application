@@ -5,9 +5,10 @@ import { safeJSONParse, useApiTransformUtils } from '@/lib/utils';
 import { EditorContent, useEditor } from '@tiptap/react';
 import {
   TiptapCodeBlockLight,
+  TipTapParagraph,
   TipTapStarterKit,
 } from '@/components/modules/TextEditor/extensions';
-import { Paragraph } from '@tiptap/extension-paragraph';
+import TiptapEditorWrapper from '@/components/modules/TextEditor/TiptapEditorWrapper';
 
 const ChatReplyItemHeader = ({
   isLastMessageSenderEqualToCurrentMessageSender,
@@ -71,15 +72,7 @@ const ChatReplyItem = ({
   variant?: 'sender' | 'receiver';
 }) => {
   const editor = useEditor({
-    extensions: [
-      TipTapStarterKit,
-      Paragraph.configure({
-        HTMLAttributes: {
-          class: 'text-subtle text-slate-700',
-        },
-      }),
-      TiptapCodeBlockLight,
-    ],
+    extensions: [TipTapStarterKit, TipTapParagraph, TiptapCodeBlockLight],
     editable: false,
     content: safeJSONParse(content) || text,
   });
@@ -120,7 +113,14 @@ const ChatReplyItem = ({
         />
 
         <div className="relative flex flex-col space-y-2">
-          <EditorContent editor={editor} />
+          <TiptapEditorWrapper
+            editable={false}
+            content={safeJSONParse(content) || text}
+          >
+            {(editor) => {
+              return <EditorContent editor={editor} />;
+            }}
+          </TiptapEditorWrapper>
           {isEdited && <p className="text-xs text-slate-400">(edited)</p>}
         </div>
       </div>

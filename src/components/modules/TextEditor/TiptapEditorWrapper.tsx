@@ -2,17 +2,9 @@ import React from 'react';
 import { type Editor, type EditorOptions, useEditor } from '@tiptap/react';
 import {
   TiptapCodeBlockLight,
+  TipTapParagraph,
   TipTapStarterKit,
 } from '@/components/modules/TextEditor/extensions';
-import { Paragraph } from '@tiptap/extension-paragraph';
-import { type EditorProps } from '@tiptap/pm/view';
-import { cn } from '@/lib/utils';
-
-const test: EditorProps<any> = {
-  attributes: {
-    class: 'hello',
-  },
-};
 
 export type TiptapEditorWrapperProps = {
   children: (editor: Editor) => JSX.Element;
@@ -32,17 +24,13 @@ const TiptapEditorWrapper = ({
     extensions: [
       ...(extensions ? extensions : []),
       TipTapStarterKit,
-      Paragraph,
+      TipTapParagraph,
       TiptapCodeBlockLight,
     ],
     editorProps: {
       ...(editorProps ? editorProps : {}),
       attributes: {
         ...(editorProps?.attributes ? editorProps?.attributes : {}),
-        class: cn(
-          'border-0 max-h-[55vh] overflow-auto w-full py-3',
-          editorProps?.attributes?.class
-        ),
       },
     },
     ...(restProps ? restProps : {}),

@@ -18,7 +18,6 @@ import { useMessageUpdate } from '@/components/templates/root/ChatWindow/hooks';
 import { Extension } from '@tiptap/core';
 import HookFormTiptapEditor from '@/components/modules/TextEditor/HookFormTiptapEditor';
 import { EditorContent } from '@tiptap/react';
-import TextEditorSendBar from '@/components/templates/root/TextEditorSendBar';
 import EditorMenuBar from '@/components/modules/TextEditor/EditorMenuBar';
 
 export const MainChatWrapper = ({
@@ -182,6 +181,13 @@ const ChatroomId: NextPageWithLayout = () => {
               })}
             >
               <HookFormTiptapEditor
+                editorProps={{
+                  attributes: {
+                    class: cn(
+                      'border-0 max-h-[55vh] overflow-auto w-full py-3'
+                    ),
+                  },
+                }}
                 extensions={[SubmitFormOnEnter]}
                 fieldName="content"
               >
@@ -197,7 +203,6 @@ const ChatroomId: NextPageWithLayout = () => {
                     >
                       <EditorMenuBar editor={editor} />
                       <EditorContent editor={editor} />
-                      <TextEditorSendBar />
                     </div>
                   );
                 }}

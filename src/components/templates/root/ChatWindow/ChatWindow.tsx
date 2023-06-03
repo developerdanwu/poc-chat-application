@@ -94,7 +94,7 @@ const ChatWindow = ({
     >
       {!messages.hasNextPage && filteredChatroomUsers?.length === 1 && (
         <div className="flex flex-col px-6 pt-10">
-          <Avatar size="lg">
+          <Avatar className="h-20 w-20" size="lg">
             <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
             <AvatarFallback>CN</AvatarFallback>
           </Avatar>
