@@ -114,7 +114,7 @@ const NewMessage: NextPageWithLayout = () => {
             });
           })}
         >
-          <HookFormTiptapEditor fieldName={'content'}>
+          <HookFormTiptapEditor fieldName="content">
             {(editor) => {
               return (
                 <div

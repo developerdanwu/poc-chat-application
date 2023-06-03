@@ -2,7 +2,7 @@ import { useChannel } from '@ably-labs/react-hooks';
 import { ablyChannelKeyStore } from '@/lib/ably';
 import { api } from '@/lib/api';
 import { useUser } from '@clerk/nextjs';
-import { RouterOutput } from '@/server/api/root';
+import { type RouterOutput } from '@/server/api/root';
 import dayjs from 'dayjs';
 import { useEffect, useMemo } from 'react';
 import produce from 'immer';

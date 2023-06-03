@@ -183,7 +183,7 @@ const ChatroomId: NextPageWithLayout = () => {
             >
               <HookFormTiptapEditor
                 extensions={[SubmitFormOnEnter]}
-                fieldName={'content'}
+                fieldName="content"
               >
                 {(editor) => {
                   return (

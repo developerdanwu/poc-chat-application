@@ -18,20 +18,20 @@ const ThreadListItem = ({
   return (
     <div
       className={cn(
-        'hover:bg-warm-gray-300 flex w-full cursor-pointer items-center justify-between rounded-sm py-2 px-3',
+        'flex w-full cursor-pointer items-center justify-between rounded-sm py-2 px-2 hover:bg-slate-700',
         {
-          'bg-gray-900 hover:bg-gray-900': selected,
+          'bg-slate-500 hover:bg-slate-500': selected,
         }
       )}
     >
       <div className="flex items-center">
-        <Avatar>
+        <Avatar size="sm">
           <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
           <AvatarFallback>CN</AvatarFallback>
         </Avatar>
         <p
           className={cn(
-            'select-none pl-3 text-xs font-normal leading-4 text-white',
+            'select-none pl-3 text-xs font-normal leading-4 text-slate-400',
             {
               'text-white': selected,
             }

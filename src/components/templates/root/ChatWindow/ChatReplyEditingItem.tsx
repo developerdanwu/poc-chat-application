@@ -5,8 +5,8 @@ import { EditorContent } from '@tiptap/react';
 import { Paragraph } from '@tiptap/extension-paragraph';
 import { api } from '@/lib/api';
 import produce from 'immer';
-import { InfiniteData } from '@tanstack/react-query';
-import { RouterOutput } from '@/server/api/root';
+import { type InfiniteData } from '@tanstack/react-query';
+import { type RouterOutput } from '@/server/api/root';
 import EditorMenuBar from '@/components/modules/TextEditor/EditorMenuBar';
 import HookFormTiptapEditor from '@/components/modules/TextEditor/HookFormTiptapEditor';
 
@@ -108,7 +108,7 @@ const ChatReplyEditingItem = ({
   return (
     <FormProvider {...editChatForm}>
       <form
-        className={'w-full'}
+        className="w-full"
         ref={formRef}
         onSubmit={editChatForm.handleSubmit((data) => {
           editMessage.mutate({
@@ -118,7 +118,7 @@ const ChatReplyEditingItem = ({
           });
         })}
       >
-        <HookFormTiptapEditor fieldName={'content'}>
+        <HookFormTiptapEditor fieldName="content">
           {(editor) => {
             return (
               <div
@@ -133,7 +133,7 @@ const ChatReplyEditingItem = ({
                 <EditorContent editor={editor} />
                 <div className="flex justify-between">
                   <div></div>
-                  <div className={'flex space-x-2'}>
+                  <div className="flex space-x-2">
                     <button
                       onClick={() => {
                         setIsEditing(undefined);
@@ -146,7 +146,7 @@ const ChatReplyEditingItem = ({
                       cancel
                     </button>
                     <button
-                      type={'submit'}
+                      type="submit"
                       // disabled={!formState.isValid}
                       className={cn('btn-primary btn-sm btn', {
                         // 'btn-disabled': !formState.isValid,

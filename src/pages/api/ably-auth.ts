@@ -1,4 +1,4 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import { type NextApiRequest, type NextApiResponse } from 'next';
 import { ablyRest } from '@/server/api/trpc';
 import { getAuth } from '@clerk/nextjs/server';
 

@@ -37,8 +37,8 @@ const ChatReplyItemHeader = ({
   ) {
     return (
       <div className="flex items-center space-x-2 text-sm font-semibold">
-        <p>{fullName}</p>
-        <div className="text-xs font-normal text-warm-gray-400">
+        <p className="text-p font-semibold text-slate-700">{fullName}</p>
+        <div className="text-xs font-normal text-slate-300">
           {dayjs.utc(sendDate).local().format('hh:mm a')}
         </div>
       </div>
@@ -72,7 +72,15 @@ const ChatReplyItem = ({
   variant?: 'sender' | 'receiver';
 }) => {
   const editor = useEditor({
-    extensions: [TipTapStarterKit, Paragraph, TiptapCodeBlockLight],
+    extensions: [
+      TipTapStarterKit,
+      Paragraph.configure({
+        HTMLAttributes: {
+          class: 'text-subtle text-slate-700',
+        },
+      }),
+      TiptapCodeBlockLight,
+    ],
     editable: false,
     content: safeJSONParse(content) || text,
   });
@@ -85,18 +93,18 @@ const ChatReplyItem = ({
     <>
       <div
         className={cn(
-          'invisible absolute -top-4 right-6 z-50 flex items-center justify-center space-x-1 rounded-md  border border-black bg-warm-gray-100 p-1 group-hover:visible'
+          'bg-warm-gray-100 invisible absolute -top-4 right-6 z-50 flex items-center justify-center space-x-1  rounded-md border border-black p-1 group-hover:visible'
         )}
       >
         {variant === 'sender' && (
           <button
             onClick={() => setIsEditing(messageId)}
-            className={'btn-outline btn-square btn-xs btn border-0'}
+            className="btn-outline btn-square btn-xs btn border-0"
           >
             <RiEdit2Fill size={16} />
           </button>
         )}
-        <button className={'btn-outline btn-square btn-xs btn border-0'}>
+        <button className="btn-outline btn-square btn-xs btn border-0">
           <RiMore2Fill size={16} />
         </button>
       </div>
@@ -112,9 +120,9 @@ const ChatReplyItem = ({
           firstName={author.first_name}
         />
 
-        <div className={'relative flex flex-col space-y-2'}>
+        <div className="relative flex flex-col space-y-2">
           <EditorContent editor={editor} />
-          {isEdited && <p className={'text-xs text-warm-gray-400'}>(edited)</p>}
+          {isEdited && <p className="text-warm-gray-400 text-xs">(edited)</p>}
         </div>
       </div>
     </>

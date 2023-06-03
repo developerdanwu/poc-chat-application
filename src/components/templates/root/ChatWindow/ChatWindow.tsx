@@ -1,10 +1,9 @@
-import React, { RefObject, useMemo, useRef, useState } from 'react';
+import React, { type RefObject, useMemo, useRef, useState } from 'react';
 import { api } from '@/lib/api';
 import ScrollArea from '@/components/elements/ScrollArea';
 import dayjs from 'dayjs';
 import { cn, useApiTransformUtils } from '@/lib/utils';
 import { type RouterOutput } from '@/server/api/root';
-import Avatar from '@/components/elements/Avatar';
 import InfiniteScroll from 'react-infinite-scroller';
 import ChatReplyItem from '@/components/templates/root/ChatReplyItem';
 import { useUser } from '@clerk/nextjs';
@@ -12,6 +11,11 @@ import ChatReplyEditingItem from '@/components/templates/root/ChatWindow/ChatRep
 import ChatReplyItemWrapper from '@/components/templates/root/ChatWindow/ChatReplyItemWrapper';
 import RadialProgress from '@/components/elements/RadialProgress';
 import { useChatWindowScroll } from '@/components/templates/root/ChatWindow/hooks';
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from '@/components/elements/avatar';
 
 const ChatWindow = ({
   chatroomId,
@@ -90,7 +94,10 @@ const ChatWindow = ({
     >
       {!messages.hasNextPage && filteredChatroomUsers?.length === 1 && (
         <div className="flex flex-col px-6 pt-10">
-          <Avatar alt="TE" size="lg" />
+          <Avatar size="lg">
+            <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+            <AvatarFallback>CN</AvatarFallback>
+          </Avatar>
           <p className="pt-5 pb-2 text-xl font-bold">
             {filteredChatroomUsers?.length === 1
               ? getFullName({
@@ -100,7 +107,7 @@ const ChatWindow = ({
                 })
               : ''}
           </p>
-          <p className="text-sm text-warm-gray-400">
+          <p className="text-warm-gray-400 text-sm">
             This is the beginning of your message history with{' '}
             <span className="font-semibold">
               {filteredChatroomUsers?.length === 1
@@ -126,11 +133,9 @@ const ChatWindow = ({
           messages.fetchNextPage();
         }}
         isReverse={true}
-        loader={
-          <div className={'flex justify-center py-2'}>
+        loader={<div className={'flex justify-center py-2'}>
             <RadialProgress />
-          </div>
-        }
+          </div>}
         useWindow={false}
       >
         {Object.entries(formattedMessages || {})
@@ -143,15 +148,17 @@ const ChatWindow = ({
               <div
                 key={date}
                 className={cn(
-                  'relative flex flex-col after:absolute after:top-[20px] after:w-full after:border-t after:border-black after:content-[""]'
+                  'relative flex flex-col after:absolute after:top-[20px] after:w-full after:border-t after:border-slate-300 after:content-[""]'
                 )}
               >
                 <div
                   className={cn(
-                    'sticky top-2 z-50 my-2 self-center rounded-full border border-black bg-white px-4 text-sm font-semibold'
+                    'sticky top-2 z-50 my-2 self-center rounded-full border border-slate-300 bg-white px-4 text-slate-700'
                   )}
                 >
-                  {dayjs(date).format('dddd, MMMM Do')}
+                  <p className="text-body">
+                    {dayjs(date).format('dddd, MMMM Do')}
+                  </p>
                 </div>
                 {reversedMessages.map((m, index) => {
                   const isSentByMe = m.author.user_id === user.user?.id;

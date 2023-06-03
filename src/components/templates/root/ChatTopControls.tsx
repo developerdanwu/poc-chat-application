@@ -25,7 +25,7 @@ const ChatTopControls = ({ chatroomId }: { chatroomId: string }) => {
       : undefined;
 
   return (
-    <div className="flex w-full flex-[0_0_60px] items-center justify-start border-b-2 border-black">
+    <div className="flex w-full flex-[0_0_60px] items-center justify-start border-b border-slate-300">
       <p className=" px-6 font-semibold text-black">
         {filteredChatroomUsers
           ?.map((author) =>
@@ -39,7 +39,7 @@ const ChatTopControls = ({ chatroomId }: { chatroomId: string }) => {
           .join(',')}
       </p>
       {onlineUserPrescence ? (
-        <div className={'h-3 w-3 rounded-full bg-green-600'} />
+        <div className="h-3 w-3 rounded-full bg-green-600" />
       ) : null}
     </div>
   );

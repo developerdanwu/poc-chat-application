@@ -1,8 +1,12 @@
 import React from 'react';
 import { cn, useApiTransformUtils } from '@/lib/utils';
-import Avatar from '@/components/elements/Avatar';
-import { RouterOutput } from '@/server/api/root';
+import { type RouterOutput } from '@/server/api/root';
 import dayjs from 'dayjs';
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from '@/components/elements/avatar';
 
 const ChatReplyAvatar = ({
   differenceBetweenLastMessage,
@@ -29,11 +33,16 @@ const ChatReplyAvatar = ({
     differenceBetweenLastMessage === undefined ||
     differenceBetweenLastMessage > 5
   ) {
-    return <Avatar alt={fullName.slice(0, 2)} />;
+    return (
+      <Avatar size="lg">
+        <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+        <AvatarFallback>{fullName}</AvatarFallback>
+      </Avatar>
+    );
   }
 
   return (
-    <div className="invisible w-10 pt-[2px] text-xs font-normal text-warm-gray-400 group-hover:visible">
+    <div className="text-warm-gray-400 invisible w-10 pt-[2px] text-xs font-normal group-hover:visible">
       {dayjs.utc(sendDate).local().format('hh:mm')}
     </div>
   );
@@ -59,7 +68,7 @@ const ChatReplyItemWrapper = ({
   return (
     <div
       data-communicator={communicator}
-      className={cn('group chat chat-start relative py-2 px-6', {
+      className={cn('group relative flex space-x-3 py-2 px-6', {
         'hover:bg-warm-gray-200': !isEditing,
         'bg-yellow-100': isEditing,
       })}

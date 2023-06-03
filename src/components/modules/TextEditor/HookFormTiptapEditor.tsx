@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
-import { Editor } from '@tiptap/react';
+import { type Editor } from '@tiptap/react';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
 import TiptapEditorWrapper, {
-  TiptapEditorWrapperProps,
+  type TiptapEditorWrapperProps,
 } from '@/components/modules/TextEditor/TiptapEditorWrapper';
 import { safeJSONParse } from '@/lib/utils';
 

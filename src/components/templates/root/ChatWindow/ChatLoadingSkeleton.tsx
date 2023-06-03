@@ -7,7 +7,7 @@ const ChatLoadingSkeletonSmallCell = () => {
         <span className="block h-12 w-12 rounded-full bg-warm-gray-200"></span>
       </div>
       <div className="ml-4 mt-2 w-full">
-        <div className={'flex space-x-2'}>
+        <div className="flex space-x-2">
           <h3 className="h-4 w-20 rounded-md bg-warm-gray-200"></h3>
           <h3 className="h-4 w-20 rounded-md bg-warm-gray-200"></h3>
         </div>
@@ -26,7 +26,7 @@ const ChatLoadingSkeletonLargeCell = () => {
         <span className="block h-12 w-12 rounded-full bg-warm-gray-200"></span>
       </div>
       <div className="ml-4 mt-2 w-full">
-        <div className={'flex space-x-2'}>
+        <div className="flex space-x-2">
           <h3 className="h-4 w-20 rounded-md bg-warm-gray-200"></h3>
           <h3 className="h-4 w-20 rounded-md bg-warm-gray-200"></h3>
         </div>
