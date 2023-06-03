@@ -42,7 +42,7 @@ const ChatReplyAvatar = ({
   }
 
   return (
-    <div className="text-warm-gray-400 invisible w-10 pt-[2px] text-xs font-normal group-hover:visible">
+    <div className="invisible w-10 pt-[2px] text-xs font-normal text-slate-400 group-hover:visible">
       {dayjs.utc(sendDate).local().format('hh:mm')}
     </div>
   );
@@ -69,7 +69,7 @@ const ChatReplyItemWrapper = ({
     <div
       data-communicator={communicator}
       className={cn('group relative flex space-x-3 py-2 px-6', {
-        'hover:bg-warm-gray-200': !isEditing,
+        'hover:bg-slate-100': !isEditing,
         'bg-yellow-100': isEditing,
       })}
     >

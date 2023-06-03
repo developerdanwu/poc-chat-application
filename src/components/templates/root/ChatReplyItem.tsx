@@ -38,7 +38,7 @@ const ChatReplyItemHeader = ({
     return (
       <div className="flex items-center space-x-2 text-sm font-semibold">
         <p className="text-p font-semibold text-slate-700">{fullName}</p>
-        <div className="text-xs font-normal text-slate-300">
+        <div className="text-xs font-normal text-slate-400">
           {dayjs.utc(sendDate).local().format('hh:mm a')}
         </div>
       </div>
@@ -122,7 +122,7 @@ const ChatReplyItem = ({
 
         <div className="relative flex flex-col space-y-2">
           <EditorContent editor={editor} />
-          {isEdited && <p className="text-warm-gray-400 text-xs">(edited)</p>}
+          {isEdited && <p className="text-xs text-slate-400">(edited)</p>}
         </div>
       </div>
     </>
