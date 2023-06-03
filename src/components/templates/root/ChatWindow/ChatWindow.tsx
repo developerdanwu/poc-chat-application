@@ -1,4 +1,10 @@
-import React, { type RefObject, useMemo, useRef, useState } from 'react';
+import React, {
+  forwardRef,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { api } from '@/lib/api';
 import ScrollArea from '@/components/elements/ScrollArea';
 import dayjs from 'dayjs';
@@ -10,21 +16,34 @@ import { useUser } from '@clerk/nextjs';
 import ChatReplyEditingItem from '@/components/templates/root/ChatWindow/ChatReplyEditingItem';
 import ChatReplyItemWrapper from '@/components/templates/root/ChatWindow/ChatReplyItemWrapper';
 import RadialProgress from '@/components/elements/RadialProgress';
-import { useChatWindowScroll } from '@/components/templates/root/ChatWindow/hooks';
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from '@/components/elements/avatar';
 
-const ChatWindow = ({
-  chatroomId,
-  chatBottomRef,
-}: {
-  chatroomId: string;
-  chatBottomRef: RefObject<HTMLDivElement>;
-}) => {
+export type ChatWindowRef = {
+  scrollToBottom: () => void;
+  scrollAreaRef: HTMLDivElement;
+};
+
+const ChatWindow = forwardRef<
+  ChatWindowRef,
+  {
+    chatroomId: string;
+  }
+>(({ chatroomId }, ref) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const chatBottomRef = useRef<HTMLDivElement>(null);
+  //@ts-expect-error unknown type error
+  useImperativeHandle(ref, () => {
+    return {
+      scrollAreaRef: scrollAreaRef.current,
+      scrollToBottom: () => {
+        chatBottomRef.current?.scrollIntoView();
+      },
+    };
+  });
   const [editingChatItem, setEditingChatItem] = useState<undefined | number>(
     undefined
   );
@@ -76,8 +95,6 @@ const ChatWindow = ({
     acc[date]!.push(nextVal);
     return acc;
   }, {});
-
-  useChatWindowScroll({ scrollAreaRef, chatBottomRef, chatroomId });
 
   return (
     <ScrollArea
@@ -223,6 +240,8 @@ const ChatWindow = ({
       <div ref={chatBottomRef} />
     </ScrollArea>
   );
-};
+});
+
+ChatWindow.displayName = 'ChatWindow';
 
 export default ChatWindow;

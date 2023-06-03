@@ -4,7 +4,9 @@ import ChatSidebar from '@/components/templates/root/ChatSidebar/ChatSidebar';
 import React, { useMemo, useRef } from 'react';
 import { useRouter } from 'next/router';
 import ChatTopControls from '@/components/templates/root/ChatTopControls';
-import ChatWindow from '@/components/templates/root/ChatWindow/ChatWindow';
+import ChatWindow, {
+  type ChatWindowRef,
+} from '@/components/templates/root/ChatWindow/ChatWindow';
 import { FormProvider, useForm } from 'react-hook-form';
 import { api } from '@/lib/api';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -38,7 +40,7 @@ const ChatroomId: NextPageWithLayout = () => {
     typeof router.query.chatroomId === 'string' ? router.query.chatroomId : '';
   const trpcUtils = api.useContext();
   const user = useUser();
-  const chatBottomRef = useRef<HTMLDivElement>(null);
+  const chatWindowRef = useRef<ChatWindowRef>(null);
   const chatFormRef = useRef<HTMLFormElement>(null);
   const chatForm = useForm({
     resolver: zodResolver(
@@ -140,6 +142,11 @@ const ChatroomId: NextPageWithLayout = () => {
 
       chatForm.reset();
 
+      // not sure if this is the way to do this? But it will make sure the latest message is shown on screen on send message
+      requestAnimationFrame(() => {
+        chatWindowRef.current?.scrollToBottom();
+      });
+
       return {
         oldData,
       };
@@ -163,7 +170,7 @@ const ChatroomId: NextPageWithLayout = () => {
         <MainChatWrapper>
           <ChatTopControls chatroomId={chatroomId} />
           <ChatWindow
-            chatBottomRef={chatBottomRef}
+            ref={chatWindowRef}
             key={router.query.chatroomId}
             chatroomId={router.query.chatroomId}
           />
