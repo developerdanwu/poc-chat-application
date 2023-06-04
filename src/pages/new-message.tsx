@@ -60,7 +60,11 @@ const NewMessage: NextPageWithLayout = () => {
       newMessageForm.reset();
     },
     onSuccess: (data) => {
+      trpcUtils.messaging.getMessages.invalidate({
+        chatroomId: data.id,
+      });
       trpcUtils.messaging.getAllAuthors.invalidate();
+      trpcUtils.messaging.getChatrooms.invalidate();
       return router.push(`/${data.id}`);
       // trpcUtils.messaging.getMessages.reset();
       // trpcUtils.messaging.getMessages.setInfiniteData(

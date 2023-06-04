@@ -53,7 +53,7 @@ const ChatSidebar = () => {
       </div>
 
       <div className="flex w-full flex-col overflow-auto pt-4">
-        <Collapsible>
+        <Collapsible defaultOpen={true}>
           <div className="flex items-center space-x-2 pl-3">
             <CollapsibleTrigger>
               <IconButton

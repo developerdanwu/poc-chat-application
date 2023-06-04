@@ -7055,6 +7055,11 @@ react-remove-scroll@2.5.5:
     use-callback-ref "^1.3.0"
     use-sidecar "^1.1.2"
 
+react-resizable-panels@^0.0.48:
+  version "0.0.48"
+  resolved "https://registry.yarnpkg.com/react-resizable-panels/-/react-resizable-panels-0.0.48.tgz#472a36f278f504d336fe36394d1177cde3602b83"
+  integrity sha512-fJa3itmJ3HLLmVG7y8tka80wFW63N6ai76q7MGwU8nSXeA0qkX36vnmPyXm34lvtsGjn1Cgi5IPhPQnf42SVpA==
+
 react-ssr-prepass@^1.5.0:
   version "1.5.0"
   resolved "https://registry.npmjs.org/react-ssr-prepass/-/react-ssr-prepass-1.5.0.tgz"
