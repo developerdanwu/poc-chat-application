@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 -- CreateEnum
 CREATE TYPE "MessageType" AS ENUM ('MESSAGE', 'AI_RESPONSE');
 

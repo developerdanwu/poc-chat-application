@@ -4,6 +4,11 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   : ColumnType<T, T | undefined, T>;
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
+export const ChatroomType = {
+  HUMAN_CHATROOM: 'HUMAN_CHATROOM',
+  AI_CHATROOM: 'AI_CHATROOM',
+} as const;
+export type ChatroomType = (typeof ChatroomType)[keyof typeof ChatroomType];
 export const MessageType = {
   MESSAGE: 'MESSAGE',
   AI_RESPONSE: 'AI_RESPONSE',
@@ -23,6 +28,20 @@ export const MessageVisibility = {
 } as const;
 export type MessageVisibility =
   (typeof MessageVisibility)[keyof typeof MessageVisibility];
+export const Role = {
+  USER: 'USER',
+  AI: 'AI',
+} as const;
+export type Role = (typeof Role)[keyof typeof Role];
+export const AiModel = {
+  OPENAI: 'OPENAI',
+} as const;
+export type AiModel = (typeof AiModel)[keyof typeof AiModel];
+export type AiSettings = {
+  id: Generated<number>;
+  model: AiModel;
+  author_id: number;
+};
 export type Author = {
   first_name: string;
   last_name: string;
@@ -32,6 +51,7 @@ export type Author = {
   user_id: string | null;
   created_at: Generated<Timestamp>;
   updated_at: Timestamp;
+  human_user_id: number | null;
 };
 export type AuthorsOnChatrooms = {
   author_id: number;
@@ -39,7 +59,7 @@ export type AuthorsOnChatrooms = {
 };
 export type Chatroom = {
   id: Generated<string>;
-  no_of_users: number;
+  type: ChatroomType;
   created_at: Generated<Timestamp>;
   updated_at: Timestamp;
 };
@@ -57,6 +77,7 @@ export type Message = {
   visibility: MessageVisibility;
 };
 export type DB = {
+  AiSettings: AiSettings;
   author: Author;
   _authors_on_chatrooms: AuthorsOnChatrooms;
   chatroom: Chatroom;

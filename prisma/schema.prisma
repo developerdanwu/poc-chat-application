@@ -15,6 +15,11 @@ datasource db {
   relationMode = "foreignKeys"
 }
 
+enum ChatroomType {
+  HUMAN_CHATROOM
+  AI_CHATROOM
+}
+
 enum MessageType {
   MESSAGE
   AI_RESPONSE
@@ -31,6 +36,15 @@ enum MessageStatus {
 enum MessageVisibility {
   ME
   ALL
+}
+
+enum Role {
+  USER
+  AI
+}
+
+enum AiModel {
+  OPENAI
 }
 
 model Message {
@@ -53,17 +67,28 @@ model Message {
   @@map("message")
 }
 
+model AiSettings {
+  id       Int     @id @default(autoincrement()) @map("id")
+  model    AiModel
+  author   Author  @relation(fields: [authorId], references: [authorId])
+  authorId Int     @unique @map("author_id")
+}
+
 model Author {
-  firstName String               @map("first_name")
-  lastName  String               @map("last_name")
-  email     String?              @unique
-  authorId  Int                  @id @default(autoincrement()) @map("author_id")
-  role      String               @map("role")
-  userId    String?              @unique @map("user_id")
-  messages  Message[]
-  chatrooms AuthorsOnChatrooms[]
-  createdAt DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
+  firstName   String               @map("first_name")
+  lastName    String               @map("last_name")
+  email       String?              @unique
+  authorId    Int                  @id @default(autoincrement()) @map("author_id")
+  role        String               @map("role")
+  userId      String?              @unique @map("user_id")
+  messages    Message[]
+  chatrooms   AuthorsOnChatrooms[]
+  createdAt   DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
+  aiUsers     Author[]             @relation("HumanUserAIUsers")
+  humanUser   Author?              @relation("HumanUserAIUsers", fields: [humanUserId], references: [authorId])
+  humanUserId Int?                 @map("human_user_id")
+  aiSettings  AiSettings?
 
   @@index([authorId])
   @@map("author")
@@ -84,7 +109,7 @@ model AuthorsOnChatrooms {
 model Chatroom {
   id        String               @id @default(dbgenerated("uuid_generate_v4()"))
   messages  Message[]
-  noOfUsers Int                  @map("no_of_users")
+  type      ChatroomType
   createdAt DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
   authors   AuthorsOnChatrooms[]
