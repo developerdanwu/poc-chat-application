@@ -8,12 +8,14 @@ import getChatroom from '@/server/api/routers/messaging/procedures/getChatroom';
 import getMessages from '@/server/api/routers/messaging/procedures/getMessages';
 import sendMessage from '@/server/api/routers/messaging/procedures/sendMessage';
 import editMessage from '@/server/api/routers/messaging/procedures/editMessage';
+import guessChatroomFromAuthors from '@/server/api/routers/messaging/procedures/guessChatroomFromAuthors';
 
 const gpt = new ChatGPTAPI({
   apiKey: env.OPENAI_ACCESS_TOKEN as string,
 });
 
 export const messaging = createTRPCRouter({
+  guessChatroomFromAuthors,
   getAllAuthors,
   startNewChat,
   getChatrooms,

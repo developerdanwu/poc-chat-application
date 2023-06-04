@@ -56,10 +56,11 @@ const ChatWindow = forwardRef<
         return lastPage?.next_cursor === 0 ? undefined : lastPage?.next_cursor;
       },
       staleTime: Infinity,
-      enabled: !!chatroomId,
     }
   );
-  const chatroomDetails = api.messaging.getChatroom.useQuery({ chatroomId });
+  const chatroomDetails = api.messaging.getChatroom.useQuery({
+    chatroomId: chatroomId,
+  });
   const { filterAuthedUserFromChatroomAuthors, getFullName } =
     useApiTransformUtils();
   const filteredChatroomUsers = filterAuthedUserFromChatroomAuthors(

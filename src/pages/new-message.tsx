@@ -1,9 +1,9 @@
-import React from 'react';
-import { cn } from '@/lib/utils';
+import React, { useRef } from 'react';
+import { cn, useApiTransformUtils } from '@/lib/utils';
 import ChatSidebar from '@/components/templates/root/ChatSidebar/ChatSidebar';
 import { type NextPageWithLayout } from '@/pages/_app';
 import { MainChatWrapper } from '@/pages/[chatroomId]';
-import { FormProvider, useForm } from 'react-hook-form';
+import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
 import AuthorsAutocomplete from '@/components/templates/new-message/AuthorsAutocomplete';
@@ -12,25 +12,111 @@ import { useRouter } from 'next/router';
 import HookFormTiptapEditor from '@/components/modules/TextEditor/HookFormTiptapEditor';
 import { EditorContent } from '@tiptap/react';
 import EditorMenuBar from '@/components/modules/TextEditor/EditorMenuBar';
+import ChatWindow, {
+  type ChatWindowRef,
+} from '@/components/templates/root/ChatWindow/ChatWindow';
 import ScrollArea from '@/components/elements/ScrollArea';
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarGroup,
+  AvatarGroupList,
+  AvatarImage,
+  AvatarOverflowIndicator,
+} from '@/components/elements/avatar';
+
+const StartOfGroupChat = ({
+  authors,
+}: {
+  authors: NewMessageSchema['authors'];
+}) => {
+  const { getFullName } = useApiTransformUtils();
+  return (
+    <div className="flex flex-col px-6 pt-10">
+      <div className="relative flex items-center space-x-2">
+        <AvatarGroup limit={3}>
+          <AvatarGroupList>
+            {authors.map((author) => (
+              <Avatar
+                key={author.author_id}
+                className=" h-20 w-20 border border-slate-300"
+                size="lg"
+              >
+                <AvatarImage
+                  src="https://github.com/shadcn.png"
+                  alt="@shadcn"
+                />
+                <AvatarFallback>CN</AvatarFallback>
+              </Avatar>
+            ))}
+          </AvatarGroupList>
+          <AvatarOverflowIndicator />
+        </AvatarGroup>
+      </div>
+      <p className="pt-5 pb-2 text-xl font-bold">
+        {authors
+          .map((author) =>
+            getFullName({
+              firstName: author?.first_name,
+              lastName: author?.last_name,
+              fallback: 'Untitled',
+            })
+          )
+          .join(', ')}
+      </p>
+      <p className="text-warm-gray-400 text-sm">
+        This is the beginning of your message history with{' '}
+        <span className="font-semibold">
+          {authors
+            .map((author) =>
+              getFullName({
+                firstName: author.first_name,
+                lastName: author.last_name,
+                fallback: 'Untitled',
+              })
+            )
+            .join(', ')}
+        </span>
+      </p>
+    </div>
+  );
+};
+
+const newMessageSchema = z.object({
+  authors: z.array(
+    z.object({
+      author_id: z.number(),
+      first_name: z.string(),
+      last_name: z.string(),
+    })
+  ),
+  text: z.string().min(1),
+  content: z.any(),
+});
+
+type NewMessageSchema = z.infer<typeof newMessageSchema>;
 
 const NewMessage: NextPageWithLayout = () => {
-  const newMessageForm = useForm({
-    resolver: zodResolver(
-      z.object({
-        authorId: z.number().min(1),
-        text: z.string().min(1),
-        content: z.any(),
-      })
-    ),
+  const newMessageForm = useForm<NewMessageSchema>({
+    resolver: zodResolver(newMessageSchema),
     defaultValues: {
-      authorId: NaN,
+      authors: [],
       text: '',
       content: '',
     },
   });
+  const watchedAuthors = useWatch({
+    control: newMessageForm.control,
+    name: 'authors',
+  });
   const router = useRouter();
-
+  const chatWindowRef = useRef<ChatWindowRef>(null);
+  const guessChatroomFromAuthors =
+    api.messaging.guessChatroomFromAuthors.useQuery({
+      authors: watchedAuthors,
+    });
+  console.log('DATA', watchedAuthors);
+  const { getFullName } = useApiTransformUtils();
   const startNewChat = api.messaging.startNewChat.useMutation({
     onMutate: () => {
       newMessageForm.reset();
@@ -88,21 +174,69 @@ const NewMessage: NextPageWithLayout = () => {
         <div className="flex w-full flex-[0_0_48px] items-center border-b border-slate-300 px-6">
           <div className="flex w-full items-center space-x-2">
             <p className="leading-[0px]">To:</p>
-            <AuthorsAutocomplete />
+            <Controller
+              control={newMessageForm.control}
+              render={({ field: { value, onChange } }) => {
+                return (
+                  <AuthorsAutocomplete
+                    value={value}
+                    onChange={(newSelection) => onChange(newSelection)}
+                  />
+                );
+              }}
+              name="authors"
+            />
           </div>
         </div>
-        <ScrollArea
-          componentProps={{
-            root: {
-              className:
-                'flex overflow-hidden h-full w-full rounded-xl bg-base-100',
-            },
-            viewport: {
-              // ref: scrollAreaRef,
-              className: 'h-full w-full',
-            },
-          }}
-        ></ScrollArea>
+        {guessChatroomFromAuthors.data?.id ? (
+          <ChatWindow
+            ref={chatWindowRef}
+            chatroomId={guessChatroomFromAuthors.data.id}
+          />
+        ) : (
+          <div className="flex h-full w-full flex-col">
+            <div className="h-full" />
+            <ScrollArea
+              componentProps={{
+                root: {
+                  className: 'h-auto w-full rounded-xl bg-base-100',
+                },
+              }}
+            >
+              {watchedAuthors?.length === 1 ? (
+                <div className="flex flex-col px-6 pt-10">
+                  <Avatar className="h-20 w-20" size="lg">
+                    <AvatarImage
+                      src="https://github.com/shadcn.png"
+                      alt="@shadcn"
+                    />
+                    <AvatarFallback>CN</AvatarFallback>
+                  </Avatar>
+                  <p className="pt-5 pb-2 text-xl font-bold">
+                    {getFullName({
+                      firstName: watchedAuthors[0]?.first_name,
+                      lastName: watchedAuthors[0]?.last_name,
+                      fallback: 'Untitled',
+                    })}
+                  </p>
+                  <p className="text-warm-gray-400 text-sm">
+                    This is the beginning of your message history with{' '}
+                    <span className="font-semibold">
+                      {getFullName({
+                        firstName: watchedAuthors[0]?.first_name,
+                        lastName: watchedAuthors[0]?.last_name,
+                        fallback: 'Untitled',
+                      })}
+                    </span>
+                  </p>
+                </div>
+              ) : null}
+              {watchedAuthors?.length > 1 ? (
+                <StartOfGroupChat authors={watchedAuthors} />
+              ) : null}
+            </ScrollArea>
+          </div>
+        )}
         <form
           id="message-text-input-form"
           className="flex w-full items-center justify-between space-x-4 bg-transparent bg-secondary px-6 py-3"

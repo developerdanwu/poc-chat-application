@@ -4,7 +4,6 @@ import { api } from '@/lib/api';
 import { useDebounce } from 'react-use';
 import { cn, useApiTransformUtils } from '@/lib/utils';
 import RadialProgress from '@/components/elements/RadialProgress';
-import { useFormContext } from 'react-hook-form';
 import {
   Avatar,
   AvatarFallback,
@@ -14,20 +13,25 @@ import { type RouterOutput } from '@/server/api/root';
 import { IconButton } from '@/components/elements/IconButton';
 import { XIcon } from 'lucide-react';
 
-const AuthorsAutocomplete = () => {
+const AuthorsAutocomplete = ({
+  value,
+  onChange,
+}: {
+  value: RouterOutput['messaging']['getAllAuthors'];
+  onChange: (selectedItems: RouterOutput['messaging']['getAllAuthors']) => void;
+}) => {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const { getFullName } = useApiTransformUtils();
   const [inputValue, setInputValue] = useState('');
-  const [selectedItems, setSelectedItems] = React.useState<
-    RouterOutput['messaging']['getAllAuthors']
-  >([]);
-  const {
-    setValue,
-    formState: { isSubmitSuccessful },
-  } = useFormContext();
-  const allAuthors = api.messaging.getAllAuthors.useQuery({
-    searchKeyword: debouncedSearch,
-  });
+
+  const allAuthors = api.messaging.getAllAuthors.useQuery(
+    {
+      searchKeyword: debouncedSearch,
+    },
+    {
+      keepPreviousData: true,
+    }
+  );
   useDebounce(
     () => {
       setDebouncedSearch(inputValue);
@@ -38,20 +42,21 @@ const AuthorsAutocomplete = () => {
 
   const { getSelectedItemProps, getDropdownProps, removeSelectedItem } =
     useMultipleSelection({
-      selectedItems,
+      selectedItems: value,
       onStateChange({ selectedItems: newSelectedItems, type, activeIndex }) {
         switch (type) {
           case useMultipleSelection.stateChangeTypes
             .SelectedItemKeyDownBackspace:
           case useMultipleSelection.stateChangeTypes.SelectedItemKeyDownDelete:
           case useMultipleSelection.stateChangeTypes.DropdownKeyDownBackspace:
-          case useMultipleSelection.stateChangeTypes.FunctionRemoveSelectedItem:
-            {
-              if (newSelectedItems) {
-                setSelectedItems(newSelectedItems);
-              }
+          case useMultipleSelection.stateChangeTypes
+            .FunctionRemoveSelectedItem: {
+            if (newSelectedItems) {
+              onChange(newSelectedItems);
             }
             break;
+          }
+
           default:
             break;
         }
@@ -91,8 +96,8 @@ const AuthorsAutocomplete = () => {
         case useCombobox.stateChangeTypes.InputKeyDownEnter:
         case useCombobox.stateChangeTypes.ItemClick: {
           if (newSelectedItem) {
-            setSelectedItems((prev) => [
-              ...prev.filter(
+            onChange([
+              ...value.filter(
                 (item) => item.author_id !== newSelectedItem.author_id
               ),
               newSelectedItem,
@@ -100,11 +105,7 @@ const AuthorsAutocomplete = () => {
             setInputValue('');
             break;
           }
-          if (!newSelectedItem) {
-            setSelectedItems([]);
-            setInputValue('');
-            break;
-          }
+
           break;
         }
         case useCombobox.stateChangeTypes.InputChange: {
@@ -136,7 +137,7 @@ const AuthorsAutocomplete = () => {
     <div className="relative flex flex-1 flex-col justify-center self-center">
       <div className="flex w-full items-center justify-between">
         <div className="inline-flex w-full space-x-1">
-          {selectedItems.map((item, index) => {
+          {value.map((item, index) => {
             return (
               <div
                 key={`selected-item-${index}`}
@@ -172,7 +173,7 @@ const AuthorsAutocomplete = () => {
           <input
             autoFocus
             spellCheck="false"
-            placeholder={selectedItems.length < 1 ? '@friend' : ''}
+            placeholder={value.length < 1 ? '@friend' : ''}
             className="relative w-full bg-transparent outline-none"
             style={{ padding: '4px' }}
             {...getInputProps({
@@ -181,7 +182,8 @@ const AuthorsAutocomplete = () => {
               }),
               onKeyDown: (e) => {
                 if (e.key === 'Backspace' && !inputValue) {
-                  setSelectedItems((prev) => prev.slice(0, -1));
+                  onChange(value.slice(0, -1));
+                  // setSelectedItems((prev) => prev.slice(0, -1));
                 }
               },
             })}
@@ -204,7 +206,7 @@ const AuthorsAutocomplete = () => {
           }}
         >
           {allAuthors.data?.map((item, index) => {
-            const selectedItemsAuthorIds = selectedItems.map(
+            const selectedItemsAuthorIds = value.map(
               (author) => author.author_id
             );
             const selected = selectedItemsAuthorIds.includes(item.author_id);
