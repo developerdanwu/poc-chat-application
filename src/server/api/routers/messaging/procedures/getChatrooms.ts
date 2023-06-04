@@ -29,7 +29,6 @@ const getChatrooms = protectedProcedure
           ),
           'chatroom.created_at as created_at',
           'chatroom.updated_at as updated_at',
-          'chatroom.no_of_users as no_of_users',
         ])
         .innerJoin(
           ctx.db
@@ -66,12 +65,7 @@ const getChatrooms = protectedProcedure
           'chatroom.id'
         )
         .innerJoin('author', 'author.author_id', 'ac.author_id')
-        .groupBy([
-          'chatroom.id',
-          'chatroom.created_at',
-          'chatroom.updated_at',
-          'chatroom.no_of_users',
-        ])
+        .groupBy(['chatroom.id', 'chatroom.created_at', 'chatroom.updated_at'])
         .execute();
 
       return chatrooms;

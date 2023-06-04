@@ -1,17 +1,19 @@
 import { sql } from 'kysely';
 import { TRPCError } from '@trpc/server';
 import dayjs from 'dayjs';
-import {
-  MessageStatus,
-  MessageType,
-  MessageVisibility,
-} from '../../../../../../prisma/generated/types';
+
 import { protectedProcedure } from '@/server/api/trpc';
 import { z } from 'zod';
 import {
   authorsInputSchema,
   guessChatroomFromAuthorsMethod,
 } from '@/server/api/routers/messaging/procedures/guessChatroomFromAuthors';
+import {
+  ChatroomType,
+  MessageStatus,
+  MessageType,
+  MessageVisibility,
+} from '../../../../../../prisma/generated/types';
 
 const startNewChat = protectedProcedure
   .input(
@@ -61,7 +63,7 @@ const startNewChat = protectedProcedure
         const _newChatroom = await trx
           .insertInto('chatroom')
           .values({
-            no_of_users: 2,
+            type: ChatroomType.HUMAN_CHATROOM,
             updated_at: dayjs.utc().toISOString(),
           })
           .returning('chatroom.id')
