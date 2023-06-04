@@ -40,28 +40,31 @@ const AuthorsAutocomplete = ({
     [inputValue]
   );
 
-  const { getSelectedItemProps, getDropdownProps, removeSelectedItem } =
-    useMultipleSelection({
-      selectedItems: value,
-      onStateChange({ selectedItems: newSelectedItems, type, activeIndex }) {
-        switch (type) {
-          case useMultipleSelection.stateChangeTypes
-            .SelectedItemKeyDownBackspace:
-          case useMultipleSelection.stateChangeTypes.SelectedItemKeyDownDelete:
-          case useMultipleSelection.stateChangeTypes.DropdownKeyDownBackspace:
-          case useMultipleSelection.stateChangeTypes
-            .FunctionRemoveSelectedItem: {
-            if (newSelectedItems) {
-              onChange(newSelectedItems);
-            }
-            break;
+  const {
+    getSelectedItemProps,
+    getDropdownProps,
+    removeSelectedItem,
+    addSelectedItem,
+  } = useMultipleSelection({
+    selectedItems: value,
+    onStateChange({ selectedItems: newSelectedItems, type, activeIndex }) {
+      switch (type) {
+        case useMultipleSelection.stateChangeTypes.SelectedItemKeyDownBackspace:
+        case useMultipleSelection.stateChangeTypes.SelectedItemKeyDownDelete:
+        case useMultipleSelection.stateChangeTypes.DropdownKeyDownBackspace:
+        case useMultipleSelection.stateChangeTypes.FunctionRemoveSelectedItem:
+        case useMultipleSelection.stateChangeTypes.FunctionAddSelectedItem: {
+          if (newSelectedItems) {
+            onChange(newSelectedItems);
           }
-
-          default:
-            break;
+          break;
         }
-      },
-    });
+
+        default:
+          break;
+      }
+    },
+  });
 
   const {
     isOpen,
@@ -96,12 +99,20 @@ const AuthorsAutocomplete = ({
         case useCombobox.stateChangeTypes.InputKeyDownEnter:
         case useCombobox.stateChangeTypes.ItemClick: {
           if (newSelectedItem) {
-            onChange([
-              ...value.filter(
-                (item) => item.author_id !== newSelectedItem.author_id
-              ),
-              newSelectedItem,
-            ]);
+            const selectedIndex = value.findIndex(
+              (val) => val.author_id === newSelectedItem.author_id
+            );
+
+            if (selectedIndex === -1) {
+              addSelectedItem(newSelectedItem);
+            } else {
+              onChange(
+                value.filter(
+                  (item) => item.author_id !== newSelectedItem.author_id
+                )
+              );
+            }
+
             setInputValue('');
             break;
           }
@@ -128,7 +139,6 @@ const AuthorsAutocomplete = ({
       if (changes.inputValue) {
         setInputValue(changes.inputValue);
       }
-      console.log('CHANGED');
     },
     items: allAuthors.data || [],
   });
