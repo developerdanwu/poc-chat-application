@@ -28,7 +28,7 @@ export const MainChatWrapper = ({
   children: React.ReactNode;
 }) => {
   return (
-    <div className="bg-warm-gray-50 flex h-full w-full flex-col items-center justify-center overflow-hidden ">
+    <div className="flex h-screen w-full flex-col items-center justify-center overflow-hidden ">
       {children}
     </div>
   );
@@ -178,7 +178,7 @@ const ChatroomId: NextPageWithLayout = () => {
             <form
               ref={chatFormRef}
               id="message-text-input-form"
-              className="flex w-full items-center justify-between space-x-4 bg-transparent bg-secondary px-6 py-3"
+              className="flex w-full flex-none items-center justify-between space-x-4 bg-white px-6 py-3"
               onSubmit={chatForm.handleSubmit((data) => {
                 sendMessage.mutate({
                   ...data,

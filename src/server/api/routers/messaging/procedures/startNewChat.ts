@@ -8,11 +8,15 @@ import {
 } from '../../../../../../prisma/generated/types';
 import { protectedProcedure } from '@/server/api/trpc';
 import { z } from 'zod';
+import {
+  authorsInputSchema,
+  guessChatroomFromAuthorsMethod,
+} from '@/server/api/routers/messaging/procedures/guessChatroomFromAuthors';
 
 const startNewChat = protectedProcedure
   .input(
     z.object({
-      authorId: z.number(),
+      authors: authorsInputSchema,
       text: z.string().min(1),
       content: z.any(),
     })
@@ -20,49 +24,15 @@ const startNewChat = protectedProcedure
   .mutation(async ({ ctx, input }) => {
     try {
       // get chatroom
-      const chatroom = await ctx.db
-        .selectFrom('chatroom')
-        .select([
-          'id',
-          sql<number>`COUNT(DISTINCT _authors_on_chatrooms.author_id)`.as(
-            'no_of_users'
-          ),
-          sql<
-            { author_id: number }[]
-          >`JSON_AGG(JSON_BUILD_OBJECT('author_id', author.author_id, 'first_name', author.first_name, 'last_name', author.last_name, 'user_id', author.user_id))`.as(
-            'authors'
-          ),
-        ])
-        .innerJoin(
-          '_authors_on_chatrooms',
-          '_authors_on_chatrooms.chatroom_id',
-          'chatroom.id'
-        )
-        .innerJoin(
-          'author',
-          'author.author_id',
-          '_authors_on_chatrooms.author_id'
-        )
-        .where(({ cmpr, or }) =>
-          or([
-            cmpr('author.author_id', '=', input.authorId),
-            cmpr('author.user_id', '=', ctx.auth.userId),
-          ])
-        )
-        .groupBy('id')
-        .having((eb) => eb.cmpr('chatroom.no_of_users', '=', 2))
-        .execute();
+      const chatroom = await guessChatroomFromAuthorsMethod({
+        input: {
+          authors: input.authors,
+        },
+        ctx,
+      });
 
-      if (chatroom.length > 1) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'More than one chatroom found',
-        });
-      }
-
-      const firstChatroom = chatroom[0];
       // if there is 1 element return the chatroom
-      if (firstChatroom) {
+      if (chatroom) {
         // create new message
         await ctx.db
           .insertInto('message')
@@ -77,13 +47,13 @@ const startNewChat = protectedProcedure
                 .selectFrom('author')
                 .select('author_id')
                 .where('author.user_id', '=', ctx.auth.userId),
-              chatroom_id: firstChatroom.id,
+              chatroom_id: chatroom.id,
               updated_at: dayjs.utc().toISOString(),
             };
           })
           .execute();
 
-        return firstChatroom;
+        return chatroom;
       }
 
       // create new chatroom if no chatroom found
@@ -98,22 +68,24 @@ const startNewChat = protectedProcedure
           .executeTakeFirstOrThrow();
 
         // add author to chatroom
-        await trx
-          .insertInto('_authors_on_chatrooms')
-          .values((eb) => [
-            {
-              author_id: eb
-                .selectFrom('author')
-                .select('author_id')
-                .where('author.user_id', '=', ctx.auth.userId),
-              chatroom_id: _newChatroom.id,
-            },
-            {
-              author_id: input.authorId,
-              chatroom_id: _newChatroom.id,
-            },
-          ])
-          .execute();
+        input.authors.forEach(async (author) => {
+          await trx
+            .insertInto('_authors_on_chatrooms')
+            .values((eb) => [
+              {
+                author_id: eb
+                  .selectFrom('author')
+                  .select('author_id')
+                  .where('author.user_id', '=', ctx.auth.userId),
+                chatroom_id: _newChatroom.id,
+              },
+              {
+                author_id: author.author_id,
+                chatroom_id: _newChatroom.id,
+              },
+            ])
+            .execute();
+        });
 
         // create new message
         await trx

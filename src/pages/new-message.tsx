@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { cn, useApiTransformUtils } from '@/lib/utils';
 import ChatSidebar from '@/components/templates/root/ChatSidebar/ChatSidebar';
 import { type NextPageWithLayout } from '@/pages/_app';
@@ -24,6 +24,7 @@ import {
   AvatarImage,
   AvatarOverflowIndicator,
 } from '@/components/elements/avatar';
+import { Extension } from '@tiptap/core';
 
 const StartOfGroupChat = ({
   authors,
@@ -111,19 +112,20 @@ const NewMessage: NextPageWithLayout = () => {
   });
   const router = useRouter();
   const chatWindowRef = useRef<ChatWindowRef>(null);
+  const chatFormRef = useRef<HTMLFormElement>(null);
   const guessChatroomFromAuthors =
     api.messaging.guessChatroomFromAuthors.useQuery({
       authors: watchedAuthors,
     });
-  console.log('DATA', watchedAuthors);
+  const trpcUtils = api.useContext();
   const { getFullName } = useApiTransformUtils();
   const startNewChat = api.messaging.startNewChat.useMutation({
     onMutate: () => {
       newMessageForm.reset();
     },
     onSuccess: (data) => {
+      trpcUtils.messaging.getAllAuthors.invalidate();
       return router.push(`/${data.id}`);
-
       // trpcUtils.messaging.getMessages.reset();
       // trpcUtils.messaging.getMessages.setInfiniteData(
       //   { chatroomId: data.chatroomId },
@@ -165,6 +167,23 @@ const NewMessage: NextPageWithLayout = () => {
     },
   });
 
+  const SubmitFormOnEnter = useMemo(
+    () =>
+      Extension.create({
+        addKeyboardShortcuts() {
+          return {
+            Enter: () => {
+              chatFormRef.current?.dispatchEvent(
+                new Event('submit', { cancelable: true, bubbles: true })
+              );
+              return true;
+            },
+          };
+        },
+      }),
+    []
+  );
+
   return (
     <>
       <FormProvider {...newMessageForm}>
@@ -194,8 +213,8 @@ const NewMessage: NextPageWithLayout = () => {
             chatroomId={guessChatroomFromAuthors.data.id}
           />
         ) : (
-          <div className="flex h-full w-full flex-col">
-            <div className="h-full" />
+          <div className="flex w-full flex-[1_0_0] flex-col">
+            <div className="flex-[1_1_0]" />
             <ScrollArea
               componentProps={{
                 root: {
@@ -238,11 +257,12 @@ const NewMessage: NextPageWithLayout = () => {
           </div>
         )}
         <form
+          ref={chatFormRef}
           id="message-text-input-form"
           className="flex w-full items-center justify-between space-x-4 bg-transparent bg-secondary px-6 py-3"
           onSubmit={newMessageForm.handleSubmit((data) => {
             startNewChat.mutate({
-              authorId: data.authorId,
+              authors: data.authors,
               text: data.text,
               content: JSON.stringify(data.content),
             });
@@ -254,7 +274,7 @@ const NewMessage: NextPageWithLayout = () => {
                 class: cn('border-0 max-h-[55vh] overflow-auto w-full py-3'),
               },
             }}
-            // extensions={[SubmitFormOnEnter]}
+            extensions={[SubmitFormOnEnter]}
             fieldName="content"
           >
             {(editor) => {

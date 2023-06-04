@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { type DB } from '../../../../../../prisma/generated/types';
 import { type SignedInAuthObject } from '@clerk/backend';
 
-const authorsInputSchema = z.array(
+export const authorsInputSchema = z.array(
   z.object({
     author_id: z.number(),
     first_name: z.string(),
@@ -13,7 +13,7 @@ const authorsInputSchema = z.array(
 );
 type AuthorsInputSchema = z.infer<typeof authorsInputSchema>;
 
-const guessChatroomFromAuthorsMethod = async ({
+export const guessChatroomFromAuthorsMethod = async ({
   input,
   ctx,
 }: {
@@ -38,6 +38,7 @@ const guessChatroomFromAuthorsMethod = async ({
           'author.author_id',
           '_authors_on_chatrooms.author_id'
         )
+        .groupBy('chatroom.id')
         .as('chatroom')
     )
     .select([
