@@ -24,14 +24,14 @@ const ThreadListItem = ({
         }
       )}
     >
-      <div className="flex items-center">
+      <div className="flex items-center overflow-hidden">
         <Avatar size="sm">
           <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
           <AvatarFallback>CN</AvatarFallback>
         </Avatar>
         <p
           className={cn(
-            'select-none pl-3 text-xs font-normal leading-4 text-slate-400',
+            'select-none overflow-hidden overflow-ellipsis whitespace-nowrap pl-3 text-xs font-normal leading-4 text-slate-400',
             {
               'text-white': selected,
             }

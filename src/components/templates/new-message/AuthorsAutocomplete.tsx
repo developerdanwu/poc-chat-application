@@ -20,8 +20,8 @@ const AuthorsAutocomplete = ({
   value: RouterOutput['messaging']['getAllAuthors'];
   onChange: (selectedItems: RouterOutput['messaging']['getAllAuthors']) => void;
 }) => {
-  const [debouncedSearch, setDebouncedSearch] = useState('');
   const { getFullName } = useApiTransformUtils();
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [inputValue, setInputValue] = useState('');
 
   const allAuthors = api.messaging.getAllAuthors.useQuery(
@@ -67,6 +67,7 @@ const AuthorsAutocomplete = ({
   });
 
   const {
+    closeMenu,
     isOpen,
     getMenuProps,
     getInputProps,
@@ -112,8 +113,8 @@ const AuthorsAutocomplete = ({
                 )
               );
             }
-
             setInputValue('');
+            closeMenu();
             break;
           }
 
@@ -227,8 +228,9 @@ const AuthorsAutocomplete = ({
                 className={cn(
                   'hover:bg-warm-gray-300 flex w-full cursor-pointer items-center py-2 px-3',
                   {
+                    'bg-slate-200': selected,
                     'bg-slate-100': highlightedIndex === index,
-                    'bg-slate-200 hover:bg-slate-300': selected,
+                    'bg-slate-300': highlightedIndex === index && selected,
                   }
                 )}
               >

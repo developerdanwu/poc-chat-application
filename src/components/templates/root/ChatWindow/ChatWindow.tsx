@@ -16,11 +16,7 @@ import { useUser } from '@clerk/nextjs';
 import ChatReplyEditingItem from '@/components/templates/root/ChatWindow/ChatReplyEditingItem';
 import ChatReplyItemWrapper from '@/components/templates/root/ChatWindow/ChatReplyItemWrapper';
 import RadialProgress from '@/components/elements/RadialProgress';
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from '@/components/elements/avatar';
+import StartOfDirectMessage from '@/components/templates/root/ChatWindow/StartOfDirectMessage';
 
 export type ChatWindowRef = {
   scrollToBottom: () => void;
@@ -61,8 +57,7 @@ const ChatWindow = forwardRef<
   const chatroomDetails = api.messaging.getChatroom.useQuery({
     chatroomId: chatroomId,
   });
-  const { filterAuthedUserFromChatroomAuthors, getFullName } =
-    useApiTransformUtils();
+  const { filterAuthedUserFromChatroomAuthors } = useApiTransformUtils();
   const filteredChatroomUsers = filterAuthedUserFromChatroomAuthors(
     chatroomDetails.data?.authors ?? []
   );
@@ -111,35 +106,9 @@ const ChatWindow = forwardRef<
           },
         }}
       >
-        {!messages.hasNextPage && filteredChatroomUsers?.length === 1 && (
-          <div className="flex flex-col px-6 pt-10">
-            <Avatar className="h-20 w-20" size="lg">
-              <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-              <AvatarFallback>CN</AvatarFallback>
-            </Avatar>
-            <p className="pt-5 pb-2 text-xl font-bold">
-              {filteredChatroomUsers?.length === 1
-                ? getFullName({
-                    firstName: filteredChatroomUsers[0]?.first_name,
-                    lastName: filteredChatroomUsers[0]?.last_name,
-                    fallback: 'Untitled',
-                  })
-                : ''}
-            </p>
-            <p className="text-warm-gray-400 text-sm">
-              This is the beginning of your message history with{' '}
-              <span className="font-semibold">
-                {filteredChatroomUsers?.length === 1
-                  ? getFullName({
-                      firstName: filteredChatroomUsers[0]?.first_name,
-                      lastName: filteredChatroomUsers[0]?.last_name,
-                      fallback: 'Untitled',
-                    })
-                  : ''}
-              </span>
-            </p>
-          </div>
-        )}
+        {!messages.hasNextPage && filteredChatroomUsers?.length > 0 ? (
+          <StartOfDirectMessage authors={filteredChatroomUsers} />
+        ) : null}
         <InfiniteScroll
           pageStart={0}
           className="flex flex-col py-3"

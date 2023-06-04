@@ -54,7 +54,10 @@ const getMessages = protectedProcedure
 
       return {
         messages: messages || [],
-        next_cursor: Math.min(...messages.map((m) => m.client_message_id)) || 0,
+        next_cursor:
+          messages.length > 0
+            ? Math.min(...messages.map((m) => m.client_message_id))
+            : 0,
       };
     } catch (e) {
       return {

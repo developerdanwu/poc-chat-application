@@ -13,7 +13,8 @@ const server = z.object({
     WEBHOOK_SECRET: z.string(),
     DB_USERNAME: z.string(),
     DB_PASSWORD: z.string(),
-    DB_HOST: z.string()
+    DB_HOST: z.string(),
+    DATABASE_URL_NON_POOLED: z.string()
 });
 
 /**
@@ -41,7 +42,8 @@ const processEnv = {
     WEBHOOK_SECRET: process.env.WEBHOOK_SECRET,
     DB_USERNAME: process.env.DB_USERNAME,
     DB_PASSWORD: process.env.DB_PASSWORD,
-    DB_HOST: process.env.DB_HOST
+    DB_HOST: process.env.DB_HOST,
+    DATABASE_URL_NON_POOLED: process.env.DATABASE_URL_NON_POOLED
 };
 
 // Don't touch the part below

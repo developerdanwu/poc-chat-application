@@ -58,9 +58,6 @@ export const guessChatroomFromAuthorsMethod = async ({
       'chatroom.id'
     )
     .innerJoin('author', 'author.author_id', '_authors_on_chatrooms.author_id')
-    .where(({ cmpr }) =>
-      cmpr('chatroom.no_of_users', '=', input.authors.length + 1)
-    )
     .groupBy(['id', 'no_of_users'])
     .having((eb) =>
       eb.and([

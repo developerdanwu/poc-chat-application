@@ -16,72 +16,8 @@ import ChatWindow, {
   type ChatWindowRef,
 } from '@/components/templates/root/ChatWindow/ChatWindow';
 import ScrollArea from '@/components/elements/ScrollArea';
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarGroup,
-  AvatarGroupList,
-  AvatarImage,
-  AvatarOverflowIndicator,
-} from '@/components/elements/avatar';
 import { Extension } from '@tiptap/core';
-
-const StartOfGroupChat = ({
-  authors,
-}: {
-  authors: NewMessageSchema['authors'];
-}) => {
-  const { getFullName } = useApiTransformUtils();
-  return (
-    <div className="flex flex-col px-6 pt-10">
-      <div className="relative flex items-center space-x-2">
-        <AvatarGroup limit={3}>
-          <AvatarGroupList>
-            {authors.map((author) => (
-              <Avatar
-                key={author.author_id}
-                className=" h-20 w-20 border border-slate-300"
-                size="lg"
-              >
-                <AvatarImage
-                  src="https://github.com/shadcn.png"
-                  alt="@shadcn"
-                />
-                <AvatarFallback>CN</AvatarFallback>
-              </Avatar>
-            ))}
-          </AvatarGroupList>
-          <AvatarOverflowIndicator />
-        </AvatarGroup>
-      </div>
-      <p className="pt-5 pb-2 text-xl font-bold">
-        {authors
-          .map((author) =>
-            getFullName({
-              firstName: author?.first_name,
-              lastName: author?.last_name,
-              fallback: 'Untitled',
-            })
-          )
-          .join(', ')}
-      </p>
-      <p className="text-warm-gray-400 text-sm">
-        This is the beginning of your message history with{' '}
-        <span className="font-semibold">
-          {authors
-            .map((author) =>
-              getFullName({
-                firstName: author.first_name,
-                lastName: author.last_name,
-                fallback: 'Untitled',
-              })
-            )
-            .join(', ')}
-        </span>
-      </p>
-    </div>
-  );
-};
+import StartOfDirectMessage from '@/components/templates/root/ChatWindow/StartOfDirectMessage';
 
 const newMessageSchema = z.object({
   authors: z.array(
@@ -222,36 +158,8 @@ const NewMessage: NextPageWithLayout = () => {
                 },
               }}
             >
-              {watchedAuthors?.length === 1 ? (
-                <div className="flex flex-col px-6 pt-10">
-                  <Avatar className="h-20 w-20" size="lg">
-                    <AvatarImage
-                      src="https://github.com/shadcn.png"
-                      alt="@shadcn"
-                    />
-                    <AvatarFallback>CN</AvatarFallback>
-                  </Avatar>
-                  <p className="pt-5 pb-2 text-xl font-bold">
-                    {getFullName({
-                      firstName: watchedAuthors[0]?.first_name,
-                      lastName: watchedAuthors[0]?.last_name,
-                      fallback: 'Untitled',
-                    })}
-                  </p>
-                  <p className="text-warm-gray-400 text-sm">
-                    This is the beginning of your message history with{' '}
-                    <span className="font-semibold">
-                      {getFullName({
-                        firstName: watchedAuthors[0]?.first_name,
-                        lastName: watchedAuthors[0]?.last_name,
-                        fallback: 'Untitled',
-                      })}
-                    </span>
-                  </p>
-                </div>
-              ) : null}
-              {watchedAuthors?.length > 1 ? (
-                <StartOfGroupChat authors={watchedAuthors} />
+              {watchedAuthors?.length > 0 ? (
+                <StartOfDirectMessage authors={watchedAuthors} />
               ) : null}
             </ScrollArea>
           </div>

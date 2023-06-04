@@ -11,7 +11,7 @@ datasource db {
   // Further reading:
   // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
   // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
-  url          = env("DATABASE_URL")
+  url          = env("DATABASE_URL_NON_POOLED")
   relationMode = "foreignKeys"
 }
 
@@ -42,8 +42,8 @@ model Message {
   author          Author            @relation(fields: [authorId], references: [authorId])
   chatroomId      String            @map("chatroom_id")
   chatroom        Chatroom          @relation(fields: [chatroomId], references: [id], onDelete: Cascade)
-  createdAt       DateTime          @default(now()) @map("created_at")
-  updatedAt       DateTime          @updatedAt @map("updated_at")
+  createdAt       DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
   isEdited        Boolean           @default(false) @map("is_edited")
   status          MessageStatus
   visibility      MessageVisibility
@@ -62,8 +62,8 @@ model Author {
   userId    String?              @unique @map("user_id")
   messages  Message[]
   chatrooms AuthorsOnChatrooms[]
-  createdAt DateTime             @default(now()) @map("created_at")
-  updatedAt DateTime             @updatedAt @map("updated_at")
+  createdAt DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   @@index([authorId])
   @@map("author")
@@ -85,8 +85,8 @@ model Chatroom {
   id        String               @id @default(dbgenerated("uuid_generate_v4()"))
   messages  Message[]
   noOfUsers Int                  @map("no_of_users")
-  createdAt DateTime             @default(now()) @map("created_at")
-  updatedAt DateTime             @updatedAt @map("updated_at")
+  createdAt DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
   authors   AuthorsOnChatrooms[]
 
   @@map("chatroom")

@@ -15,8 +15,8 @@ const getAllAuthors = protectedProcedure
         and([
           cmpr('author.user_id', '!=', ctx.auth.userId),
           or([
-            cmpr('author.first_name', 'like', `%${input.searchKeyword}%`),
-            cmpr('author.last_name', 'like', `%${input.searchKeyword}%`),
+            cmpr('author.first_name', 'ilike', `%${input.searchKeyword}%`),
+            cmpr('author.last_name', 'ilike', `%${input.searchKeyword}%`),
           ]),
         ])
       )

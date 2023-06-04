@@ -67,25 +67,23 @@ const startNewChat = protectedProcedure
           .returning('chatroom.id')
           .executeTakeFirstOrThrow();
 
-        // add author to chatroom
-        input.authors.forEach(async (author) => {
-          await trx
-            .insertInto('_authors_on_chatrooms')
-            .values((eb) => [
-              {
-                author_id: eb
-                  .selectFrom('author')
-                  .select('author_id')
-                  .where('author.user_id', '=', ctx.auth.userId),
-                chatroom_id: _newChatroom.id,
-              },
-              {
-                author_id: author.author_id,
-                chatroom_id: _newChatroom.id,
-              },
-            ])
-            .execute();
-        });
+        // add authors to chatroom
+        await trx
+          .insertInto('_authors_on_chatrooms')
+          .values((eb) => [
+            {
+              author_id: eb
+                .selectFrom('author')
+                .select('author_id')
+                .where('author.user_id', '=', ctx.auth.userId),
+              chatroom_id: _newChatroom.id,
+            },
+            ...input.authors.map((author) => ({
+              author_id: author.author_id,
+              chatroom_id: _newChatroom.id,
+            })),
+          ])
+          .execute();
 
         // create new message
         await trx
