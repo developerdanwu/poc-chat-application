@@ -8,6 +8,7 @@ import { db } from '@/server/db';
 import dayjs from 'dayjs';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import utc from 'dayjs/plugin/utc';
+import { Role } from '../../../prisma/generated/types';
 
 dayjs.extend(advancedFormat);
 dayjs.extend(utc);
@@ -94,7 +95,7 @@ export default async function handler(
                   first_name: msg ? msg.data.first_name : '',
                   last_name: msg ? msg.data.last_name : '',
                   email: msg ? msg.data.email_addresses[0]?.email_address : '',
-                  role: 'user',
+                  role: Role.USER,
                   updated_at: dayjs.utc().toISOString(),
                 })
                 .execute();
@@ -136,7 +137,7 @@ export default async function handler(
                   first_name: msg ? msg.data.first_name : '',
                   last_name: msg ? msg.data.last_name : '',
                   email: msg ? msg.data.email_addresses[0]?.email_address : '',
-                  role: 'user',
+                  role: Role.USER,
                   updated_at: dayjs.utc().toISOString(),
                 })
                 .execute();

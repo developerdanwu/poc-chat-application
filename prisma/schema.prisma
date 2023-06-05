@@ -79,7 +79,7 @@ model Author {
   lastName    String               @map("last_name")
   email       String?              @unique
   authorId    Int                  @id @default(autoincrement()) @map("author_id")
-  role        String               @map("role")
+  role        Role                 @map("role")
   userId      String?              @unique @map("user_id")
   messages    Message[]
   chatrooms   AuthorsOnChatrooms[]

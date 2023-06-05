@@ -47,7 +47,7 @@ export type Author = {
   last_name: string;
   email: string | null;
   author_id: Generated<number>;
-  role: string;
+  role: Role;
   user_id: string | null;
   created_at: Generated<Timestamp>;
   updated_at: Timestamp;
