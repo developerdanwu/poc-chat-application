@@ -14,6 +14,7 @@ import {
 } from '@/components/elements/collapsible';
 import ThreadListItem from '@/components/templates/root/ThreadListItem';
 import { notEmpty } from '@/lib/ts-utils';
+import { AiModelsSection } from '@/components/templates/root/ChatSidebar/sections';
 
 const ChatSidebar = () => {
   const router = useRouter();
@@ -53,20 +54,7 @@ const ChatSidebar = () => {
       </div>
 
       <div className="flex w-full flex-col space-y-3 overflow-auto pt-4">
-        <Collapsible defaultOpen={true}>
-          <div className="flex items-center space-x-2 pl-3">
-            <CollapsibleTrigger>
-              <IconButton
-                variant="ghost"
-                size="sm"
-                className="text-slate-400 hover:bg-slate-700 hover:text-slate-400"
-              >
-                <ChevronDownIcon size={16} />
-              </IconButton>
-            </CollapsibleTrigger>
-            <div className="text-body text-slate-400">AI messages</div>
-          </div>
-        </Collapsible>
+        <AiModelsSection />
         <Collapsible defaultOpen={true}>
           <div className="flex items-center space-x-2 pl-3">
             <CollapsibleTrigger>
