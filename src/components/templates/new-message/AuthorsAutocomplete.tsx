@@ -17,14 +17,16 @@ const AuthorsAutocomplete = ({
   value,
   onChange,
 }: {
-  value: RouterOutput['messaging']['getAllAuthors'];
-  onChange: (selectedItems: RouterOutput['messaging']['getAllAuthors']) => void;
+  value: RouterOutput['messaging']['getAllHumanAuthors'];
+  onChange: (
+    selectedItems: RouterOutput['messaging']['getAllHumanAuthors']
+  ) => void;
 }) => {
   const { getFullName } = useApiTransformUtils();
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [inputValue, setInputValue] = useState('');
 
-  const allAuthors = api.messaging.getAllAuthors.useQuery(
+  const allAuthors = api.messaging.getAllHumanAuthors.useQuery(
     {
       searchKeyword: debouncedSearch,
     },

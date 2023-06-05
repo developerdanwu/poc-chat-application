@@ -1,7 +1,7 @@
 import { protectedProcedure } from '@/server/api/trpc';
 import { z } from 'zod';
 
-const getAllAuthors = protectedProcedure
+const getAllHumanAuthors = protectedProcedure
   .input(
     z.object({
       searchKeyword: z.string().optional(),
@@ -25,4 +25,4 @@ const getAllAuthors = protectedProcedure
     return results || [];
   });
 
-export default getAllAuthors;
+export default getAllHumanAuthors;

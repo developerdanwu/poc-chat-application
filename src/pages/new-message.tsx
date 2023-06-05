@@ -1,5 +1,5 @@
 import React, { useMemo, useRef } from 'react';
-import { cn, useApiTransformUtils } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import ChatSidebar from '@/components/templates/root/ChatSidebar/ChatSidebar';
 import { type NextPageWithLayout } from '@/pages/_app';
 import { MainChatWrapper } from '@/pages/[chatroomId]';
@@ -54,7 +54,6 @@ const NewMessage: NextPageWithLayout = () => {
       authors: watchedAuthors,
     });
   const trpcUtils = api.useContext();
-  const { getFullName } = useApiTransformUtils();
   const startNewChat = api.messaging.startNewChat.useMutation({
     onMutate: () => {
       newMessageForm.reset();
@@ -63,7 +62,7 @@ const NewMessage: NextPageWithLayout = () => {
       trpcUtils.messaging.getMessages.invalidate({
         chatroomId: data.id,
       });
-      trpcUtils.messaging.getAllAuthors.invalidate();
+      trpcUtils.messaging.getAllHumanAuthors.invalidate();
       trpcUtils.messaging.getChatrooms.invalidate();
       return router.push(`/${data.id}`);
       // trpcUtils.messaging.getMessages.reset();

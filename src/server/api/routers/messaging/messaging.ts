@@ -2,7 +2,7 @@ import { createTRPCRouter } from '@/server/api/trpc';
 import { ChatGPTAPI } from 'chatgpt';
 import { env } from '@/env.mjs';
 import startNewChat from '@/server/api/routers/messaging/procedures/startNewChat';
-import getAllAuthors from '@/server/api/routers/messaging/procedures/getAllAuthors';
+import getAllHumanAuthors from '@/server/api/routers/messaging/procedures/getAllHumanAuthors';
 import getChatrooms from '@/server/api/routers/messaging/procedures/getChatrooms';
 import getChatroom from '@/server/api/routers/messaging/procedures/getChatroom';
 import getMessages from '@/server/api/routers/messaging/procedures/getMessages';
@@ -16,7 +16,7 @@ const gpt = new ChatGPTAPI({
 
 export const messaging = createTRPCRouter({
   guessChatroomFromAuthors,
-  getAllAuthors,
+  getAllHumanAuthors,
   startNewChat,
   getChatrooms,
   getChatroom,
