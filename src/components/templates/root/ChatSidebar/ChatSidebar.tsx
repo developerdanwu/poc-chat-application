@@ -23,6 +23,7 @@ const ChatSidebar = () => {
   const chatrooms = api.messaging.getChatrooms.useQuery({
     searchKeyword: debouncedSearch,
   });
+
   const user = useUser();
 
   const { filterAuthedUserFromChatroomAuthors, getFullName } =
@@ -68,7 +69,7 @@ const ChatSidebar = () => {
             </CollapsibleTrigger>
             <div className="text-body text-slate-400">Direct messages</div>
           </div>
-          <CollapsibleContent className="px-3 ">
+          <CollapsibleContent className="px-3">
             {chatrooms.data?.map((chatroom) => {
               return (
                 <Link key={chatroom.id} href={`/${chatroom.id}`}>

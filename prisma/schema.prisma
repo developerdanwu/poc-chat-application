@@ -15,6 +15,10 @@ datasource db {
   relationMode = "foreignKeys"
 }
 
+enum ChatroomSubtype {
+  OPENAI_CHATROOM
+}
+
 enum ChatroomType {
   HUMAN_CHATROOM
   AI_CHATROOM
@@ -133,6 +137,7 @@ model Chatroom {
   id        String               @id @default(dbgenerated("uuid_generate_v4()"))
   messages  Message[]
   type      ChatroomType
+  subtype   ChatroomSubtype
   createdAt DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
   authors   AuthorsOnChatrooms[]

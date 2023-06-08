@@ -4,7 +4,7 @@ import { sql } from 'kysely';
 import { TRPCError } from '@trpc/server';
 import { Role } from '../../../../../../prisma/generated/types';
 
-const getChatrooms = protectedProcedure
+const getAiChatrooms = protectedProcedure
   .input(
     z
       .object({
@@ -39,8 +39,7 @@ const getChatrooms = protectedProcedure
             .where(({ cmpr, or, and }) =>
               or([
                 and([
-                  cmpr('author.role', '=', Role.USER),
-                  cmpr('author.user_id', '!=', ctx.auth.userId),
+                  cmpr('author.role', '=', Role.AI),
                   cmpr(
                     'author.first_name',
                     'like',
@@ -48,8 +47,7 @@ const getChatrooms = protectedProcedure
                   ),
                 ]),
                 and([
-                  cmpr('author.role', '=', Role.USER),
-                  cmpr('author.user_id', '!=', ctx.auth.userId),
+                  cmpr('author.role', '=', Role.AI),
                   cmpr(
                     'author.last_name',
                     'like',
@@ -81,4 +79,4 @@ const getChatrooms = protectedProcedure
     }
   });
 
-export default getChatrooms;
+export default getAiChatrooms;

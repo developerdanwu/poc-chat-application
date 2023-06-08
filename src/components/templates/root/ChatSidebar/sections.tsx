@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
   Collapsible,
+  CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/elements/collapsible';
 import { IconButton } from '@/components/elements/IconButton';
@@ -23,10 +24,13 @@ import {
   AvatarFallback,
   AvatarImage,
 } from '@/components/elements/avatar';
-import { cn } from '@/lib/utils';
+import { cn, useApiTransformUtils } from '@/lib/utils';
 import { api } from '@/lib/api';
 import { AiModel } from '../../../../../prisma/generated/types';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
+import ThreadListItem from '@/components/templates/root/ThreadListItem';
+import { notEmpty } from '@/lib/ts-utils';
 
 const AI_MODELS = [
   {
@@ -38,11 +42,19 @@ const AI_MODELS = [
 
 export const AiModelsSection = () => {
   const [selectedAi, setSelectedAi] = useState<AiModel | ''>('');
+  const { filterAuthedUserFromChatroomAuthors, getFullName } =
+    useApiTransformUtils();
   const router = useRouter();
   const startAiChat = api.messaging.startAiChat.useMutation({
     onSuccess: (data) => {
+      // TODO: create AI chat
       router.push(`/${data.id}`);
     },
+  });
+  const chatroomId =
+    typeof router.query.chatroomId === 'string' ? router.query.chatroomId : '';
+  const aiChatrooms = api.messaging.getAiChatrooms.useQuery({
+    searchKeyword: '',
   });
   console.log('selected', selectedAi);
   return (
@@ -135,6 +147,28 @@ export const AiModelsSection = () => {
             </PopoverContent>
           </Popover>
         </div>
+        <CollapsibleContent className="px-3">
+          {aiChatrooms.data?.map((chatroom) => {
+            return (
+              <Link key={chatroom.id} href={`/${chatroom.id}`}>
+                <ThreadListItem
+                  selected={chatroomId === chatroom.id}
+                  // TODO: setup page to let user fill in important details
+                  name={filterAuthedUserFromChatroomAuthors(chatroom.authors)
+                    ?.map((author) =>
+                      getFullName({
+                        firstName: author?.first_name,
+                        lastName: author?.last_name,
+                        fallback: 'Untitled',
+                      })
+                    )
+                    .filter(notEmpty)
+                    .join(', ')}
+                />
+              </Link>
+            );
+          })}
+        </CollapsibleContent>
       </Collapsible>
     </>
   );
