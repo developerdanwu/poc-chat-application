@@ -17,6 +17,7 @@ datasource db {
 
 enum ChatroomSubtype {
   OPENAI_CHATROOM
+  DEFAULT
 }
 
 enum ChatroomType {
@@ -136,8 +137,8 @@ model AuthorsOnChatrooms {
 model Chatroom {
   id        String               @id @default(dbgenerated("uuid_generate_v4()"))
   messages  Message[]
-  type      ChatroomType
-  subtype   ChatroomSubtype
+  type      ChatroomType         @default(HUMAN_CHATROOM)
+  subtype   ChatroomSubtype      @default(DEFAULT)
   createdAt DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
   authors   AuthorsOnChatrooms[]

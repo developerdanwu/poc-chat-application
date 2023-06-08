@@ -4,6 +4,12 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   : ColumnType<T, T | undefined, T>;
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
+export const ChatroomSubtype = {
+  OPENAI_CHATROOM: 'OPENAI_CHATROOM',
+  DEFAULT: 'DEFAULT',
+} as const;
+export type ChatroomSubtype =
+  (typeof ChatroomSubtype)[keyof typeof ChatroomSubtype];
 export const ChatroomType = {
   HUMAN_CHATROOM: 'HUMAN_CHATROOM',
   AI_CHATROOM: 'AI_CHATROOM',
@@ -69,7 +75,8 @@ export type AuthorsOnChatrooms = {
 };
 export type Chatroom = {
   id: Generated<string>;
-  type: ChatroomType;
+  type: Generated<ChatroomType>;
+  subtype: Generated<ChatroomSubtype>;
   created_at: Generated<Timestamp>;
   updated_at: Timestamp;
 };
