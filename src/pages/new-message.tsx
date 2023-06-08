@@ -18,6 +18,7 @@ import ChatWindow, {
 import ScrollArea from '@/components/elements/ScrollArea';
 import { Extension } from '@tiptap/core';
 import StartOfDirectMessage from '@/components/templates/root/ChatWindow/StartOfDirectMessage';
+import { Role } from '../../prisma/generated/types';
 
 const newMessageSchema = z.object({
   authors: z.array(
@@ -25,7 +26,7 @@ const newMessageSchema = z.object({
       author_id: z.number(),
       first_name: z.string(),
       last_name: z.string(),
-      role: z.string(),
+      role: z.union([z.literal(Role.AI), z.literal(Role.USER)]),
     })
   ),
   text: z.string().min(1),

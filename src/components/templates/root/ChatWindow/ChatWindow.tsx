@@ -102,7 +102,7 @@ const ChatWindow = forwardRef<
   }, {});
 
   if (!authorsHashmap) {
-    return null;
+    return <div className="flex w-full flex-[1_0_0] flex-col" />;
   }
   return (
     <div className="flex w-full flex-[1_0_0] flex-col">
