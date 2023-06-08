@@ -22,7 +22,6 @@ enum ChatroomType {
 
 enum MessageType {
   MESSAGE
-  AI_RESPONSE
 }
 
 enum MessageStatus {
@@ -47,6 +46,10 @@ enum AiModel {
   OPENAI
 }
 
+enum AttachmentType {
+  OPENAI_RESPONSE
+}
+
 model Message {
   clientMessageId Int               @id @default(autoincrement()) @map("client_message_id")
   text            String            @db.Text
@@ -61,10 +64,18 @@ model Message {
   isEdited        Boolean           @default(false) @map("is_edited")
   status          MessageStatus
   visibility      MessageVisibility
+  attachments     Attachment[]
 
   @@index([authorId])
   @@index([chatroomId])
   @@map("message")
+}
+
+model Attachment {
+  attachmentId           Int            @id @default(autoincrement()) @map("attachment_id")
+  Message                Message        @relation(fields: [messageClientMessageId], references: [clientMessageId])
+  messageClientMessageId Int            @map("message_client_message_id")
+  type                   AttachmentType @map("type")
 }
 
 model OpenAiSettings {

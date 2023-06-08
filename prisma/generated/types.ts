@@ -11,7 +11,6 @@ export const ChatroomType = {
 export type ChatroomType = (typeof ChatroomType)[keyof typeof ChatroomType];
 export const MessageType = {
   MESSAGE: 'MESSAGE',
-  AI_RESPONSE: 'AI_RESPONSE',
 } as const;
 export type MessageType = (typeof MessageType)[keyof typeof MessageType];
 export const MessageStatus = {
@@ -37,11 +36,21 @@ export const AiModel = {
   OPENAI: 'OPENAI',
 } as const;
 export type AiModel = (typeof AiModel)[keyof typeof AiModel];
+export const AttachmentType = {
+  OPENAI_RESPONSE: 'OPENAI_RESPONSE',
+} as const;
+export type AttachmentType =
+  (typeof AttachmentType)[keyof typeof AttachmentType];
 export type AiSettings = {
   id: Generated<number>;
   model: AiModel;
   author_id: number;
   open_ai_settings_id: number | null;
+};
+export type Attachment = {
+  attachment_id: Generated<number>;
+  message_client_message_id: number;
+  type: AttachmentType;
 };
 export type Author = {
   first_name: string;
@@ -83,6 +92,7 @@ export type OpenAiSettings = {
 };
 export type DB = {
   ai_settings: AiSettings;
+  Attachment: Attachment;
   author: Author;
   _authors_on_chatrooms: AuthorsOnChatrooms;
   chatroom: Chatroom;
