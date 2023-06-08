@@ -2,7 +2,7 @@ import { protectedProcedure } from '@/server/api/trpc';
 import { z } from 'zod';
 import { sql } from 'kysely';
 import { TRPCError } from '@trpc/server';
-import { Role } from '../../../../../../prisma/generated/types';
+import { ChatroomType, Role } from '../../../../../../prisma/generated/types';
 
 const getChatrooms = protectedProcedure
   .input(
@@ -68,6 +68,9 @@ const getChatrooms = protectedProcedure
           'chatroom.id'
         )
         .innerJoin('author', 'author.author_id', 'ac.author_id')
+        .where(({ cmpr }) =>
+          cmpr('chatroom.type', '=', ChatroomType.HUMAN_CHATROOM)
+        )
         .groupBy(['chatroom.id', 'chatroom.created_at', 'chatroom.updated_at'])
         .execute();
 
