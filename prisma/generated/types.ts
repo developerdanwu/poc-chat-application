@@ -41,6 +41,7 @@ export type AiSettings = {
   id: Generated<number>;
   model: AiModel;
   author_id: number;
+  open_ai_settings_id: number | null;
 };
 export type Author = {
   first_name: string;
@@ -76,10 +77,15 @@ export type Message = {
   status: MessageStatus;
   visibility: MessageVisibility;
 };
+export type OpenAiSettings = {
+  id: Generated<number>;
+  temperature: Generated<number | null>;
+};
 export type DB = {
-  AiSettings: AiSettings;
+  ai_settings: AiSettings;
   author: Author;
   _authors_on_chatrooms: AuthorsOnChatrooms;
   chatroom: Chatroom;
   message: Message;
+  open_ai_settings: OpenAiSettings;
 };

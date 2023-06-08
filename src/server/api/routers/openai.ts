@@ -1,17 +1,15 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import { z } from 'zod';
 import { env } from '@/env.mjs';
-import { OpenAI } from 'langchain/llms/openai';
 import { PromptTemplate } from 'langchain/prompts';
+import { ChatOpenAI } from 'langchain/chat_models';
+import { HumanChatMessage } from 'langchain/schema';
 
-const openaiApi = new OpenAI({
+const openaiApi = new ChatOpenAI({
   openAIApiKey: env.OPENAI_ACCESS_TOKEN,
   temperature: 0.9,
 });
-// const openaiConfig = new Configuration({
-//   apiKey: env.OPENAI_ACCESS_TOKEN as string,
-// });
-// const openaiApi = new OpenAIApi(openaiConfig);
+openaiApi.modelName;
 
 export const openai = createTRPCRouter({
   createPrompt: protectedProcedure.query(async () => {
@@ -47,7 +45,7 @@ export const openai = createTRPCRouter({
       // return res.data?.choices?.[0]?.text;
     }),
   getModels: protectedProcedure.query(async () => {
-    const res = await openaiApi.listModels();
-    return res.data;
+    const res = await openaiApi.call([new HumanChatMessage('hello')]);
+    return res;
   }),
 });

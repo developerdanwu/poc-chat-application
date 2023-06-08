@@ -67,11 +67,23 @@ model Message {
   @@map("message")
 }
 
+model OpenAiSettings {
+  id          Int         @id @default(autoincrement()) @map("id")
+  temperature Float?      @default(0) @map("temperature")
+  AiSettings  AiSettings?
+
+  @@map("open_ai_settings")
+}
+
 model AiSettings {
-  id       Int     @id @default(autoincrement()) @map("id")
-  model    AiModel
-  author   Author  @relation(fields: [authorId], references: [authorId])
-  authorId Int     @unique @map("author_id")
+  id               Int             @id @default(autoincrement()) @map("id")
+  model            AiModel
+  author           Author          @relation(fields: [authorId], references: [authorId])
+  authorId         Int             @unique @map("author_id")
+  openAiSettingsId Int?            @unique @map("open_ai_settings_id")
+  openAiSettings   OpenAiSettings? @relation(fields: [openAiSettingsId], references: [id])
+
+  @@map("ai_settings")
 }
 
 model Author {

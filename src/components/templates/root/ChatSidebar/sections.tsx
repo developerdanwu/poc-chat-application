@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Collapsible,
   CollapsibleTrigger,
 } from '@/components/elements/collapsible';
 import { IconButton } from '@/components/elements/IconButton';
-import { ChevronDownIcon, Plus } from 'lucide-react';
+import { Check, ChevronDownIcon, Plus } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -24,8 +24,27 @@ import {
   AvatarImage,
 } from '@/components/elements/avatar';
 import { cn } from '@/lib/utils';
+import { api } from '@/lib/api';
+import { AiModel } from '../../../../../prisma/generated/types';
+import { useRouter } from 'next/router';
+
+const AI_MODELS = [
+  {
+    name: 'Open AI',
+    value: AiModel.OPENAI,
+    image: '/static/openai.png',
+  },
+];
 
 export const AiModelsSection = () => {
+  const [selectedAi, setSelectedAi] = useState<AiModel | ''>('');
+  const router = useRouter();
+  const startAiChat = api.messaging.startAiChat.useMutation({
+    onSuccess: (data) => {
+      router.push(`/${data.id}`);
+    },
+  });
+  console.log('selected', selectedAi);
   return (
     <>
       <Collapsible defaultOpen={true}>
@@ -60,46 +79,57 @@ export const AiModelsSection = () => {
                 <CommandInput />
                 <CommandList>
                   <CommandGroup>
-                    <CommandItem>
-                      <div className="flex items-center overflow-hidden">
-                        <Avatar size="sm">
-                          <AvatarImage
-                            src="https://github.com/shadcn.png"
-                            alt="@shadcn"
-                          />
-                          <AvatarFallback>CN</AvatarFallback>
-                        </Avatar>
-                        <p
-                          className={cn(
-                            'select-none overflow-hidden overflow-ellipsis whitespace-nowrap pl-3 text-xs font-normal leading-4 text-slate-400'
-                          )}
+                    {AI_MODELS.map((model) => {
+                      return (
+                        <CommandItem
+                          value={model.value}
+                          onSelect={(currentValue) => {
+                            console.log('VAL', currentValue);
+                            setSelectedAi((prev) =>
+                              prev === currentValue.toUpperCase()
+                                ? ''
+                                : (currentValue.toUpperCase() as AiModel)
+                            );
+                          }}
+                          key={model.value}
                         >
-                          Chat GPT
-                        </p>
-                      </div>
-                    </CommandItem>
-                    <CommandItem>
-                      <div className="flex items-center overflow-hidden">
-                        <Avatar size="sm">
-                          <AvatarImage
-                            src="https://github.com/shadcn.png"
-                            alt="@shadcn"
-                          />
-                          <AvatarFallback>CN</AvatarFallback>
-                        </Avatar>
-                        <p
-                          className={cn(
-                            'select-none overflow-hidden overflow-ellipsis whitespace-nowrap pl-3 text-xs font-normal leading-4 text-slate-400'
-                          )}
-                        >
-                          hello
-                        </p>
-                      </div>
-                    </CommandItem>
+                          <div className="flex items-center overflow-hidden">
+                            <Check
+                              className={cn(
+                                'mr-2 h-4 w-4',
+                                selectedAi === model.value
+                                  ? 'opacity-100'
+                                  : 'opacity-0'
+                              )}
+                            />
+                            <Avatar size="sm">
+                              <AvatarImage src={model.image} alt="@shadcn" />
+                              <AvatarFallback>CN</AvatarFallback>
+                            </Avatar>
+                            <p
+                              className={cn(
+                                'select-none overflow-hidden overflow-ellipsis whitespace-nowrap pl-3 text-xs font-normal leading-4 text-slate-400'
+                              )}
+                            >
+                              {model.name}
+                            </p>
+                          </div>
+                        </CommandItem>
+                      );
+                    })}
                   </CommandGroup>
                 </CommandList>
               </Command>
-              <Button className="w-full" size="sm">
+              <Button
+                disabled={!selectedAi}
+                onClick={() => {
+                  if (selectedAi) {
+                    startAiChat.mutate({ aiModel: selectedAi });
+                  }
+                }}
+                className="w-full"
+                size="sm"
+              >
                 start chat
               </Button>
             </PopoverContent>

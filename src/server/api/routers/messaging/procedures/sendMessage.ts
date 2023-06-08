@@ -4,6 +4,7 @@ import {
   MessageStatus,
   MessageType,
   MessageVisibility,
+  type Role,
 } from '../../../../../../prisma/generated/types';
 import dayjs from 'dayjs';
 
@@ -53,7 +54,8 @@ const sendMessage = protectedProcedure
             last_name: string;
             author_id: number;
             user_id: string;
-          }>`JSON_BUILD_OBJECT('first_name',author.first_name, 'last_name', author.last_name, 'email', author.email, 'author_id', author.author_id, 'role', author.role, 'user_id', author.user_id)`.as(
+            role: (typeof Role)[keyof typeof Role];
+          }>`JSON_BUILD_OBJECT('first_name',author.first_name, 'last_name', author.last_name, 'email', author.email, 'author_id', author.author_id, 'role', author.role, 'user_id', author.user_id, 'role', author.role)`.as(
             'author'
           ),
         ])

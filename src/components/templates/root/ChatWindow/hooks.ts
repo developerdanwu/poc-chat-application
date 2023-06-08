@@ -133,7 +133,9 @@ export const useMessageUpdate = ({ chatroomId }: { chatroomId: string }) => {
               content: typedMessage.content,
               created_at: typedMessage.created_at,
               updated_at: typedMessage.updated_at,
+              is_edited: false,
               author: {
+                role: typedMessage.author.role,
                 user_id: typedMessage.author.user_id,
                 author_id: typedMessage.author.author_id,
                 last_name: typedMessage.author.last_name,
@@ -161,7 +163,7 @@ export const useMessageUpdate = ({ chatroomId }: { chatroomId: string }) => {
 
               draft.unshift({
                 messages: [newMessage],
-                next_cursor: null as unknown as number,
+                next_cursor: undefined as unknown as number,
               });
 
               return draft;

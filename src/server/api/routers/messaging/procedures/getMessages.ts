@@ -1,6 +1,5 @@
 import { protectedProcedure } from '@/server/api/trpc';
 import { z } from 'zod';
-import { sql } from 'kysely';
 
 const getMessages = protectedProcedure
   .input(
@@ -39,16 +38,8 @@ const getMessages = protectedProcedure
           'content',
           'message.created_at',
           'message.updated_at',
-          sql<{
-            author_id: number;
-            first_name: string;
-            last_name: string;
-            user_id: string;
-          }>`JSON_BUILD_OBJECT('author_id', author.author_id, 'first_name', author.first_name, 'last_name', author.last_name, 'user_id', author.user_id)`.as(
-            'author'
-          ),
+          'message.author_id',
         ])
-        .innerJoin('author', 'author.author_id', 'message.author_id')
         .orderBy('client_message_id', input.orderBy || 'desc')
         .execute();
 

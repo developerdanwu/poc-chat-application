@@ -14,6 +14,7 @@ import {
   MessageType,
   MessageVisibility,
 } from '../../../../../../prisma/generated/types';
+import { jsonArrayFrom } from 'kysely/helpers/postgres';
 
 const startNewChat = protectedProcedure
   .input(
@@ -113,29 +114,45 @@ const startNewChat = protectedProcedure
       // id is unique so must only return 1
       // get chatrooms
       const findNewChatroom = await ctx.db
-        .selectFrom('chatroom')
-        .select([
+        .selectFrom('chatroom as c')
+        .select((eb) => [
           'id',
           sql<number>`COUNT(DISTINCT _authors_on_chatrooms.author_id)`.as(
             'user_count'
           ),
-          sql<
-            { author_id: number }[]
-          >`JSON_AGG(JSON_BUILD_OBJECT('author_id', author.author_id, 'first_name', author.first_name, 'last_name', author.last_name, 'user_id', author.user_id))`.as(
-            'authors'
-          ),
+          jsonArrayFrom(
+            eb
+              .selectFrom('author')
+              .select([
+                'author.author_id',
+                'author.first_name',
+                'author.last_name',
+                'author.user_id',
+              ])
+              .innerJoin(
+                '_authors_on_chatrooms',
+                '_authors_on_chatrooms.author_id',
+                'author.author_id'
+              )
+              .innerJoin(
+                'chatroom',
+                'chatroom.id',
+                '_authors_on_chatrooms.chatroom_id'
+              )
+              .where(sql`c.id = chatroom.id`)
+          ).as('authors'),
         ])
         .innerJoin(
           '_authors_on_chatrooms',
           '_authors_on_chatrooms.chatroom_id',
-          'chatroom.id'
+          'c.id'
         )
         .innerJoin(
           'author',
           'author.author_id',
           '_authors_on_chatrooms.author_id'
         )
-        .where(({ cmpr }) => cmpr('chatroom.id', '=', newChatroom.id))
+        .where(({ cmpr }) => cmpr('c.id', '=', newChatroom.id))
         .groupBy('id')
         .execute();
 

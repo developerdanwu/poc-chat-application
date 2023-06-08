@@ -3,12 +3,14 @@ import { type Kysely, sql } from 'kysely';
 import { z } from 'zod';
 import { type DB } from '../../../../../../prisma/generated/types';
 import { type SignedInAuthObject } from '@clerk/backend';
+import { jsonArrayFrom } from 'kysely/helpers/postgres';
 
 export const authorsInputSchema = z.array(
   z.object({
     author_id: z.number(),
     first_name: z.string(),
     last_name: z.string(),
+    role: z.string(),
   })
 );
 type AuthorsInputSchema = z.infer<typeof authorsInputSchema>;
@@ -39,23 +41,39 @@ export const guessChatroomFromAuthorsMethod = async ({
           '_authors_on_chatrooms.author_id'
         )
         .groupBy('chatroom.id')
-        .as('chatroom')
+        .as('c')
     )
-    .select([
+    .select((eb) => [
       'id',
       sql<number>`count(distinct _authors_on_chatrooms.author_id)`.as(
         'no_of_users'
       ),
-      sql<
-        { author_id: number }[]
-      >`JSON_AGG(JSON_BUILD_OBJECT('author_id', author.author_id, 'first_name', author.first_name, 'last_name', author.last_name, 'user_id', author.user_id))`.as(
-        'authors'
-      ),
+      jsonArrayFrom(
+        eb
+          .selectFrom('author')
+          .select([
+            'author.author_id',
+            'author.first_name',
+            'author.last_name',
+            'author.user_id',
+          ])
+          .innerJoin(
+            '_authors_on_chatrooms',
+            '_authors_on_chatrooms.author_id',
+            'author.author_id'
+          )
+          .innerJoin(
+            'chatroom',
+            'chatroom.id',
+            '_authors_on_chatrooms.chatroom_id'
+          )
+          .where(sql`c.id = chatroom.id`)
+      ).as('authors'),
     ])
     .innerJoin(
       '_authors_on_chatrooms',
       '_authors_on_chatrooms.chatroom_id',
-      'chatroom.id'
+      'c.id'
     )
     .innerJoin('author', 'author.author_id', '_authors_on_chatrooms.author_id')
     .groupBy(['id'])

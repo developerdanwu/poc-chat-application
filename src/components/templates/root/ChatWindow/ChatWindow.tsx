@@ -31,6 +31,8 @@ const ChatWindow = forwardRef<
 >(({ chatroomId }, ref) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const chatBottomRef = useRef<HTMLDivElement>(null);
+  const { filterAuthedUserFromChatroomAuthors } = useApiTransformUtils();
+
   //@ts-expect-error unknown type error
   useImperativeHandle(ref, () => {
     return {
@@ -57,7 +59,14 @@ const ChatWindow = forwardRef<
   const chatroomDetails = api.messaging.getChatroom.useQuery({
     chatroomId: chatroomId,
   });
-  const { filterAuthedUserFromChatroomAuthors } = useApiTransformUtils();
+
+  const authorsHashmap = chatroomDetails.data?.authors.reduce<
+    Record<string, RouterOutput['messaging']['getChatroom']['authors'][number]>
+  >((prevVal, author) => {
+    prevVal[author.author_id] = author;
+    return prevVal;
+  }, {});
+
   const filteredChatroomUsers = filterAuthedUserFromChatroomAuthors(
     chatroomDetails.data?.authors ?? []
   );
@@ -92,6 +101,9 @@ const ChatWindow = forwardRef<
     return acc;
   }, {});
 
+  if (!authorsHashmap) {
+    return null;
+  }
   return (
     <div className="flex w-full flex-[1_0_0] flex-col">
       <div className="flex-[1_1_0]" />
@@ -149,9 +161,16 @@ const ChatWindow = forwardRef<
                     </p>
                   </div>
                   {reversedMessages.map((m, index) => {
-                    const isSentByMe = m.author.user_id === user.user?.id;
+                    const author = authorsHashmap[m.author_id];
+                    if (!author) {
+                      throw new Error('author not found');
+                    }
+                    const isSentByMe = author.user_id === user.user?.id;
 
                     const previousMessage = reversedMessages[index - 1];
+                    const previousMessageAuthor = previousMessage
+                      ? authorsHashmap[previousMessage.author_id]
+                      : undefined;
 
                     const differenceBetweenLastMessage = previousMessage
                       ? dayjs
@@ -160,7 +179,7 @@ const ChatWindow = forwardRef<
                       : undefined;
 
                     const isLastMessageSenderEqualToCurrentMessageSender =
-                      previousMessage?.author.author_id === m.author.author_id;
+                      previousMessageAuthor?.author_id === author.author_id;
                     return (
                       <ChatReplyItemWrapper
                         isLastMessageSenderEqualToCurrentMessageSender={
@@ -172,7 +191,7 @@ const ChatWindow = forwardRef<
                         }
                         isEditing={editingChatItem === m.client_message_id}
                         key={m.client_message_id}
-                        author={m.author}
+                        author={author}
                         communicator={isSentByMe ? 'sender' : 'receiver'}
                       >
                         {editingChatItem === m.client_message_id ? (
@@ -196,7 +215,7 @@ const ChatWindow = forwardRef<
                             setIsEditing={setEditingChatItem}
                             sendDate={m.created_at}
                             variant={isSentByMe ? 'sender' : 'receiver'}
-                            author={m.author}
+                            author={author}
                             text={m.text}
                             content={m.content}
                           />
