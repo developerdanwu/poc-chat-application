@@ -15,7 +15,6 @@ import dayjs from 'dayjs';
 import produce from 'immer';
 import { type InfiniteData } from '@tanstack/react-query';
 import { type RouterOutput } from '@/server/api/root';
-import { useUser } from '@clerk/nextjs';
 import { useMessageUpdate } from '@/components/templates/root/ChatWindow/hooks';
 import { Extension } from '@tiptap/core';
 import HookFormTiptapEditor from '@/components/modules/TextEditor/HookFormTiptapEditor';
@@ -39,9 +38,9 @@ const ChatroomId: NextPageWithLayout = () => {
   const chatroomId =
     typeof router.query.chatroomId === 'string' ? router.query.chatroomId : '';
   const trpcUtils = api.useContext();
-  const user = useUser();
   const chatWindowRef = useRef<ChatWindowRef>(null);
   const chatFormRef = useRef<HTMLFormElement>(null);
+  const ownAuthor = api.messaging.getOwnAuthor.useQuery();
   const chatForm = useForm({
     resolver: zodResolver(
       z.object({
@@ -87,7 +86,9 @@ const ChatroomId: NextPageWithLayout = () => {
             pageParams: [],
           };
         }
-
+        if (!ownAuthor.data) {
+          return old;
+        }
         const flatMapMessages = old.pages.flatMap((page) => page.messages);
 
         const newMessage = {
@@ -100,12 +101,7 @@ const ChatroomId: NextPageWithLayout = () => {
           is_edited: false,
           created_at: dayjs.utc().toDate(),
           updated_at: dayjs.utc().toDate(),
-          author: {
-            author_id: 999,
-            user_id: user?.user?.id || '',
-            first_name: user?.user?.firstName || '',
-            last_name: user?.user?.lastName || '',
-          },
+          author_id: ownAuthor.data.author_id,
         };
 
         if (old.pages.length === 0) {

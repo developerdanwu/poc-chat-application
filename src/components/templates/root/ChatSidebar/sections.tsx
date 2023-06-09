@@ -49,14 +49,15 @@ export const AiModelsSection = () => {
     onSuccess: (data) => {
       // TODO: create AI chat
       router.push(`/${data.id}`);
+      setOpen(false);
     },
   });
+  const [open, setOpen] = useState(false);
   const chatroomId =
     typeof router.query.chatroomId === 'string' ? router.query.chatroomId : '';
   const aiChatrooms = api.messaging.getAiChatrooms.useQuery({
     searchKeyword: '',
   });
-  console.log('selected', selectedAi);
   return (
     <>
       <Collapsible defaultOpen={true}>
@@ -73,7 +74,7 @@ export const AiModelsSection = () => {
             </CollapsibleTrigger>
             <div className="text-body text-slate-400">AI models</div>
           </div>
-          <Popover>
+          <Popover open={open} onOpenChange={(value) => setOpen(value)}>
             <PopoverTrigger>
               <IconButton
                 className="text-slate-400 hover:bg-slate-700 hover:text-slate-400"

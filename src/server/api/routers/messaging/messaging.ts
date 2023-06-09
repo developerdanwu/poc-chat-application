@@ -11,12 +11,14 @@ import editMessage from '@/server/api/routers/messaging/procedures/editMessage';
 import guessChatroomFromAuthors from '@/server/api/routers/messaging/procedures/guessChatroomFromAuthors';
 import startAiChat from '@/server/api/routers/messaging/procedures/startAiChat';
 import getAiChatrooms from '@/server/api/routers/messaging/procedures/getAiChatrooms';
+import getOwnAuthor from '@/server/api/routers/messaging/procedures/getOwnAuthor';
 
 const gpt = new ChatGPTAPI({
   apiKey: env.OPENAI_ACCESS_TOKEN as string,
 });
 
 export const messaging = createTRPCRouter({
+  getOwnAuthor,
   startAiChat,
   guessChatroomFromAuthors,
   getAllHumanAuthors,

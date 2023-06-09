@@ -101,7 +101,7 @@ const ChatWindow = forwardRef<
     return acc;
   }, {});
 
-  if (!authorsHashmap) {
+  if (!chatroomDetails.data || !authorsHashmap) {
     return <div className="flex w-full flex-[1_0_0] flex-col" />;
   }
   return (
@@ -119,7 +119,10 @@ const ChatWindow = forwardRef<
         }}
       >
         {!messages.hasNextPage && filteredChatroomUsers?.length > 0 ? (
-          <StartOfDirectMessage authors={filteredChatroomUsers} />
+          <StartOfDirectMessage
+            chatroomType={chatroomDetails.data.type}
+            authors={filteredChatroomUsers}
+          />
         ) : null}
         <InfiniteScroll
           pageStart={0}

@@ -18,7 +18,7 @@ import ChatWindow, {
 import ScrollArea from '@/components/elements/ScrollArea';
 import { Extension } from '@tiptap/core';
 import StartOfDirectMessage from '@/components/templates/root/ChatWindow/StartOfDirectMessage';
-import { Role } from '../../prisma/generated/types';
+import { ChatroomType, Role } from '../../prisma/generated/types';
 
 const newMessageSchema = z.object({
   authors: z.array(
@@ -164,7 +164,10 @@ const NewMessage: NextPageWithLayout = () => {
               }}
             >
               {watchedAuthors?.length > 0 ? (
-                <StartOfDirectMessage authors={watchedAuthors} />
+                <StartOfDirectMessage
+                  chatroomType={ChatroomType.HUMAN_CHATROOM}
+                  authors={watchedAuthors}
+                />
               ) : null}
             </ScrollArea>
           </div>

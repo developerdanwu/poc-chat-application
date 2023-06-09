@@ -28,6 +28,7 @@ const getChatroom = protectedProcedure
           >`JSON_AGG(JSON_BUILD_OBJECT('author_id', author.author_id, 'first_name', author.first_name, 'last_name', author.last_name, 'user_id', author.user_id))`.as(
             'authors'
           ),
+          'chatroom.type',
         ])
         .innerJoin(
           '_authors_on_chatrooms',
