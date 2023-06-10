@@ -2,6 +2,7 @@ import { protectedProcedure } from '@/server/api/trpc';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { sql } from 'kysely';
+import { jsonObjectFrom } from 'kysely/helpers/postgres';
 
 const getChatroom = protectedProcedure
   .input(
@@ -13,7 +14,7 @@ const getChatroom = protectedProcedure
     try {
       const chatroom = await ctx.db
         .selectFrom('chatroom')
-        .select([
+        .select((eb) => [
           'id',
           sql<number>`COUNT(DISTINCT _authors_on_chatrooms.author_id)`.as(
             'user_count'
@@ -28,7 +29,16 @@ const getChatroom = protectedProcedure
           >`JSON_AGG(JSON_BUILD_OBJECT('author_id', author.author_id, 'first_name', author.first_name, 'last_name', author.last_name, 'user_id', author.user_id))`.as(
             'authors'
           ),
+          jsonObjectFrom(
+            eb
+              .selectFrom('ai_settings')
+              .selectAll()
+              .where(({ cmpr }) =>
+                cmpr('ai_settings.chatroom_id', '=', input.chatroomId)
+              )
+          ).as('ai_settings'),
           'chatroom.type',
+          'chatroom.subtype',
         ])
         .innerJoin(
           '_authors_on_chatrooms',

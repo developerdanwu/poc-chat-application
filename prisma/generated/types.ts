@@ -52,6 +52,7 @@ export type AiSettings = {
   model: AiModel;
   author_id: number;
   open_ai_settings_id: number | null;
+  chatroom_id: string;
 };
 export type Attachment = {
   attachment_id: Generated<number>;

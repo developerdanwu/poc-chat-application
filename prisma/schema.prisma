@@ -3,6 +3,7 @@
 
 generator client {
   provider = "prisma-kysely"
+  // previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
@@ -13,6 +14,7 @@ datasource db {
   // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
   url          = env("DATABASE_URL_NON_POOLED")
   relationMode = "foreignKeys"
+  // extensions   = [vector]
 }
 
 enum ChatroomSubtype {
@@ -81,6 +83,7 @@ model Attachment {
   Message                Message        @relation(fields: [messageClientMessageId], references: [clientMessageId])
   messageClientMessageId Int            @map("message_client_message_id")
   type                   AttachmentType @map("type")
+  // embedding              Unsupported("vector(1536)")? @map("embedding")
 }
 
 model OpenAiSettings {
@@ -137,14 +140,17 @@ model AuthorsOnChatrooms {
 }
 
 model Chatroom {
-  id         String               @id @default(dbgenerated("uuid_generate_v4()"))
-  messages   Message[]
-  type       ChatroomType         @default(HUMAN_CHATROOM)
-  subtype    ChatroomSubtype      @default(DEFAULT)
-  createdAt  DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt  DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
-  authors    AuthorsOnChatrooms[]
-  AiSettings AiSettings?
+  id               String               @id @default(dbgenerated("uuid_generate_v4()"))
+  messages         Message[]
+  type             ChatroomType         @default(HUMAN_CHATROOM)
+  subtype          ChatroomSubtype      @default(DEFAULT)
+  createdAt        DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt        DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
+  authors          AuthorsOnChatrooms[]
+  AiSettings       AiSettings?
+  branches         Chatroom[]           @relation("ChatroomBranches")
+  chatroom         Chatroom?            @relation("ChatroomBranches", fields: [chatroomBranchId], references: [id])
+  chatroomBranchId String?              @map("chatroom_branch_id")
 
   @@map("chatroom")
 }

@@ -20,6 +20,7 @@ import { Extension } from '@tiptap/core';
 import HookFormTiptapEditor from '@/components/modules/TextEditor/HookFormTiptapEditor';
 import { EditorContent } from '@tiptap/react';
 import EditorMenuBar from '@/components/modules/TextEditor/EditorMenuBar';
+import ChatBranches from '@/components/templates/root/ChatBranches';
 
 export const MainChatWrapper = ({
   children,
@@ -165,6 +166,7 @@ const ChatroomId: NextPageWithLayout = () => {
       {typeof router.query.chatroomId === 'string' && (
         <MainChatWrapper>
           <ChatTopControls chatroomId={chatroomId} />
+          <ChatBranches />
           <ChatWindow
             ref={chatWindowRef}
             key={router.query.chatroomId}
