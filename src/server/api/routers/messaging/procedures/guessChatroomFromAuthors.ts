@@ -1,7 +1,7 @@
 import { protectedProcedure } from '@/server/api/trpc';
 import { type Kysely, sql } from 'kysely';
 import { z } from 'zod';
-import { type DB } from '../../../../../../prisma/generated/types';
+import { type DB } from '@prisma-generated/generated/types';
 import { type SignedInAuthObject } from '@clerk/backend';
 import { jsonArrayFrom } from 'kysely/helpers/postgres';
 

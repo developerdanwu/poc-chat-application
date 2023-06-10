@@ -22,6 +22,9 @@
     "noUncheckedIndexedAccess": true,
     "baseUrl": ".",
     "paths": {
+      "@prisma-generated/*": [
+        "./prisma/*"
+      ],
       "@/*": [
         "./src/*"
       ]

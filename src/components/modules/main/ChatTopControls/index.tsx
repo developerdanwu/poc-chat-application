@@ -4,7 +4,7 @@ import {
   ChatBranches,
   ChatNameBar,
 } from '@/components/modules/main/ChatTopControls/actions';
-import { ChatroomType } from '../../../../../prisma/generated/types';
+import { ChatroomType } from '@prisma-generated/generated/types';
 
 const ChatTopControls = ({ chatroomId }: { chatroomId: string }) => {
   const chatroomDetail = api.messaging.getChatroom.useQuery({

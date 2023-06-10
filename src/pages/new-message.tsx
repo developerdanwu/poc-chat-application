@@ -18,7 +18,7 @@ import ChatWindow, {
 import ScrollArea from '@/components/elements/ScrollArea';
 import { Extension } from '@tiptap/core';
 import StartOfDirectMessage from '@/components/modules/main/ChatWindow/StartOfDirectMessage';
-import { ChatroomType, Role } from '../../prisma/generated/types';
+import { ChatroomType, Role } from '@prisma-generated/generated/types';
 
 const newMessageSchema = z.object({
   authors: z.array(

@@ -2,7 +2,7 @@ import { protectedProcedure } from '@/server/api/trpc';
 import { z } from 'zod';
 import { sql } from 'kysely';
 import { TRPCError } from '@trpc/server';
-import { ChatroomType, Role } from '../../../../../../prisma/generated/types';
+import { ChatroomType, Role } from '@prisma-generated/generated/types';
 
 const getAiChatrooms = protectedProcedure
   .input(

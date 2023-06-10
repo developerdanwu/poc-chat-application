@@ -8,7 +8,7 @@ import { db } from '@/server/db';
 import dayjs from 'dayjs';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import utc from 'dayjs/plugin/utc';
-import { Role } from '../../../prisma/generated/types';
+import { Role } from '@prisma-generated/generated/types';
 
 dayjs.extend(advancedFormat);
 dayjs.extend(utc);

@@ -1,5 +1,5 @@
 import { Kysely } from 'kysely';
-import { type DB } from '../../prisma/generated/types';
+import { type DB } from '@prisma-generated/generated/types';
 import { PostgresJSDialect } from 'kysely-postgres-js';
 import postgres from 'postgres';
 import { env } from '@/env.mjs';

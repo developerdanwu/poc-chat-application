@@ -1,10 +1,6 @@
 import { protectedProcedure } from '@/server/api/trpc';
 import { z } from 'zod';
-import {
-  AiModel,
-  ChatroomType,
-  Role,
-} from '../../../../../../prisma/generated/types';
+import { AiModel, ChatroomType, Role } from '@prisma-generated/generated/types';
 import { TRPCError } from '@trpc/server';
 import { sql } from 'kysely';
 import dayjs from 'dayjs';

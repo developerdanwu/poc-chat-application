@@ -8,7 +8,7 @@ import {
   TipTapStarterKit,
 } from '@/components/modules/TextEditor/extensions';
 import TiptapEditorWrapper from '@/components/modules/TextEditor/TiptapEditorWrapper';
-import { type Author } from '../../../../prisma/generated/types';
+import { type Author } from '@prisma-generated/generated/types';
 
 const ChatReplyItemHeader = ({
   isLastMessageSenderEqualToCurrentMessageSender,

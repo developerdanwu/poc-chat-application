@@ -6,7 +6,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from '@/components/elements/avatar';
-import { type Author } from '../../../../../prisma/generated/types';
+import { type Author } from '@prisma-generated/generated/types';
 
 const ChatReplyAvatar = ({
   differenceBetweenLastMessage,

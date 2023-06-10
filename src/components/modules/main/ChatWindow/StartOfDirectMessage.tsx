@@ -11,7 +11,7 @@ import React from 'react';
 import {
   type ChatroomType,
   ChatroomType as ChatroomTypeValue,
-} from '../../../../../prisma/generated/types';
+} from '@prisma-generated/generated/types';
 
 const StartOfDirectMessage = ({
   chatroomType,

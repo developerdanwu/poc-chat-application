@@ -13,7 +13,7 @@ import {
   MessageStatus,
   MessageType,
   MessageVisibility,
-} from '../../../../../../prisma/generated/types';
+} from '@prisma-generated/generated/types';
 import { jsonArrayFrom } from 'kysely/helpers/postgres';
 
 const startNewChat = protectedProcedure

@@ -1,6 +1,6 @@
 import { protectedProcedure } from '@/server/api/trpc';
 import { z } from 'zod';
-import { Role } from '../../../../../../prisma/generated/types';
+import { Role } from '@prisma-generated/generated/types';
 
 const getAllHumanAuthors = protectedProcedure
   .input(

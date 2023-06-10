@@ -5,7 +5,7 @@ import {
   MessageType,
   MessageVisibility,
   type Role,
-} from '../../../../../../prisma/generated/types';
+} from '@prisma-generated/generated/types';
 import dayjs from 'dayjs';
 
 import { sql } from 'kysely';
