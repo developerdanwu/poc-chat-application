@@ -4,7 +4,7 @@ import { api } from '@/lib/api';
 import { useUser } from '@clerk/nextjs';
 import { type RouterOutput } from '@/server/api/root';
 import dayjs from 'dayjs';
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import produce from 'immer';
 
 export const useChatroomMessages = ({ chatroomId }: { chatroomId: string }) => {
@@ -54,107 +54,6 @@ export const useChatroomMessages = ({ chatroomId }: { chatroomId: string }) => {
     messages,
     formattedMessages,
   };
-};
-
-export const useChatWindowLogic = ({ chatroomId }: { chatroomId: string }) => {
-  const messages = api.messaging.getMessages.useInfiniteQuery(
-    {
-      chatroomId: chatroomId,
-    },
-    {
-      getNextPageParam: (lastPage) => {
-        if (lastPage?.next_cursor === 0) {
-          return undefined;
-        }
-        return lastPage?.next_cursor;
-      },
-      staleTime: Infinity,
-      enabled: !!chatroomId,
-    }
-  );
-
-  const messagesArray = useMemo(() => {
-    return messages.data?.pages.reduce<
-      RouterOutput['messaging']['getMessages']['messages']
-    >((acc, nextVal) => {
-      nextVal.messages.forEach((m) => {
-        acc.push(m);
-      });
-      return acc;
-    }, []);
-  }, [messages.data?.pages]);
-
-  const messagesGroupedByDate = useMemo(() => {
-    return messagesArray?.reduce<
-      Record<string, RouterOutput['messaging']['getMessages']['messages']>
-    >((acc, nextVal) => {
-      const date = dayjs
-        .utc(nextVal.created_at)
-        .local()
-        .format('dddd, MMMM Do');
-      if (!acc[date]) {
-        acc[date] = [];
-      }
-      acc[date]!.push(nextVal);
-      return acc;
-    }, {});
-  }, [messagesArray]);
-
-  const messageGroupKeys = Object.keys(messagesGroupedByDate || {});
-  const formattedMessages = useMemo(() => {
-    return messageGroupKeys.reduce<
-      (string | RouterOutput['messaging']['getMessages']['messages'][number])[]
-    >((acc, k) => {
-      const formattedMessageGroup = messagesGroupedByDate?.[k];
-
-      if (formattedMessageGroup) {
-        acc.push(...formattedMessageGroup);
-      }
-      acc.push(k);
-      return acc;
-    }, []);
-  }, [messageGroupKeys, messagesGroupedByDate]);
-
-  return {
-    formattedMessages,
-    messages,
-    messageGroupKeys,
-    messagesGroupedByDate,
-  };
-};
-
-export const useChatWindowScroll = ({
-  chatroomId,
-  chatBottomRef,
-  scrollAreaRef,
-}: {
-  scrollAreaRef: React.RefObject<HTMLDivElement>;
-  chatroomId: string;
-  chatBottomRef: React.RefObject<HTMLDivElement>;
-}) => {
-  useEffect(() => {
-    const listener = (event: Event) => {
-      if (chatBottomRef.current) {
-        // if user sends message, scroll to bottom of conversation
-
-        chatBottomRef.current.scrollIntoView();
-      }
-    };
-
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.addEventListener('DOMNodeInserted', listener);
-    }
-
-    return () => {
-      if (scrollAreaRef.current) {
-        scrollAreaRef.current.removeEventListener(
-          'DOMNodeInserted',
-          listener,
-          false
-        );
-      }
-    };
-  }, []);
 };
 
 export const useMessageUpdate = ({ chatroomId }: { chatroomId: string }) => {
