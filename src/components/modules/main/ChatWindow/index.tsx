@@ -1,7 +1,6 @@
 import React, {
   forwardRef,
   useImperativeHandle,
-  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -17,6 +16,7 @@ import ChatReplyEditingItem from '@/components/modules/main/ChatWindow/ChatReply
 import ChatReplyItemWrapper from '@/components/modules/main/ChatWindow/ChatReplyItemWrapper';
 import RadialProgress from '@/components/elements/RadialProgress';
 import StartOfDirectMessage from '@/components/modules/main/ChatWindow/StartOfDirectMessage';
+import { useChatroomMessages } from '@/components/modules/main/ChatWindow/hooks';
 
 export type ChatWindowRef = {
   scrollToBottom: () => void;
@@ -32,7 +32,14 @@ const ChatWindow = forwardRef<
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const chatBottomRef = useRef<HTMLDivElement>(null);
   const { filterAuthedUserFromChatroomAuthors } = useApiTransformUtils();
-
+  const { messages, formattedMessages } = useChatroomMessages({ chatroomId });
+  const user = useUser();
+  const [editingChatItem, setEditingChatItem] = useState<undefined | number>(
+    undefined
+  );
+  const chatroomDetails = api.messaging.getChatroom.useQuery({
+    chatroomId: chatroomId,
+  });
   //@ts-expect-error unknown type error
   useImperativeHandle(ref, () => {
     return {
@@ -41,23 +48,6 @@ const ChatWindow = forwardRef<
         chatBottomRef.current?.scrollIntoView();
       },
     };
-  });
-  const [editingChatItem, setEditingChatItem] = useState<undefined | number>(
-    undefined
-  );
-  const messages = api.messaging.getMessages.useInfiniteQuery(
-    {
-      chatroomId: chatroomId,
-    },
-    {
-      getNextPageParam: (lastPage) => {
-        return lastPage?.next_cursor === 0 ? undefined : lastPage?.next_cursor;
-      },
-      staleTime: Infinity,
-    }
-  );
-  const chatroomDetails = api.messaging.getChatroom.useQuery({
-    chatroomId: chatroomId,
   });
 
   const authorsHashmap = chatroomDetails.data?.authors.reduce<
@@ -70,36 +60,6 @@ const ChatWindow = forwardRef<
   const filteredChatroomUsers = filterAuthedUserFromChatroomAuthors(
     chatroomDetails.data?.authors ?? []
   );
-  const messagesArray = useMemo(
-    () =>
-      messages.data?.pages.reduce<
-        RouterOutput['messaging']['getMessages']['messages']
-      >((acc, nextVal) => {
-        nextVal.messages.forEach((m) => {
-          acc.push(m);
-        });
-        return acc;
-      }, []),
-    [messages.data?.pages]
-  );
-  const user = useUser();
-
-  const formattedMessages = messagesArray?.reduce<
-    Record<string, RouterOutput['messaging']['getMessages']['messages']>
-  >((acc, nextVal) => {
-    const date = dayjs
-      .utc(nextVal.created_at)
-      .local()
-      .hour(0)
-      .minute(0)
-      .second(0)
-      .format();
-    if (!acc[date]) {
-      acc[date] = [];
-    }
-    acc[date]!.push(nextVal);
-    return acc;
-  }, {});
 
   if (!chatroomDetails.data || !authorsHashmap) {
     return <div className="flex w-full flex-[1_0_0] flex-col" />;

@@ -14,7 +14,7 @@ import { EditorContent } from '@tiptap/react';
 import EditorMenuBar from '@/components/modules/TextEditor/EditorMenuBar';
 import ChatWindow, {
   type ChatWindowRef,
-} from '@/components/modules/main/ChatWindow/ChatWindow';
+} from '@/components/modules/main/ChatWindow';
 import ScrollArea from '@/components/elements/ScrollArea';
 import { Extension } from '@tiptap/core';
 import StartOfDirectMessage from '@/components/modules/main/ChatWindow/StartOfDirectMessage';

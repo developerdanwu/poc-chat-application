@@ -5,7 +5,7 @@ import React, { useMemo, useRef } from 'react';
 import { useRouter } from 'next/router';
 import ChatWindow, {
   type ChatWindowRef,
-} from '@/components/modules/main/ChatWindow/ChatWindow';
+} from '@/components/modules/main/ChatWindow';
 import { FormProvider, useForm } from 'react-hook-form';
 import { api } from '@/lib/api';
 import { zodResolver } from '@hookform/resolvers/zod';

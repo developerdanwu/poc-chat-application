@@ -7,6 +7,55 @@ import dayjs from 'dayjs';
 import { useEffect, useMemo } from 'react';
 import produce from 'immer';
 
+export const useChatroomMessages = ({ chatroomId }: { chatroomId: string }) => {
+  const messages = api.messaging.getMessages.useInfiniteQuery(
+    {
+      chatroomId: chatroomId,
+    },
+    {
+      getNextPageParam: (lastPage) => {
+        return lastPage?.next_cursor === 0 ? undefined : lastPage?.next_cursor;
+      },
+      staleTime: Infinity,
+    }
+  );
+
+  const messagesArray = useMemo(
+    () =>
+      messages.data?.pages.reduce<
+        RouterOutput['messaging']['getMessages']['messages']
+      >((acc, nextVal) => {
+        nextVal.messages.forEach((m) => {
+          acc.push(m);
+        });
+        return acc;
+      }, []),
+    [messages.data?.pages]
+  );
+
+  const formattedMessages = messagesArray?.reduce<
+    Record<string, RouterOutput['messaging']['getMessages']['messages']>
+  >((acc, nextVal) => {
+    const date = dayjs
+      .utc(nextVal.created_at)
+      .local()
+      .hour(0)
+      .minute(0)
+      .second(0)
+      .format();
+    if (!acc[date]) {
+      acc[date] = [];
+    }
+    acc[date]!.push(nextVal);
+    return acc;
+  }, {});
+
+  return {
+    messages,
+    formattedMessages,
+  };
+};
+
 export const useChatWindowLogic = ({ chatroomId }: { chatroomId: string }) => {
   const messages = api.messaging.getMessages.useInfiniteQuery(
     {
