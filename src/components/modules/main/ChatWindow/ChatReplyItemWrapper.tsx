@@ -1,12 +1,12 @@
 import React from 'react';
 import { cn, useApiTransformUtils } from '@/lib/utils';
-import { type RouterOutput } from '@/server/api/root';
 import dayjs from 'dayjs';
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from '@/components/elements/avatar';
+import { type Author } from '../../../../../prisma/generated/types';
 
 const ChatReplyAvatar = ({
   differenceBetweenLastMessage,
@@ -61,7 +61,7 @@ const ChatReplyItemWrapper = ({
   differenceBetweenLastMessage: number | undefined;
   sendDate: Date;
   isEditing: boolean;
-  author: RouterOutput['messaging']['getMessages']['messages'][number]['author'];
+  author: Pick<Author, 'first_name' | 'last_name'>;
   children: React.ReactNode;
   communicator: 'sender' | 'receiver';
 }) => {
