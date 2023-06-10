@@ -10,7 +10,10 @@ import { useUser } from '@clerk/nextjs';
 import ChatReplyItemWrapper from '@/components/modules/main/ChatWindow/ChatReplyItemWrapper';
 import RadialProgress from '@/components/elements/RadialProgress';
 import StartOfDirectMessage from '@/components/modules/main/ChatWindow/StartOfDirectMessage';
-import { useChatroomMessages } from '@/components/modules/main/ChatWindow/hooks';
+import {
+  useChatroomMessages,
+  useMessageUpdate,
+} from '@/components/modules/main/ChatWindow/hooks';
 
 export type ChatWindowRef = {
   scrollToBottom: () => void;
@@ -23,12 +26,12 @@ const ChatWindow = forwardRef<
     chatroomId: string;
   }
 >(({ chatroomId }, ref) => {
+  useMessageUpdate({ chatroomId });
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const chatBottomRef = useRef<HTMLDivElement>(null);
   const { filterAuthedUserFromChatroomAuthors } = useApiTransformUtils();
   const { messages, formattedMessages } = useChatroomMessages({ chatroomId });
   const user = useUser();
-
   const chatroomDetails = api.messaging.getChatroom.useQuery({
     chatroomId: chatroomId,
   });
