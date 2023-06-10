@@ -26,10 +26,10 @@ import {
 } from '@/components/elements/avatar';
 import { cn, useApiTransformUtils } from '@/lib/utils';
 import { api } from '@/lib/api';
-import { AiModel } from '../../../../../prisma/generated/types';
+import { AiModel } from '../../../../prisma/generated/types';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import ThreadListItem from '@/components/templates/root/ThreadListItem';
+import ThreadListItem from '@/components/modules/main/ThreadListItem';
 import { notEmpty } from '@/lib/ts-utils';
 
 const AI_MODELS = [

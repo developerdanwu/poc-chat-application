@@ -1,12 +1,12 @@
 import React, { useMemo, useRef } from 'react';
 import { cn } from '@/lib/utils';
-import ChatSidebar from '@/components/templates/root/ChatSidebar/ChatSidebar';
+import ChatSidebar from '@/components/modules/left-sidebar/ChatSidebar';
 import { type NextPageWithLayout } from '@/pages/_app';
 import { MainChatWrapper } from '@/pages/[chatroomId]';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
-import AuthorsAutocomplete from '@/components/templates/new-message/AuthorsAutocomplete';
+import AuthorsAutocomplete from '@/components/modules/main/AuthorsAutocomplete';
 import { api } from '@/lib/api';
 import { useRouter } from 'next/router';
 import HookFormTiptapEditor from '@/components/modules/TextEditor/HookFormTiptapEditor';
@@ -14,10 +14,10 @@ import { EditorContent } from '@tiptap/react';
 import EditorMenuBar from '@/components/modules/TextEditor/EditorMenuBar';
 import ChatWindow, {
   type ChatWindowRef,
-} from '@/components/templates/root/ChatWindow/ChatWindow';
+} from '@/components/modules/main/ChatWindow/ChatWindow';
 import ScrollArea from '@/components/elements/ScrollArea';
 import { Extension } from '@tiptap/core';
-import StartOfDirectMessage from '@/components/templates/root/ChatWindow/StartOfDirectMessage';
+import StartOfDirectMessage from '@/components/modules/main/ChatWindow/StartOfDirectMessage';
 import { ChatroomType, Role } from '../../prisma/generated/types';
 
 const newMessageSchema = z.object({

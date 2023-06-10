@@ -11,12 +11,12 @@ import dayjs from 'dayjs';
 import { cn, useApiTransformUtils } from '@/lib/utils';
 import { type RouterOutput } from '@/server/api/root';
 import InfiniteScroll from 'react-infinite-scroller';
-import ChatReplyItem from '@/components/templates/root/ChatReplyItem';
+import ChatReplyItem from '@/components/modules/main/ChatReplyItem';
 import { useUser } from '@clerk/nextjs';
-import ChatReplyEditingItem from '@/components/templates/root/ChatWindow/ChatReplyEditingItem';
-import ChatReplyItemWrapper from '@/components/templates/root/ChatWindow/ChatReplyItemWrapper';
+import ChatReplyEditingItem from '@/components/modules/main/ChatWindow/ChatReplyEditingItem';
+import ChatReplyItemWrapper from '@/components/modules/main/ChatWindow/ChatReplyItemWrapper';
 import RadialProgress from '@/components/elements/RadialProgress';
-import StartOfDirectMessage from '@/components/templates/root/ChatWindow/StartOfDirectMessage';
+import StartOfDirectMessage from '@/components/modules/main/ChatWindow/StartOfDirectMessage';
 
 export type ChatWindowRef = {
   scrollToBottom: () => void;

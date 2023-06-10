@@ -13,6 +13,7 @@ export type ChatroomSubtype =
 export const ChatroomType = {
   HUMAN_CHATROOM: 'HUMAN_CHATROOM',
   AI_CHATROOM: 'AI_CHATROOM',
+  CHATROOM_BRANCH: 'CHATROOM_BRANCH',
 } as const;
 export type ChatroomType = (typeof ChatroomType)[keyof typeof ChatroomType];
 export const MessageType = {
@@ -80,6 +81,7 @@ export type Chatroom = {
   subtype: Generated<ChatroomSubtype>;
   created_at: Generated<Timestamp>;
   updated_at: Timestamp;
+  chatroom_branch_id: string | null;
 };
 export type Message = {
   client_message_id: Generated<number>;

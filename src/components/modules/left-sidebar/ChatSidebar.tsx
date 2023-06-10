@@ -12,9 +12,9 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/elements/collapsible';
-import ThreadListItem from '@/components/templates/root/ThreadListItem';
+import ThreadListItem from '@/components/modules/main/ThreadListItem';
 import { notEmpty } from '@/lib/ts-utils';
-import { AiModelsSection } from '@/components/templates/root/ChatSidebar/sections';
+import { AiModelsSection } from '@/components/modules/left-sidebar/sections';
 
 const ChatSidebar = () => {
   const router = useRouter();
@@ -47,7 +47,7 @@ const ChatSidebar = () => {
         )}
       >
         <div className="text-h4 text-white">{user.user?.firstName}</div>
-        <Link href="/new-message">
+        <Link href="/src/pages/new-message">
           <IconButton variant="white" className="rounded-full">
             <PencilIcon size={16} />
           </IconButton>

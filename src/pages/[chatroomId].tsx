@@ -1,12 +1,12 @@
 import { type NextPageWithLayout } from '@/pages/_app';
 import { cn } from '@/lib/utils';
-import ChatSidebar from '@/components/templates/root/ChatSidebar/ChatSidebar';
+import ChatSidebar from '@/components/modules/left-sidebar/ChatSidebar';
 import React, { useMemo, useRef } from 'react';
 import { useRouter } from 'next/router';
-import ChatTopControls from '@/components/templates/root/ChatTopControls';
+import ChatTopControls from '@/components/modules/main/ChatTopControls';
 import ChatWindow, {
   type ChatWindowRef,
-} from '@/components/templates/root/ChatWindow/ChatWindow';
+} from '@/components/modules/main/ChatWindow/ChatWindow';
 import { FormProvider, useForm } from 'react-hook-form';
 import { api } from '@/lib/api';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,12 +15,12 @@ import dayjs from 'dayjs';
 import produce from 'immer';
 import { type InfiniteData } from '@tanstack/react-query';
 import { type RouterOutput } from '@/server/api/root';
-import { useMessageUpdate } from '@/components/templates/root/ChatWindow/hooks';
+import { useMessageUpdate } from '@/components/modules/main/ChatWindow/hooks';
 import { Extension } from '@tiptap/core';
 import HookFormTiptapEditor from '@/components/modules/TextEditor/HookFormTiptapEditor';
 import { EditorContent } from '@tiptap/react';
 import EditorMenuBar from '@/components/modules/TextEditor/EditorMenuBar';
-import ChatBranches from '@/components/templates/root/ChatBranches';
+import ChatroomActions from 'src/components/modules/main/ChatroomActions';
 
 export const MainChatWrapper = ({
   children,
@@ -166,7 +166,7 @@ const ChatroomId: NextPageWithLayout = () => {
       {typeof router.query.chatroomId === 'string' && (
         <MainChatWrapper>
           <ChatTopControls chatroomId={chatroomId} />
-          <ChatBranches />
+          <ChatroomActions chatroomId={chatroomId} />
           <ChatWindow
             ref={chatWindowRef}
             key={router.query.chatroomId}

@@ -25,6 +25,7 @@ enum ChatroomSubtype {
 enum ChatroomType {
   HUMAN_CHATROOM
   AI_CHATROOM
+  CHATROOM_BRANCH
 }
 
 enum MessageType {

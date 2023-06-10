@@ -3,7 +3,7 @@ import { PlusIcon, XIcon } from 'lucide-react';
 import { IconButton } from '@/components/elements/IconButton';
 import { Separator } from '@/components/elements/separator';
 
-const ChatBranches = () => {
+export const ChatBranches = () => {
   return (
     <Tabs className="w-full">
       <TabsList className="w-full justify-start rounded-none">
@@ -23,5 +23,3 @@ const ChatBranches = () => {
     </Tabs>
   );
 };
-
-export default ChatBranches;
