@@ -52,7 +52,6 @@ const ChatReplyItemWrapper = ({
   isLastMessageSenderEqualToCurrentMessageSender,
   sendDate,
   differenceBetweenLastMessage,
-  isEditing,
   children,
   communicator,
   author,
@@ -60,7 +59,6 @@ const ChatReplyItemWrapper = ({
   isLastMessageSenderEqualToCurrentMessageSender: boolean;
   differenceBetweenLastMessage: number | undefined;
   sendDate: Date;
-  isEditing: boolean;
   author: Pick<Author, 'first_name' | 'last_name'>;
   children: React.ReactNode;
   communicator: 'sender' | 'receiver';
@@ -68,10 +66,7 @@ const ChatReplyItemWrapper = ({
   return (
     <div
       data-communicator={communicator}
-      className={cn('group relative flex space-x-3 py-2 px-6', {
-        'hover:bg-slate-100': !isEditing,
-        'bg-yellow-100': isEditing,
-      })}
+      className={cn('group relative flex space-x-3 py-2 px-6')}
     >
       <ChatReplyAvatar
         isLastMessageSenderEqualToCurrentMessageSender={

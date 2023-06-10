@@ -1,9 +1,4 @@
-import React, {
-  forwardRef,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from 'react';
+import React, { forwardRef, useImperativeHandle, useRef } from 'react';
 import { api } from '@/lib/api';
 import ScrollArea from '@/components/elements/ScrollArea';
 import dayjs from 'dayjs';
@@ -12,7 +7,6 @@ import { type RouterOutput } from '@/server/api/root';
 import InfiniteScroll from 'react-infinite-scroller';
 import ChatReplyItem from '@/components/modules/main/ChatReplyItem';
 import { useUser } from '@clerk/nextjs';
-import ChatReplyEditingItem from '@/components/modules/main/ChatWindow/ChatReplyEditingItem';
 import ChatReplyItemWrapper from '@/components/modules/main/ChatWindow/ChatReplyItemWrapper';
 import RadialProgress from '@/components/elements/RadialProgress';
 import StartOfDirectMessage from '@/components/modules/main/ChatWindow/StartOfDirectMessage';
@@ -34,9 +28,7 @@ const ChatWindow = forwardRef<
   const { filterAuthedUserFromChatroomAuthors } = useApiTransformUtils();
   const { messages, formattedMessages } = useChatroomMessages({ chatroomId });
   const user = useUser();
-  const [editingChatItem, setEditingChatItem] = useState<undefined | number>(
-    undefined
-  );
+
   const chatroomDetails = api.messaging.getChatroom.useQuery({
     chatroomId: chatroomId,
   });
@@ -152,37 +144,22 @@ const ChatWindow = forwardRef<
                         differenceBetweenLastMessage={
                           differenceBetweenLastMessage
                         }
-                        isEditing={editingChatItem === m.client_message_id}
                         key={m.client_message_id}
                         author={author}
                         communicator={isSentByMe ? 'sender' : 'receiver'}
                       >
-                        {editingChatItem === m.client_message_id ? (
-                          <ChatReplyEditingItem
-                            chatroomId={chatroomId}
-                            clientMessageId={m.client_message_id}
-                            text={m.text}
-                            setIsEditing={setEditingChatItem}
-                            content={m.content}
-                          />
-                        ) : (
-                          <ChatReplyItem
-                            isLastMessageSenderEqualToCurrentMessageSender={
-                              isLastMessageSenderEqualToCurrentMessageSender
-                            }
-                            differenceBetweenLastMessage={
-                              differenceBetweenLastMessage
-                            }
-                            messageId={m.client_message_id}
-                            isEdited={m.is_edited}
-                            setIsEditing={setEditingChatItem}
-                            sendDate={m.created_at}
-                            variant={isSentByMe ? 'sender' : 'receiver'}
-                            author={author}
-                            text={m.text}
-                            content={m.content}
-                          />
-                        )}
+                        <ChatReplyItem
+                          isLastMessageSenderEqualToCurrentMessageSender={
+                            isLastMessageSenderEqualToCurrentMessageSender
+                          }
+                          differenceBetweenLastMessage={
+                            differenceBetweenLastMessage
+                          }
+                          sendDate={m.created_at}
+                          author={author}
+                          text={m.text}
+                          content={m.content}
+                        />
                       </ChatReplyItemWrapper>
                     );
                   })}
