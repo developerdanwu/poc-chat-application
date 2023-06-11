@@ -45,7 +45,7 @@ export const AiModelsSection = () => {
   const { filterAuthedUserFromChatroomAuthors, getFullName } =
     useApiTransformUtils();
   const router = useRouter();
-  const startAiChat = api.messaging.startAiChat.useMutation({
+  const startAiChat = api.chatroom.startAiChat.useMutation({
     onSuccess: (data) => {
       // TODO: create AI chat
       router.push(`/${data.id}`);
@@ -55,7 +55,7 @@ export const AiModelsSection = () => {
   const [open, setOpen] = useState(false);
   const chatroomId =
     typeof router.query.chatroomId === 'string' ? router.query.chatroomId : '';
-  const aiChatrooms = api.messaging.getAiChatrooms.useQuery({
+  const aiChatrooms = api.chatroom.getAiChatrooms.useQuery({
     searchKeyword: '',
   });
   return (

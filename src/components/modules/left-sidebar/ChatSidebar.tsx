@@ -20,7 +20,7 @@ const ChatSidebar = () => {
   const router = useRouter();
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const chatrooms = api.messaging.getChatrooms.useQuery({
+  const chatrooms = api.chatroom.getChatrooms.useQuery({
     searchKeyword: debouncedSearch,
   });
 
