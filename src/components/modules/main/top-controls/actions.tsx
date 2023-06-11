@@ -12,7 +12,7 @@ export const ChatBranches = ({
   branches,
 }: {
   currentBranchId: string;
-  branches: RouterOutput['messaging']['getChatroom']['branches'];
+  branches: RouterOutput['chatroom']['getChatroom']['branches'];
 }) => {
   return (
     <Tabs value={currentBranchId} className="w-full">
@@ -37,7 +37,7 @@ export const ChatBranches = ({
 };
 
 export const ChatNameBar = ({ chatroomId }: { chatroomId: string }) => {
-  const chatroomDetail = api.messaging.getChatroom.useQuery({
+  const chatroomDetail = api.chatroom.getChatroom.useQuery({
     chatroomId: chatroomId,
   });
 

@@ -7,7 +7,7 @@ import { z } from 'zod';
 import {
   authorsInputSchema,
   guessChatroomFromAuthorsMethod,
-} from '@/server/api/routers/messaging/procedures/guessChatroomFromAuthors';
+} from '@/server/api/routers/chatroom/procedures/guessChatroomFromAuthors';
 import {
   ChatroomType,
   MessageStatus,

@@ -27,7 +27,7 @@ export const MainChatWrapper = ({
 };
 
 const MainContent = ({ chatroomId }: { chatroomId: string }) => {
-  const chatroomDetail = api.messaging.getChatroom.useQuery({
+  const chatroomDetail = api.chatroom.getChatroom.useQuery({
     chatroomId: chatroomId,
   });
 
@@ -42,7 +42,10 @@ const MainContent = ({ chatroomId }: { chatroomId: string }) => {
       return null;
     }
 
-    router.push(`/${chatroomId}/${chatroomDetail.data.branches[0].id}`);
+    const branchId = chatroomDetail.data.branches[0]?.id;
+    if (branchId) {
+      router.push(`/${chatroomId}/${branchId}`);
+    }
     return null;
   }
 
@@ -54,7 +57,7 @@ const MainContent = ({ chatroomId }: { chatroomId: string }) => {
 };
 
 const TopControls = ({ chatroomId }: { chatroomId: string }) => {
-  const chatroomDetail = api.messaging.getChatroom.useQuery({
+  const chatroomDetail = api.chatroom.getChatroom.useQuery({
     chatroomId: chatroomId,
   });
 

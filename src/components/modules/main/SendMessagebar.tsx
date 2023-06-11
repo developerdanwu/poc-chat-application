@@ -22,7 +22,7 @@ const SendMessagebar = ({
   chatWindowRef: RefObject<ChatWindowRef>;
 }) => {
   const trpcUtils = api.useContext();
-  const ownAuthor = api.messaging.getOwnAuthor.useQuery();
+  const ownAuthor = api.chatroom.getOwnAuthor.useQuery();
   const chatFormRef = useRef<HTMLFormElement>(null);
   const chatForm = useForm({
     resolver: zodResolver(

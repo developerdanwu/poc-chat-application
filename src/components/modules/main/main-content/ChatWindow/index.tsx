@@ -34,7 +34,7 @@ const ChatWindow = forwardRef<
   const { filterAuthedUserFromChatroomAuthors } = useApiTransformUtils();
   const { messages, formattedMessages } = useChatroomMessages({ chatroomId });
   const user = useUser();
-  const chatroomDetails = api.messaging.getChatroom.useQuery({
+  const chatroomDetails = api.chatroom.getChatroom.useQuery({
     chatroomId: chatroomId,
   });
   //@ts-expect-error unknown type error
@@ -48,7 +48,7 @@ const ChatWindow = forwardRef<
   });
 
   const authorsHashmap = chatroomDetails.data?.authors.reduce<
-    Record<string, RouterOutput['messaging']['getChatroom']['authors'][number]>
+    Record<string, RouterOutput['chatroom']['getChatroom']['authors'][number]>
   >((prevVal, author) => {
     prevVal[author.author_id] = author;
     return prevVal;

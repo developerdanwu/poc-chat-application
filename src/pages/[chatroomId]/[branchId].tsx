@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type RefObject, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import ChatSidebar from '@/components/modules/left-sidebar/ChatSidebar';
 import { MainChatWrapper } from '@/pages/[chatroomId]/index';
@@ -10,7 +10,10 @@ import {
   ChatNameBar,
 } from '@/components/modules/main/top-controls/actions';
 import { useRouter } from 'next/router';
-import ChatWindow from '@/components/modules/main/main-content/ChatWindow';
+import ChatWindow, {
+  type ChatWindowRef,
+} from '@/components/modules/main/main-content/ChatWindow';
+import SendMessagebar from '@/components/modules/main/SendMessagebar';
 
 const TopControls = ({
   chatroomId,
@@ -19,7 +22,7 @@ const TopControls = ({
   chatroomId: string;
   branchId: string;
 }) => {
-  const chatroomDetail = api.messaging.getChatroom.useQuery({
+  const chatroomDetail = api.chatroom.getChatroom.useQuery({
     chatroomId: chatroomId,
   });
 
@@ -42,8 +45,14 @@ const TopControls = ({
   throw new Error('Unknown chatroom type for ChatTopControls');
 };
 
-const MainContent = ({ chatroomId }: { chatroomId: string }) => {
-  const chatroomDetail = api.messaging.getChatroom.useQuery({
+const MainContent = ({
+  chatroomId,
+  chatWindowRef,
+}: {
+  chatroomId: string;
+  chatWindowRef: RefObject<ChatWindowRef>;
+}) => {
+  const chatroomDetail = api.chatroom.getChatroom.useQuery({
     chatroomId: chatroomId,
   });
 
@@ -52,7 +61,7 @@ const MainContent = ({ chatroomId }: { chatroomId: string }) => {
   }
 
   if (chatroomDetail.data.type === ChatroomType.CHATROOM_BRANCH) {
-    return <ChatWindow chatroomId={chatroomId} />;
+    return <ChatWindow ref={chatWindowRef} chatroomId={chatroomId} />;
   }
 
   throw new Error('unknown chatroom type');
@@ -60,6 +69,7 @@ const MainContent = ({ chatroomId }: { chatroomId: string }) => {
 
 const ChatroomBranch: NextPageWithLayout = () => {
   const router = useRouter();
+  const chatWindowRef = useRef<ChatWindowRef>(null);
   const chatroomId =
     typeof router.query.chatroomId === 'string'
       ? router.query.chatroomId
@@ -77,7 +87,8 @@ const ChatroomBranch: NextPageWithLayout = () => {
   return (
     <MainChatWrapper>
       <TopControls chatroomId={chatroomId} branchId={branchId} />
-      <MainContent chatroomId={branchId} />
+      <MainContent chatroomId={branchId} chatWindowRef={chatWindowRef} />
+      <SendMessagebar chatroomId={branchId} chatWindowRef={chatWindowRef} />
     </MainChatWrapper>
   );
 };

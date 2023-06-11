@@ -52,11 +52,11 @@ const NewMessage: NextPageWithLayout = () => {
   const chatWindowRef = useRef<ChatWindowRef>(null);
   const chatFormRef = useRef<HTMLFormElement>(null);
   const guessChatroomFromAuthors =
-    api.messaging.guessChatroomFromAuthors.useQuery({
+    api.chatroom.guessChatroomFromAuthors.useQuery({
       authors: watchedAuthors,
     });
   const trpcUtils = api.useContext();
-  const startNewChat = api.messaging.startNewChat.useMutation({
+  const startNewChat = api.chatroom.startNewChat.useMutation({
     onMutate: () => {
       newMessageForm.reset();
     },
@@ -64,8 +64,8 @@ const NewMessage: NextPageWithLayout = () => {
       trpcUtils.messaging.getMessages.invalidate({
         chatroomId: data.id,
       });
-      trpcUtils.messaging.getAllHumanAuthors.invalidate();
-      trpcUtils.messaging.getChatrooms.invalidate();
+      trpcUtils.chatroom.getAllHumanAuthors.invalidate();
+      trpcUtils.chatroom.getChatrooms.invalidate();
       return router.push(`/${data.id}`);
       // trpcUtils.messaging.getMessages.reset();
       // trpcUtils.messaging.getMessages.setInfiniteData(
