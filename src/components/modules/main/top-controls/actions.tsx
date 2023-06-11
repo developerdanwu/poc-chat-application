@@ -8,15 +8,21 @@ import { notEmpty } from '@/lib/ts-utils';
 import { type RouterOutput } from '@/server/api/root';
 
 export const ChatBranches = ({
+  currentBranchId,
   branches,
 }: {
+  currentBranchId: string;
   branches: RouterOutput['messaging']['getChatroom']['branches'];
 }) => {
   return (
-    <Tabs className="w-full">
+    <Tabs value={currentBranchId} className="w-full">
       <TabsList className="w-full justify-start rounded-none">
         {branches.map((branch) => (
-          <TabsTrigger key={branch.id} className="flex space-x-2" value="hello">
+          <TabsTrigger
+            key={branch.id}
+            className="flex space-x-2"
+            value={branch.id}
+          >
             <p>{branch.id}</p>
             <XIcon size={12} />
           </TabsTrigger>

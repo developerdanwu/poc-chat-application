@@ -31,11 +31,18 @@ const MainContent = ({ chatroomId }: { chatroomId: string }) => {
     chatroomId: chatroomId,
   });
 
+  const router = useRouter();
+
   if (!chatroomDetail.data) {
     return null;
   }
 
   if (chatroomDetail.data.type === ChatroomType.AI_CHATROOM) {
+    if (chatroomDetail.data.branches.length === 0) {
+      return null;
+    }
+
+    router.push(`/${chatroomId}/${chatroomDetail.data.branches[0].id}`);
     return null;
   }
 
@@ -59,7 +66,10 @@ const TopControls = ({ chatroomId }: { chatroomId: string }) => {
     return (
       <>
         <ChatNameBar chatroomId={chatroomId} />
-        <ChatBranches branches={chatroomDetail.data.branches} />
+        <ChatBranches
+          currentBranchId=""
+          branches={chatroomDetail.data.branches}
+        />
       </>
     );
   }
