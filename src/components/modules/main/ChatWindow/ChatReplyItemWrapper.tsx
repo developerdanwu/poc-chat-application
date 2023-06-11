@@ -66,7 +66,9 @@ const ChatReplyItemWrapper = ({
   return (
     <div
       data-communicator={communicator}
-      className={cn('group relative flex space-x-3 py-2 px-6')}
+      className={cn(
+        'group relative flex space-x-3 py-2 px-6 hover:bg-slate-50'
+      )}
     >
       <ChatReplyAvatar
         isLastMessageSenderEqualToCurrentMessageSender={

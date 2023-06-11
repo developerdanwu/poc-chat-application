@@ -2,7 +2,7 @@ import { protectedProcedure } from '@/server/api/trpc';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { sql } from 'kysely';
-import { jsonObjectFrom } from 'kysely/helpers/postgres';
+import { jsonArrayFrom, jsonObjectFrom } from 'kysely/helpers/postgres';
 
 const getChatroom = protectedProcedure
   .input(
@@ -37,6 +37,14 @@ const getChatroom = protectedProcedure
                 cmpr('ai_settings.chatroom_id', '=', input.chatroomId)
               )
           ).as('ai_settings'),
+          jsonArrayFrom(
+            eb
+              .selectFrom('chatroom as branch')
+              .selectAll()
+              .where(({ cmpr }) =>
+                cmpr('branch.chatroom_branch_id', '=', input.chatroomId)
+              )
+          ).as('branches'),
           'chatroom.type',
           'chatroom.subtype',
         ])
