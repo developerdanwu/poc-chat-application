@@ -12,7 +12,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/elements/collapsible';
-import ThreadListItem from '@/components/modules/main/ThreadListItem';
+import ThreadListItem from '@/components/modules/left-sidebar/ThreadListItem';
 import { notEmpty } from '@/lib/ts-utils';
 import { AiModelsSection } from '@/components/modules/left-sidebar/sections';
 

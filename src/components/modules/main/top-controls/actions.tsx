@@ -5,19 +5,22 @@ import { Separator } from '@/components/elements/separator';
 import { api } from '@/lib/api';
 import { useApiTransformUtils } from '@/lib/utils';
 import { notEmpty } from '@/lib/ts-utils';
+import { type RouterOutput } from '@/server/api/root';
 
-export const ChatBranches = () => {
+export const ChatBranches = ({
+  branches,
+}: {
+  branches: RouterOutput['messaging']['getChatroom']['branches'];
+}) => {
   return (
     <Tabs className="w-full">
       <TabsList className="w-full justify-start rounded-none">
-        <TabsTrigger className="flex space-x-2" value="hello">
-          <p>Tab1</p>
-          <XIcon size={12} />
-        </TabsTrigger>
-        <TabsTrigger className="flex space-x-2" value="bye">
-          <p>Tab1</p>
-          <XIcon size={12} />
-        </TabsTrigger>
+        {branches.map((branch) => (
+          <TabsTrigger key={branch.id} className="flex space-x-2" value="hello">
+            <p>{branch.id}</p>
+            <XIcon size={12} />
+          </TabsTrigger>
+        ))}
         <Separator className="h-5" orientation="vertical" />
         <IconButton size="sm" variant="ghost">
           <PlusIcon size={16} />

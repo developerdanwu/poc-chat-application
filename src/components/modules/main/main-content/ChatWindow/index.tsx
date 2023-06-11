@@ -5,15 +5,17 @@ import dayjs from 'dayjs';
 import { cn, useApiTransformUtils } from '@/lib/utils';
 import { type RouterOutput } from '@/server/api/root';
 import InfiniteScroll from 'react-infinite-scroller';
-import ChatReplyItem from '@/components/modules/main/ChatReplyItem';
 import { useUser } from '@clerk/nextjs';
-import ChatReplyItemWrapper from '@/components/modules/main/ChatWindow/ChatReplyItemWrapper';
 import RadialProgress from '@/components/elements/RadialProgress';
-import StartOfDirectMessage from '@/components/modules/main/ChatWindow/StartOfDirectMessage';
+import StartOfDirectMessage from '@/components/modules/main/main-content/ChatWindow/StartOfDirectMessage';
 import {
   useChatroomMessages,
   useMessageUpdate,
-} from '@/components/modules/main/ChatWindow/hooks';
+} from '@/components/modules/main/main-content/ChatWindow/hooks';
+import {
+  ChatReplyItem,
+  ChatReplyItemWrapper,
+} from '@/components/modules/main/main-content/ChatWindow/chat-reply-item';
 
 export type ChatWindowRef = {
   scrollToBottom: () => void;

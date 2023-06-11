@@ -12,7 +12,7 @@ import { type InfiniteData } from '@tanstack/react-query';
 import { type RouterOutput } from '@/server/api/root';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
-import { type ChatWindowRef } from '@/components/modules/main/ChatWindow';
+import { type ChatWindowRef } from '@/components/modules/main/main-content/ChatWindow';
 
 const SendMessagebar = ({
   chatroomId,

@@ -6,7 +6,7 @@ import { MainChatWrapper } from '@/pages/[chatroomId]';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
-import AuthorsAutocomplete from '@/components/modules/main/AuthorsAutocomplete';
+import AuthorsAutocomplete from '@/components/modules/main/top-controls/AuthorsAutocomplete';
 import { api } from '@/lib/api';
 import { useRouter } from 'next/router';
 import HookFormTiptapEditor from '@/components/modules/TextEditor/HookFormTiptapEditor';
@@ -14,10 +14,10 @@ import { EditorContent } from '@tiptap/react';
 import EditorMenuBar from '@/components/modules/TextEditor/EditorMenuBar';
 import ChatWindow, {
   type ChatWindowRef,
-} from '@/components/modules/main/ChatWindow';
+} from '@/components/modules/main/main-content/ChatWindow';
 import ScrollArea from '@/components/elements/ScrollArea';
 import { Extension } from '@tiptap/core';
-import StartOfDirectMessage from '@/components/modules/main/ChatWindow/StartOfDirectMessage';
+import StartOfDirectMessage from '@/components/modules/main/main-content/ChatWindow/StartOfDirectMessage';
 import { ChatroomType, Role } from '@prisma-generated/generated/types';
 
 const newMessageSchema = z.object({
