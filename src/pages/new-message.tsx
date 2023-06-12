@@ -1,23 +1,23 @@
 import React, { useMemo, useRef } from 'react';
 import { cn } from '@/lib/utils';
-import ChatSidebar from '@/components/modules/left-sidebar/ChatSidebar';
+import ChatSidebar from '@/pages/[chatroomId]/_components/left-sidebar/ChatSidebar';
 import { type NextPageWithLayout } from '@/pages/_app';
 import { MainChatWrapper } from '@/pages/[chatroomId]';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
-import AuthorsAutocomplete from '@/components/modules/main/top-controls/AuthorsAutocomplete';
+import AuthorsAutocomplete from '@/pages/[chatroomId]/_components/main/top-controls/AuthorsAutocomplete';
 import { api } from '@/lib/api';
 import { useRouter } from 'next/router';
-import HookFormTiptapEditor from '@/components/modules/TextEditor/HookFormTiptapEditor';
+import HookFormTiptapEditor from '@/components/elements/text-editor/HookFormTiptapEditor';
 import { EditorContent } from '@tiptap/react';
-import EditorMenuBar from '@/components/modules/TextEditor/EditorMenuBar';
+import EditorMenuBar from '@/components/elements/text-editor/EditorMenuBar';
 import ChatWindow, {
   type ChatWindowRef,
-} from '@/components/modules/main/main-content/ChatWindow';
+} from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow';
 import ScrollArea from '@/components/elements/ScrollArea';
 import { Extension } from '@tiptap/core';
-import StartOfDirectMessage from '@/components/modules/main/main-content/ChatWindow/StartOfDirectMessage';
+import StartOfDirectMessage from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/StartOfDirectMessage';
 import { ChatroomType, Role } from '@prisma-generated/generated/types';
 
 const newMessageSchema = z.object({

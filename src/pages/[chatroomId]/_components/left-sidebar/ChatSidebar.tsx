@@ -12,9 +12,9 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/elements/collapsible';
-import ThreadListItem from '@/components/modules/left-sidebar/ThreadListItem';
+import ThreadListItem from '@/pages/[chatroomId]/_components/left-sidebar/ThreadListItem';
 import { notEmpty } from '@/lib/ts-utils';
-import { AiModelsSection } from '@/components/modules/left-sidebar/sections';
+import { AiModelsSection } from '@/pages/[chatroomId]/_components/left-sidebar/sections';
 
 const ChatSidebar = () => {
   const router = useRouter();

@@ -4,7 +4,7 @@ import {
   TiptapCodeBlockLight,
   TipTapParagraph,
   TipTapStarterKit,
-} from '@/components/modules/TextEditor/extensions';
+} from '@/components/elements/text-editor/extensions';
 
 export type TiptapEditorWrapperProps = {
   children: (editor: Editor) => JSX.Element;

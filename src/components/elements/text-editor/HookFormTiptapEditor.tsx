@@ -3,7 +3,7 @@ import { type Editor } from '@tiptap/react';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
 import TiptapEditorWrapper, {
   type TiptapEditorWrapperProps,
-} from '@/components/modules/TextEditor/TiptapEditorWrapper';
+} from '@/components/elements/text-editor/TiptapEditorWrapper';
 import { safeJSONParse } from '@/lib/utils';
 
 const TiptapEditorContent = ({

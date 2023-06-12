@@ -1,6 +1,6 @@
 import React, { type RefObject, useRef } from 'react';
 import { cn } from '@/lib/utils';
-import ChatSidebar from '@/components/modules/left-sidebar/ChatSidebar';
+import ChatSidebar from '@/pages/[chatroomId]/_components/left-sidebar/ChatSidebar';
 import { MainChatWrapper } from '@/pages/[chatroomId]/index';
 import { type NextPageWithLayout } from '@/pages/_app';
 import { api } from '@/lib/api';
@@ -8,12 +8,12 @@ import { ChatroomType } from '@prisma-generated/generated/types';
 import {
   ChatBranches,
   ChatNameBar,
-} from '@/components/modules/main/top-controls/actions';
+} from '@/pages/[chatroomId]/_components/main/top-controls/actions';
 import { useRouter } from 'next/router';
 import ChatWindow, {
   type ChatWindowRef,
-} from '@/components/modules/main/main-content/ChatWindow';
-import SendMessagebar from '@/components/modules/main/SendMessagebar';
+} from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow';
+import SendMessagebar from '@/pages/[chatroomId]/_components/main/SendMessagebar';
 
 const TopControls = ({
   chatroomId,
@@ -35,6 +35,7 @@ const TopControls = ({
       <>
         <ChatNameBar chatroomId={chatroomId} />
         <ChatBranches
+          chatroomId={chatroomId}
           currentBranchId={branchId}
           branches={chatroomDetail.data.branches}
         />

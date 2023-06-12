@@ -17,6 +17,11 @@ datasource db {
   // extensions   = [vector]
 }
 
+enum ChatroomStatus {
+  ACTIVE
+  DELETED
+}
+
 enum ChatroomSubtype {
   OPENAI_CHATROOM
   DEFAULT
@@ -152,6 +157,7 @@ model Chatroom {
   branches         Chatroom[]           @relation("ChatroomBranches")
   chatroom         Chatroom?            @relation("ChatroomBranches", fields: [chatroomBranchId], references: [id])
   chatroomBranchId String?              @map("chatroom_branch_id")
+  status           ChatroomStatus       @default(ACTIVE) @map("status")
 
   @@map("chatroom")
 }

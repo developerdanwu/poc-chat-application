@@ -7,15 +7,15 @@ import { type RouterOutput } from '@/server/api/root';
 import InfiniteScroll from 'react-infinite-scroller';
 import { useUser } from '@clerk/nextjs';
 import RadialProgress from '@/components/elements/RadialProgress';
-import StartOfDirectMessage from '@/components/modules/main/main-content/ChatWindow/StartOfDirectMessage';
+import StartOfDirectMessage from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/StartOfDirectMessage';
 import {
   useChatroomMessages,
   useMessageUpdate,
-} from '@/components/modules/main/main-content/ChatWindow/hooks';
+} from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/hooks';
 import {
   ChatReplyItem,
   ChatReplyItemWrapper,
-} from '@/components/modules/main/main-content/ChatWindow/chat-reply-item';
+} from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/chat-reply-item';
 
 export type ChatWindowRef = {
   scrollToBottom: () => void;

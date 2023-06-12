@@ -1,6 +1,6 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
-import ChatSidebar from '@/components/modules/left-sidebar/ChatSidebar';
+import ChatSidebar from '@/pages/[chatroomId]/_components/left-sidebar/ChatSidebar';
 import { type NextPageWithLayout } from '@/pages/_app';
 
 const Home: NextPageWithLayout = () => {

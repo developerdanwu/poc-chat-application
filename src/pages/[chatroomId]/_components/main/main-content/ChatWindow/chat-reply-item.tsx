@@ -5,9 +5,9 @@ import { FormProvider, useForm } from 'react-hook-form';
 import produce from 'immer';
 import { type InfiniteData } from '@tanstack/react-query';
 import { type RouterOutput } from '@/server/api/root';
-import HookFormTiptapEditor from '@/components/modules/TextEditor/HookFormTiptapEditor';
+import HookFormTiptapEditor from '@/components/elements/text-editor/HookFormTiptapEditor';
 import { cn, safeJSONParse, useApiTransformUtils } from '@/lib/utils';
-import EditorMenuBar from '@/components/modules/TextEditor/EditorMenuBar';
+import EditorMenuBar from '@/components/elements/text-editor/EditorMenuBar';
 import { EditorContent, useEditor } from '@tiptap/react';
 import {
   Avatar,
@@ -20,8 +20,8 @@ import {
   TiptapCodeBlockLight,
   TipTapParagraph,
   TipTapStarterKit,
-} from '@/components/modules/TextEditor/extensions';
-import TiptapEditorWrapper from '@/components/modules/TextEditor/TiptapEditorWrapper';
+} from '@/components/elements/text-editor/extensions';
+import TiptapEditorWrapper from '@/components/elements/text-editor/TiptapEditorWrapper';
 
 const EditableWrapper = ({
   children,

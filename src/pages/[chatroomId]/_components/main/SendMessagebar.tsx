@@ -1,8 +1,8 @@
 import React, { type RefObject, useMemo, useRef } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import HookFormTiptapEditor from '@/components/modules/TextEditor/HookFormTiptapEditor';
+import HookFormTiptapEditor from '@/components/elements/text-editor/HookFormTiptapEditor';
 import { cn } from '@/lib/utils';
-import EditorMenuBar from '@/components/modules/TextEditor/EditorMenuBar';
+import EditorMenuBar from '@/components/elements/text-editor/EditorMenuBar';
 import { EditorContent } from '@tiptap/react';
 import { Extension } from '@tiptap/core';
 import { api } from '@/lib/api';
@@ -12,7 +12,7 @@ import { type InfiniteData } from '@tanstack/react-query';
 import { type RouterOutput } from '@/server/api/root';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
-import { type ChatWindowRef } from '@/components/modules/main/main-content/ChatWindow';
+import { type ChatWindowRef } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow';
 
 const SendMessagebar = ({
   chatroomId,

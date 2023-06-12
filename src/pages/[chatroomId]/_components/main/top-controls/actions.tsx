@@ -6,16 +6,47 @@ import { api } from '@/lib/api';
 import { useApiTransformUtils } from '@/lib/utils';
 import { notEmpty } from '@/lib/ts-utils';
 import { type RouterOutput } from '@/server/api/root';
+import { useRouter } from 'next/router';
+import { forwardRef } from 'react';
+
+const BranchSwitcher = forwardRef(function BranchSwitcher() {
+  return null;
+});
 
 export const ChatBranches = ({
+  chatroomId,
   currentBranchId,
   branches,
 }: {
+  chatroomId: string;
   currentBranchId: string;
   branches: RouterOutput['chatroom']['getChatroom']['branches'];
 }) => {
+  const router = useRouter();
+  const trpcUtils = api.useContext();
+  const createNewChatroomBranch = api.chatroom.createNewChatBranch.useMutation({
+    onSuccess: (data) => {
+      router.push(`/${chatroomId}/${data.id}`);
+      trpcUtils.chatroom.getChatroom.invalidate({
+        chatroomId,
+      });
+    },
+  });
+  const deleteChatroomBranch = api.chatroom.deleteChatroomSoft.useMutation({
+    onSuccess: () => {
+      trpcUtils.chatroom.getChatroom.invalidate({
+        chatroomId,
+      });
+    },
+  });
   return (
-    <Tabs value={currentBranchId} className="w-full">
+    <Tabs
+      value={currentBranchId}
+      onValueChange={(value) => {
+        router.push(`/${chatroomId}/${value}`);
+      }}
+      className="w-full"
+    >
       <TabsList className="w-full justify-start rounded-none">
         {branches.map((branch) => (
           <TabsTrigger
@@ -24,11 +55,31 @@ export const ChatBranches = ({
             value={branch.id}
           >
             <p>{branch.id}</p>
-            <XIcon size={12} />
+            <IconButton
+              onClick={() => {
+                deleteChatroomBranch.mutate({
+                  chatroomId: branch.id,
+                });
+              }}
+              size="sm"
+              variant="ghost"
+            >
+              <XIcon size={12} />
+            </IconButton>
           </TabsTrigger>
         ))}
         <Separator className="h-5" orientation="vertical" />
-        <IconButton size="sm" variant="ghost">
+        <IconButton
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            createNewChatroomBranch.mutate({
+              chatroomId,
+            });
+          }}
+          size="sm"
+          variant="ghost"
+        >
           <PlusIcon size={16} />
         </IconButton>
       </TabsList>

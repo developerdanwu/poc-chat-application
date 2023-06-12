@@ -29,7 +29,7 @@ import { api } from '@/lib/api';
 import { AiModel } from '@prisma-generated/generated/types';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import ThreadListItem from '@/components/modules/left-sidebar/ThreadListItem';
+import ThreadListItem from '@/pages/[chatroomId]/_components/left-sidebar/ThreadListItem';
 import { notEmpty } from '@/lib/ts-utils';
 
 const AI_MODELS = [

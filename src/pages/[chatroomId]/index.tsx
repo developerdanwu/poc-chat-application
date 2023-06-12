@@ -1,18 +1,18 @@
 import { type NextPageWithLayout } from '@/pages/_app';
 import { cn } from '@/lib/utils';
-import ChatSidebar from '@/components/modules/left-sidebar/ChatSidebar';
+import ChatSidebar from '@/pages/[chatroomId]/_components/left-sidebar/ChatSidebar';
 import React, { useRef } from 'react';
 import { useRouter } from 'next/router';
 import ChatWindow, {
   type ChatWindowRef,
-} from '@/components/modules/main/main-content/ChatWindow';
-import SendMessagebar from '@/components/modules/main/SendMessagebar';
+} from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow';
+import SendMessagebar from '@/pages/[chatroomId]/_components/main/SendMessagebar';
 import { api } from '@/lib/api';
 import { ChatroomType } from '@prisma-generated/generated/types';
 import {
   ChatBranches,
   ChatNameBar,
-} from '@/components/modules/main/top-controls/actions';
+} from '@/pages/[chatroomId]/_components/main/top-controls/actions';
 
 export const MainChatWrapper = ({
   children,
