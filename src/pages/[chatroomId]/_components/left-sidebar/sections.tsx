@@ -63,7 +63,7 @@ export const AiModelsSection = () => {
       <Collapsible defaultOpen={true}>
         <div className="flex justify-between px-3">
           <div className="flex items-center space-x-2 ">
-            <CollapsibleTrigger>
+            <CollapsibleTrigger asChild>
               <IconButton
                 variant="ghost"
                 size="sm"
@@ -75,7 +75,7 @@ export const AiModelsSection = () => {
             <div className="text-body text-slate-400">AI models</div>
           </div>
           <Popover open={open} onOpenChange={(value) => setOpen(value)}>
-            <PopoverTrigger>
+            <PopoverTrigger asChild>
               <IconButton
                 className="text-slate-400 hover:bg-slate-700 hover:text-slate-400"
                 variant="ghost"

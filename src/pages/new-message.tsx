@@ -1,8 +1,6 @@
 import React, { useMemo, useRef } from 'react';
 import { cn } from '@/lib/utils';
-import ChatSidebar from '@/pages/[chatroomId]/_components/left-sidebar/ChatSidebar';
 import { type NextPageWithLayout } from '@/pages/_app';
-import { MainChatWrapper } from '@/pages/[chatroomId]';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
@@ -19,6 +17,7 @@ import ScrollArea from '@/components/elements/ScrollArea';
 import { Extension } from '@tiptap/core';
 import StartOfDirectMessage from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/StartOfDirectMessage';
 import { ChatroomType, Role } from '@prisma-generated/generated/types';
+import MainChatLayout from '@/pages/[chatroomId]/_components/MainChatLayout';
 
 const newMessageSchema = z.object({
   authors: z.array(
@@ -216,18 +215,7 @@ const NewMessage: NextPageWithLayout = () => {
 };
 
 NewMessage.getLayout = function getLayout(page) {
-  return (
-    <div
-      className={cn(
-        'bg-warm-gray-50 flex h-screen w-screen flex-row items-center  justify-center'
-      )}
-    >
-      <div className={cn('flex h-full w-full flex-row')}>
-        <ChatSidebar />
-        <MainChatWrapper>{page}</MainChatWrapper>
-      </div>
-    </div>
-  );
+  return <MainChatLayout>{page}</MainChatLayout>;
 };
 
 export default NewMessage;

@@ -96,7 +96,7 @@ export const guessChatroomFromAuthorsMethod = async ({
     )
     .executeTakeFirst();
 
-  return chatroom;
+  return chatroom || null;
 };
 
 const guessChatroomFromAuthors = protectedProcedure

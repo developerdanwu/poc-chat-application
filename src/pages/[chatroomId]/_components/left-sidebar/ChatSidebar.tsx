@@ -47,7 +47,7 @@ const ChatSidebar = () => {
         )}
       >
         <div className="text-h4 text-white">{user.user?.firstName}</div>
-        <Link href="/src/pages/new-message">
+        <Link href="/new-message">
           <IconButton variant="white" className="rounded-full">
             <PencilIcon size={16} />
           </IconButton>
@@ -58,7 +58,7 @@ const ChatSidebar = () => {
         <AiModelsSection />
         <Collapsible defaultOpen={true}>
           <div className="flex items-center space-x-2 pl-3">
-            <CollapsibleTrigger>
+            <CollapsibleTrigger asChild>
               <IconButton
                 variant="ghost"
                 size="sm"
