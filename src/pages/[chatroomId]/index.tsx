@@ -1,7 +1,5 @@
 import { type NextPageWithLayout } from '@/pages/_app';
-import { cn } from '@/lib/utils';
-import ChatSidebar from '@/pages/[chatroomId]/_components/left-sidebar/ChatSidebar';
-import React, { Suspense, useRef } from 'react';
+import React, { useRef } from 'react';
 import { useRouter } from 'next/router';
 import ChatWindow, {
   ChatWindowLoading,
@@ -14,7 +12,7 @@ import {
   ChatBranches,
   ChatNameBar,
 } from '@/pages/[chatroomId]/_components/main/top-controls/actions';
-import MainContentLoading from '@/pages/[chatroomId]/_components/main/MainContentLoading';
+import MainChatLayout from '@/pages/[chatroomId]/_components/MainChatLayout';
 
 export const MainChatWrapper = ({
   children,
@@ -113,20 +111,7 @@ const ChatroomId: NextPageWithLayout = () => {
 };
 
 ChatroomId.getLayout = function getLayout(page) {
-  return (
-    <div
-      className={cn(
-        'bg-warm-gray-50 flex h-screen w-screen flex-row items-center  justify-center'
-      )}
-    >
-      <div className={cn('flex h-full w-full flex-row')}>
-        <ChatSidebar />
-        <MainChatWrapper>
-          <Suspense fallback={<MainContentLoading />}>{page}</Suspense>
-        </MainChatWrapper>
-      </div>
-    </div>
-  );
+  return <MainChatLayout>{page}</MainChatLayout>;
 };
 
 export default ChatroomId;

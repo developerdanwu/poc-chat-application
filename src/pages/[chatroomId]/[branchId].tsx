@@ -1,7 +1,4 @@
-import React, { type RefObject, Suspense, useRef } from 'react';
-import { cn } from '@/lib/utils';
-import ChatSidebar from '@/pages/[chatroomId]/_components/left-sidebar/ChatSidebar';
-import { MainChatWrapper } from '@/pages/[chatroomId]/index';
+import React, { type RefObject, useRef } from 'react';
 import { type NextPageWithLayout } from '@/pages/_app';
 import { api } from '@/lib/api';
 import { ChatroomType } from '@prisma-generated/generated/types';
@@ -15,7 +12,7 @@ import ChatWindow, {
   type ChatWindowRef,
 } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow';
 import SendMessagebar from '@/pages/[chatroomId]/_components/main/SendMessagebar';
-import MainContentLoading from '@/pages/[chatroomId]/_components/main/MainContentLoading';
+import MainChatLayout from '@/pages/[chatroomId]/_components/MainChatLayout';
 
 const TopControls = ({
   chatroomId,
@@ -99,18 +96,5 @@ const ChatroomBranch: NextPageWithLayout = () => {
 export default ChatroomBranch;
 
 ChatroomBranch.getLayout = function getLayout(page) {
-  return (
-    <div
-      className={cn(
-        'bg-warm-gray-50 flex h-screen w-screen flex-row items-center  justify-center'
-      )}
-    >
-      <div className={cn('flex h-full w-full flex-row')}>
-        <ChatSidebar />
-        <MainChatWrapper>
-          <Suspense fallback={<MainContentLoading />}>{page}</Suspense>
-        </MainChatWrapper>
-      </div>
-    </div>
-  );
+  return <MainChatLayout>{page}</MainChatLayout>;
 };
