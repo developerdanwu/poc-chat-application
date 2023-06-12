@@ -22,6 +22,17 @@ export type ChatWindowRef = {
   scrollAreaRef: HTMLDivElement;
 };
 
+export const ChatWindowLoading = () => {
+  return (
+    <div className="flex w-full flex-[1_0_0] flex-col">
+      <div className="flex-[1_1_0]" />
+      <div className="flex justify-center py-2">
+        <RadialProgress />
+      </div>
+    </div>
+  );
+};
+
 const ChatWindow = forwardRef<
   ChatWindowRef,
   {

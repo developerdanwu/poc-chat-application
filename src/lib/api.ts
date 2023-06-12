@@ -22,6 +22,13 @@ export const api = createTRPCNext<AppRouter>({
   abortOnUnmount: true,
   config({ ctx }) {
     return {
+      queryClientConfig: {
+        defaultOptions: {
+          queries: {
+            suspense: true,
+          },
+        },
+      },
       /**
        * Transformer used for data de-serialization from the server.
        *

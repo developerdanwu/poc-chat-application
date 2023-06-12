@@ -1,4 +1,4 @@
-import React, { type RefObject, useRef } from 'react';
+import React, { type RefObject, Suspense, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import ChatSidebar from '@/pages/[chatroomId]/_components/left-sidebar/ChatSidebar';
 import { MainChatWrapper } from '@/pages/[chatroomId]/index';
@@ -11,9 +11,11 @@ import {
 } from '@/pages/[chatroomId]/_components/main/top-controls/actions';
 import { useRouter } from 'next/router';
 import ChatWindow, {
+  ChatWindowLoading,
   type ChatWindowRef,
 } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow';
 import SendMessagebar from '@/pages/[chatroomId]/_components/main/SendMessagebar';
+import MainContentLoading from '@/pages/[chatroomId]/_components/main/MainContentLoading';
 
 const TopControls = ({
   chatroomId,
@@ -58,7 +60,7 @@ const MainContent = ({
   });
 
   if (!chatroomDetail.data) {
-    return null;
+    return <ChatWindowLoading />;
   }
 
   if (chatroomDetail.data.type === ChatroomType.CHATROOM_BRANCH) {
@@ -86,11 +88,11 @@ const ChatroomBranch: NextPageWithLayout = () => {
   }
 
   return (
-    <MainChatWrapper>
+    <>
       <TopControls chatroomId={chatroomId} branchId={branchId} />
       <MainContent chatroomId={branchId} chatWindowRef={chatWindowRef} />
       <SendMessagebar chatroomId={branchId} chatWindowRef={chatWindowRef} />
-    </MainChatWrapper>
+    </>
   );
 };
 
@@ -105,7 +107,9 @@ ChatroomBranch.getLayout = function getLayout(page) {
     >
       <div className={cn('flex h-full w-full flex-row')}>
         <ChatSidebar />
-        <MainChatWrapper>{page}</MainChatWrapper>
+        <MainChatWrapper>
+          <Suspense fallback={<MainContentLoading />}>{page}</Suspense>
+        </MainChatWrapper>
       </div>
     </div>
   );

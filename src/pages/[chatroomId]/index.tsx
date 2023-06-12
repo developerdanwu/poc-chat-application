@@ -1,9 +1,10 @@
 import { type NextPageWithLayout } from '@/pages/_app';
 import { cn } from '@/lib/utils';
 import ChatSidebar from '@/pages/[chatroomId]/_components/left-sidebar/ChatSidebar';
-import React, { useRef } from 'react';
+import React, { Suspense, useRef } from 'react';
 import { useRouter } from 'next/router';
 import ChatWindow, {
+  ChatWindowLoading,
   type ChatWindowRef,
 } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow';
 import SendMessagebar from '@/pages/[chatroomId]/_components/main/SendMessagebar';
@@ -13,6 +14,7 @@ import {
   ChatBranches,
   ChatNameBar,
 } from '@/pages/[chatroomId]/_components/main/top-controls/actions';
+import MainContentLoading from '@/pages/[chatroomId]/_components/main/MainContentLoading';
 
 export const MainChatWrapper = ({
   children,
@@ -46,7 +48,7 @@ const MainContent = ({ chatroomId }: { chatroomId: string }) => {
     if (branchId) {
       router.push(`/${chatroomId}/${branchId}`);
     }
-    return null;
+    return <ChatWindowLoading />;
   }
 
   if (chatroomDetail.data.type === ChatroomType.HUMAN_CHATROOM) {
@@ -70,6 +72,7 @@ const TopControls = ({ chatroomId }: { chatroomId: string }) => {
       <>
         <ChatNameBar chatroomId={chatroomId} />
         <ChatBranches
+          chatroomId={chatroomId}
           currentBranchId=""
           branches={chatroomDetail.data.branches}
         />
@@ -101,11 +104,11 @@ const ChatroomId: NextPageWithLayout = () => {
   }
 
   return (
-    <MainChatWrapper>
+    <>
       <TopControls chatroomId={chatroomId} />
       <MainContent chatroomId={chatroomId} />
       <SendMessagebar chatroomId={chatroomId} chatWindowRef={chatWindowRef} />
-    </MainChatWrapper>
+    </>
   );
 };
 
@@ -118,7 +121,9 @@ ChatroomId.getLayout = function getLayout(page) {
     >
       <div className={cn('flex h-full w-full flex-row')}>
         <ChatSidebar />
-        <MainChatWrapper>{page}</MainChatWrapper>
+        <MainChatWrapper>
+          <Suspense fallback={<MainContentLoading />}>{page}</Suspense>
+        </MainChatWrapper>
       </div>
     </div>
   );
