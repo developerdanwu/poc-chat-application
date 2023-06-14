@@ -2,7 +2,6 @@ import { protectedProcedure } from '@/server/api/trpc';
 import { ChatroomType } from '@prisma-generated/generated/types';
 import dayjs from 'dayjs';
 import { z } from 'zod';
-import { getChatroomMethod } from '@/server/api/routers/chatroom/procedures/getChatroom';
 import { TRPCError } from '@trpc/server';
 
 const createNewChatBranch = protectedProcedure
@@ -25,18 +24,19 @@ const createNewChatBranch = protectedProcedure
           .returning('chatroom.id')
           .executeTakeFirstOrThrow();
 
-        const parentChatroom = await getChatroomMethod({
-          input: {
-            chatroomId: input.chatroomId,
-          },
-          ctx,
-        });
+        const parentAuthors = await ctx.db
+          .selectFrom('_authors_on_chatrooms')
+          .selectAll()
+          .where(({ cmpr }) =>
+            cmpr('_authors_on_chatrooms.chatroom_id', '=', input.chatroomId)
+          )
+          .execute();
 
         // add authors to chatroom
         await trx
           .insertInto('_authors_on_chatrooms')
           .values([
-            ...parentChatroom.authors.map((author) => ({
+            ...parentAuthors.map((author) => ({
               author_id: author.author_id,
               chatroom_id: _newChatroom.id,
             })),
