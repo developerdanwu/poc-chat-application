@@ -161,3 +161,18 @@ model Chatroom {
 
   @@map("chatroom")
 }
+
+// Slack models
+model SlackChatroom {
+  id                  String         @id @map("id")
+  SlackMessage        SlackMessage[]
+  conversationSummary String         @db.Text
+}
+
+model SlackMessage {
+  id              Int                          @id @default(autoincrement()) @map("id")
+  slackChatroomId String                       @map("slack_chatroom_id")
+  slackChatroom   SlackChatroom                @relation(fields: [slackChatroomId], references: [id])
+  text            String                       @db.Text
+  embedding       Unsupported("vector(1536)")? @map("embedding")
+}

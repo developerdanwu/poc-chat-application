@@ -14,7 +14,9 @@ const server = z.object({
     DB_USERNAME: z.string(),
     DB_PASSWORD: z.string(),
     DB_HOST: z.string(),
-    DATABASE_URL_NON_POOLED: z.string()
+    DATABASE_URL_NON_POOLED: z.string(),
+    SLACK_BOT_TOKEN: z.string(),
+    SLACK_SIGNING_SECRET: z.string(),
 });
 
 /**
@@ -43,7 +45,9 @@ const processEnv = {
     DB_USERNAME: process.env.DB_USERNAME,
     DB_PASSWORD: process.env.DB_PASSWORD,
     DB_HOST: process.env.DB_HOST,
-    DATABASE_URL_NON_POOLED: process.env.DATABASE_URL_NON_POOLED
+    DATABASE_URL_NON_POOLED: process.env.DATABASE_URL_NON_POOLED,
+    SLACK_BOT_TOKEN: process.env.SLACK_BOT_TOKEN,
+    SLACK_SIGNING_SECRET: process.env.SLACK_SIGNING_SECRET,
 };
 
 // Don't touch the part below

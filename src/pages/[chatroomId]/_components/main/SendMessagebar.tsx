@@ -21,6 +21,11 @@ const SendMessagebar = ({
   chatroomId: string;
   chatWindowRef: RefObject<ChatWindowRef>;
 }) => {
+  const chatroomDetails = api.chatroom.getChatroom.useQuery({
+    chatroomId: chatroomId,
+  });
+  const sendMessageToAI = api.messaging.sendMessageOpenAI.useMutation();
+
   const trpcUtils = api.useContext();
   const ownAuthor = api.chatroom.getOwnAuthor.useQuery();
   const chatFormRef = useRef<HTMLFormElement>(null);

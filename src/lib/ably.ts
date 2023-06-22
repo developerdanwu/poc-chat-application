@@ -5,6 +5,10 @@ import produce from 'immer';
 import { Types } from 'ably';
 import PresenceMessage = Types.PresenceMessage;
 
+export const MESSAGE_STREAM_NAMES = {
+  openAiMessage: 'OPEN_AI_MESSAGE',
+} as const;
+
 export const ablyChannelKeyStore = {
   chatroom: (chatroomId: string) => `chatroom-${chatroomId}`,
   online: 'online',

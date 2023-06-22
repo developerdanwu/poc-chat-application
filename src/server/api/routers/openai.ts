@@ -9,7 +9,6 @@ const openaiApi = new ChatOpenAI({
   openAIApiKey: env.OPENAI_ACCESS_TOKEN,
   temperature: 0.9,
 });
-openaiApi.modelName;
 
 export const openai = createTRPCRouter({
   createPrompt: protectedProcedure.query(async () => {

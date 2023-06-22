@@ -1,7 +1,7 @@
 import React, { type RefObject, useRef } from 'react';
 import { type NextPageWithLayout } from '@/pages/_app';
 import { api } from '@/lib/api';
-import { ChatroomType } from '@prisma-generated/generated/types';
+import { ChatroomType, Role } from '@prisma-generated/generated/types';
 import {
   ChatBranches,
   ChatNameBar,
@@ -79,6 +79,15 @@ const ChatroomBranch: NextPageWithLayout = () => {
     typeof router.query.branchId === 'string'
       ? router.query.branchId
       : undefined;
+  const chatroomDetails = api.chatroom.getChatroom.useQuery({
+    chatroomId: chatroomId,
+  });
+  const sendMessageToAI = api.messaging.sendMessageOpenAI.useMutation();
+  const filteredChatroomUsers = chatroomDetails.data?.authors.filter(
+    (author) => author.role === Role.AI
+  );
+
+  console.log('FILT', filteredChatroomUsers);
 
   if (!chatroomId || !branchId) {
     return null;
@@ -86,6 +95,16 @@ const ChatroomBranch: NextPageWithLayout = () => {
 
   return (
     <>
+      <button
+        onClick={() => {
+          sendMessageToAI.mutate({
+            chatroomId: branchId,
+            authorId: filteredChatroomUsers[0]?.author_id,
+          });
+        }}
+      >
+        hellooo
+      </button>
       <TopControls chatroomId={chatroomId} branchId={branchId} />
       <MainContent chatroomId={branchId} chatWindowRef={chatWindowRef} />
       <SendMessagebar chatroomId={branchId} chatWindowRef={chatWindowRef} />

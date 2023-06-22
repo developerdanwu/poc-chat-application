@@ -3,7 +3,11 @@ import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { type Kysely, sql } from 'kysely';
 import { jsonArrayFrom, jsonObjectFrom } from 'kysely/helpers/postgres';
-import { ChatroomStatus, type DB } from '@prisma-generated/generated/types';
+import {
+  ChatroomStatus,
+  type DB,
+  type Role,
+} from '@prisma-generated/generated/types';
 import { type SignedInAuthObject } from '@clerk/backend';
 
 const chatroomInputSchema = z.object({
@@ -33,8 +37,9 @@ export const getChatroomMethod = async ({
           first_name: string;
           last_name: string;
           user_id: string;
+          role: (typeof Role)[keyof typeof Role];
         }[]
-      >`JSON_AGG(JSON_BUILD_OBJECT('author_id', author.author_id, 'first_name', author.first_name, 'last_name', author.last_name, 'user_id', author.user_id))`.as(
+      >`JSON_AGG(JSON_BUILD_OBJECT('author_id', author.author_id, 'first_name', author.first_name, 'last_name', author.last_name, 'user_id', author.user_id, 'role', author.role))`.as(
         'authors'
       ),
       jsonObjectFrom(
