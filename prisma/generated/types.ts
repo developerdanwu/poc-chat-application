@@ -107,12 +107,25 @@ export type OpenAiSettings = {
   id: Generated<number>;
   temperature: Generated<number | null>;
 };
+export type SlackChatroom = {
+  slack_chatroom_id: string;
+  conversationSummary: string;
+};
+export type SlackMessage = {
+  id: Generated<number>;
+  slack_chatroom_id: string;
+  text: string;
+  created_at: Generated<Timestamp>;
+  updated_at: Timestamp;
+};
 export type DB = {
   ai_settings: AiSettings;
-  Attachment: Attachment;
+  attachment: Attachment;
   author: Author;
   _authors_on_chatrooms: AuthorsOnChatrooms;
   chatroom: Chatroom;
   message: Message;
   open_ai_settings: OpenAiSettings;
+  slack_chatroom: SlackChatroom;
+  slack_message: SlackMessage;
 };

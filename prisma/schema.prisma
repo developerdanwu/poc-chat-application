@@ -1,20 +1,135 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
-  provider = "prisma-kysely"
-  // previewFeatures = ["postgresqlExtensions"]
+  provider        = "prisma-kysely"
+  previewFeatures = ["postgresqlExtensions", "jsonProtocol"]
 }
 
 datasource db {
-  provider     = "postgresql"
-  // NOTE: When using postgresql, mysql or sqlserver, uncomment the @db.Text annotations in model Account below
-  // Further reading:
-  // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
-  // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
-  url          = env("DATABASE_URL_NON_POOLED")
-  relationMode = "foreignKeys"
-  // extensions   = [vector]
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
+  directUrl         = env("DATABASE_URL_NON_POOLED")
+  shadowDatabaseUrl = env("POSTGRES_URL_NON_POOLED")
+  relationMode      = "foreignKeys"
+  extensions        = [uuid_ossp(map: "uuid-ossp", schema: "extensions"), vector(schema: "extensions")]
+}
+
+model Message {
+  clientMessageId Int               @id @default(autoincrement()) @map("client_message_id")
+  text            String
+  type            MessageType
+  content         String
+  authorId        Int               @map("author_id")
+  chatroomId      String            @map("chatroom_id")
+  createdAt       DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
+  isEdited        Boolean           @default(false) @map("is_edited")
+  status          MessageStatus
+  visibility      MessageVisibility
+  attachments     Attachment[]
+  author          Author            @relation(fields: [authorId], references: [authorId])
+  chatroom        Chatroom          @relation(fields: [chatroomId], references: [id], onDelete: Cascade)
+
+  @@index([authorId])
+  @@index([chatroomId])
+  @@map("message")
+}
+
+model Attachment {
+  attachmentId           Int            @id @default(autoincrement()) @map("attachment_id")
+  messageClientMessageId Int            @map("message_client_message_id")
+  type                   AttachmentType @map("type")
+  Message                Message        @relation(fields: [messageClientMessageId], references: [clientMessageId])
+
+  @@map("attachment")
+}
+
+model OpenAiSettings {
+  id          Int         @id @default(autoincrement()) @map("id")
+  temperature Float?      @default(0) @map("temperature")
+  AiSettings  AiSettings?
+
+  @@map("open_ai_settings")
+}
+
+model AiSettings {
+  id               Int             @id @default(autoincrement()) @map("id")
+  model            AiModel
+  authorId         Int             @unique @map("author_id")
+  openAiSettingsId Int?            @unique @map("open_ai_settings_id")
+  chatroomId       String          @unique @map("chatroom_id")
+  author           Author          @relation(fields: [authorId], references: [authorId])
+  chatroom         Chatroom        @relation(fields: [chatroomId], references: [id])
+  openAiSettings   OpenAiSettings? @relation(fields: [openAiSettingsId], references: [id])
+
+  @@map("ai_settings")
+}
+
+model Author {
+  firstName   String               @map("first_name")
+  lastName    String               @map("last_name")
+  email       String?              @unique
+  authorId    Int                  @id @default(autoincrement()) @map("author_id")
+  role        Role                 @map("role")
+  userId      String?              @unique @map("user_id")
+  createdAt   DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
+  humanUserId Int?                 @map("human_user_id")
+  chatrooms   AuthorsOnChatrooms[]
+  aiSettings  AiSettings?
+  humanUser   Author?              @relation("HumanUserAIUsers", fields: [humanUserId], references: [authorId])
+  aiUsers     Author[]             @relation("HumanUserAIUsers")
+  messages    Message[]
+
+  @@index([authorId])
+  @@map("author")
+}
+
+model AuthorsOnChatrooms {
+  authorId   Int      @map("author_id")
+  chatroomId String   @map("chatroom_id")
+  author     Author   @relation(fields: [authorId], references: [authorId])
+  chatroom   Chatroom @relation(fields: [chatroomId], references: [id])
+
+  @@id([authorId, chatroomId])
+  @@index([chatroomId])
+  @@index([authorId])
+  @@map("_authors_on_chatrooms")
+}
+
+model Chatroom {
+  id               String               @id @default(dbgenerated("extensions.uuid_generate_v4()"))
+  type             ChatroomType         @default(HUMAN_CHATROOM)
+  subtype          ChatroomSubtype      @default(DEFAULT)
+  createdAt        DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt        DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
+  chatroomBranchId String?              @map("chatroom_branch_id")
+  status           ChatroomStatus       @default(ACTIVE) @map("status")
+  authors          AuthorsOnChatrooms[]
+  AiSettings       AiSettings?
+  chatroom         Chatroom?            @relation("ChatroomBranches", fields: [chatroomBranchId], references: [id])
+  branches         Chatroom[]           @relation("ChatroomBranches")
+  messages         Message[]
+
+  @@map("chatroom")
+}
+
+model SlackChatroom {
+  slackChatroomId     String         @id @map("slack_chatroom_id")
+  conversationSummary String
+  SlackMessage        SlackMessage[]
+
+  @@map("slack_chatroom")
+}
+
+model SlackMessage {
+  id              Int                    @id @default(autoincrement()) @map("id")
+  slackChatroomId String                 @map("slack_chatroom_id")
+  text            String
+  embedding       Unsupported("vector")? @map("embedding")
+  createdAt       DateTime               @default(now()) @map("created_at") @db.Timestamptz(3)
+  slackChatroom   SlackChatroom          @relation(fields: [slackChatroomId], references: [slackChatroomId])
+  updatedAt       DateTime               @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@map("slack_message")
 }
 
 enum ChatroomStatus {
@@ -61,118 +176,4 @@ enum AiModel {
 
 enum AttachmentType {
   OPENAI_RESPONSE
-}
-
-model Message {
-  clientMessageId Int               @id @default(autoincrement()) @map("client_message_id")
-  text            String            @db.Text
-  type            MessageType
-  content         String            @db.Text
-  authorId        Int               @map("author_id")
-  author          Author            @relation(fields: [authorId], references: [authorId])
-  chatroomId      String            @map("chatroom_id")
-  chatroom        Chatroom          @relation(fields: [chatroomId], references: [id], onDelete: Cascade)
-  createdAt       DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt       DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
-  isEdited        Boolean           @default(false) @map("is_edited")
-  status          MessageStatus
-  visibility      MessageVisibility
-  attachments     Attachment[]
-
-  @@index([authorId])
-  @@index([chatroomId])
-  @@map("message")
-}
-
-model Attachment {
-  attachmentId           Int            @id @default(autoincrement()) @map("attachment_id")
-  Message                Message        @relation(fields: [messageClientMessageId], references: [clientMessageId])
-  messageClientMessageId Int            @map("message_client_message_id")
-  type                   AttachmentType @map("type")
-  // embedding              Unsupported("vector(1536)")? @map("embedding")
-}
-
-model OpenAiSettings {
-  id          Int         @id @default(autoincrement()) @map("id")
-  temperature Float?      @default(0) @map("temperature")
-  AiSettings  AiSettings?
-
-  @@map("open_ai_settings")
-}
-
-model AiSettings {
-  id               Int             @id @default(autoincrement()) @map("id")
-  model            AiModel
-  author           Author          @relation(fields: [authorId], references: [authorId])
-  authorId         Int             @unique @map("author_id")
-  openAiSettingsId Int?            @unique @map("open_ai_settings_id")
-  openAiSettings   OpenAiSettings? @relation(fields: [openAiSettingsId], references: [id])
-  chatroomId       String          @unique @map("chatroom_id")
-  chatroom         Chatroom        @relation(fields: [chatroomId], references: [id])
-
-  @@map("ai_settings")
-}
-
-model Author {
-  firstName   String               @map("first_name")
-  lastName    String               @map("last_name")
-  email       String?              @unique
-  authorId    Int                  @id @default(autoincrement()) @map("author_id")
-  role        Role                 @map("role")
-  userId      String?              @unique @map("user_id")
-  messages    Message[]
-  chatrooms   AuthorsOnChatrooms[]
-  createdAt   DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt   DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
-  aiUsers     Author[]             @relation("HumanUserAIUsers")
-  humanUser   Author?              @relation("HumanUserAIUsers", fields: [humanUserId], references: [authorId])
-  humanUserId Int?                 @map("human_user_id")
-  aiSettings  AiSettings?
-
-  @@index([authorId])
-  @@map("author")
-}
-
-model AuthorsOnChatrooms {
-  author     Author   @relation(fields: [authorId], references: [authorId])
-  authorId   Int      @map("author_id")
-  chatroom   Chatroom @relation(fields: [chatroomId], references: [id])
-  chatroomId String   @map("chatroom_id")
-
-  @@id([authorId, chatroomId])
-  @@index([chatroomId])
-  @@index([authorId])
-  @@map("_authors_on_chatrooms")
-}
-
-model Chatroom {
-  id               String               @id @default(dbgenerated("uuid_generate_v4()"))
-  messages         Message[]
-  type             ChatroomType         @default(HUMAN_CHATROOM)
-  subtype          ChatroomSubtype      @default(DEFAULT)
-  createdAt        DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt        DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
-  authors          AuthorsOnChatrooms[]
-  AiSettings       AiSettings?
-  branches         Chatroom[]           @relation("ChatroomBranches")
-  chatroom         Chatroom?            @relation("ChatroomBranches", fields: [chatroomBranchId], references: [id])
-  chatroomBranchId String?              @map("chatroom_branch_id")
-  status           ChatroomStatus       @default(ACTIVE) @map("status")
-
-  @@map("chatroom")
-}
-
-// Slack models
-model SlackChatroom {
-  id                  String         @id @map("id")
-  SlackMessage        SlackMessage[]
-  conversationSummary String         @db.Text
-}
-
-model SlackMessage {
-  id              Int                          @id @default(autoincrement()) @map("id")
-  slackChatroomId String                       @map("slack_chatroom_id")
-  slackChatroom   SlackChatroom                @relation(fields: [slackChatroomId], references: [id])
-  text            String                       @db.Text
-  embedding       Unsupported("vector(1536)")? @map("embedding")
 }

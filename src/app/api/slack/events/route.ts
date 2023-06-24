@@ -6,15 +6,16 @@ import { challenge } from '@/app/api/slack/events_handlers/_challenge';
 import { app_mention } from '@/app/api/slack/events_handlers/_app_mention';
 import { message, sendTyping } from '@/app/api/slack/events_handlers/_message';
 
-export async function POST(req: NextRequest, res: NextResponse) {
+export async function POST(req: NextRequest) {
   const body = await req.json();
   const type = body.type;
 
   if (type === 'url_verification') {
-    await challenge(body);
+    return challenge(body);
   } else if (validateSlackRequest(req, body, env.SLACK_SIGNING_SECRET)) {
     if (type === 'event_callback') {
       const event = body.event as SlackEvent;
+
       switch (event.type) {
         case 'app_mention': {
           app_mention({
