@@ -9,6 +9,7 @@ import { db } from '@/server/db';
 import { jsonArrayFrom } from 'kysely/helpers/postgres';
 import { HumanChatMessage, SystemChatMessage } from 'langchain/schema';
 import { PromptTemplate } from 'langchain/prompts';
+import dayjs from 'dayjs';
 
 export const findSlackChatroom = async ({ channel }: { channel: string }) => {
   return db
@@ -21,7 +22,8 @@ export const findSlackChatroom = async ({ channel }: { channel: string }) => {
           .selectFrom('slack_message')
           .selectAll()
           .where(({ cmpr }) => cmpr('slack_chatroom_id', '=', channel))
-          .orderBy('')
+          .orderBy('created_at', 'desc')
+          .limit(5)
       ).as('slack_messages'),
     ])
     .where(({ cmpr }) => cmpr('slack_chatroom_id', '=', channel))
@@ -35,7 +37,18 @@ export const createSlackChatroom = async ({ channel }: { channel: string }) => {
       slack_chatroom_id: channel,
       conversationSummary: '',
     })
-    .returningAll()
+    .returning((eb) => [
+      'slack_chatroom_id',
+      'conversationSummary',
+      jsonArrayFrom(
+        eb
+          .selectFrom('slack_message')
+          .selectAll()
+          .where(({ cmpr }) => cmpr('slack_chatroom_id', '=', channel))
+          .orderBy('created_at', 'desc')
+          .limit(5)
+      ).as('slack_messages'),
+    ])
     .executeTakeFirst();
 };
 
@@ -70,11 +83,12 @@ export async function message({
     if (!targetChatoom) {
       return;
     }
+    console.log('MESSAGES', targetChatoom.slack_messages);
 
     const messageArray: string[] = [];
     const conversationMemoryTemplate = new PromptTemplate({
       template:
-        'this is a summary of a conversation summary of a conversation between an AI model and a user: {conversationSummary}\n\n and this is the latest 5 exchanges between the AI and the USER {previousMessages}. you can make use of this information to answer any questions the user may have',
+        'this is a summary of a conversation summary of a conversation between an AI model and a user: {conversationSummary}\n\n and this is the latest 5 exchanges between the AI and the USER {previousMessages}. you can make use of this information to answer any questions the user may have. If there is anything that you do not know, do not make things up. Simply say "I do not know".',
       inputVariables: ['conversationSummary', 'previousMessages'],
     });
 
@@ -113,17 +127,28 @@ export async function message({
         text: openAiResponse.text,
       });
     }
-    const summaryPromptTemplate = new PromptTemplate({
+    const summaryPromptTemplateWithPreviousConversation = new PromptTemplate({
       template: `This is a summary of a previous conversation between an AI model and some users: {previousSummary}.\n\n The following is a continuation of the conversation in its raw form. \n\n user: {userInput} ai:{aiResponse}. \n\n Can you create a new summary of this conversation given this new conversation log? Keep the resulting summary under 500 words. Re-word the previous conversation only if necessary. Attempt to retain as much of the information from the previous conversation as possible.`,
       inputVariables: ['previousSummary', 'userInput', 'aiResponse'],
     });
+    const summaryPromptTemplateWithoutPreviousConversation = new PromptTemplate(
+      {
+        template: `The following is a conversation between a user and an AI in its raw form. \n\n user: {userInput} ai:{aiResponse}. \n\n Can you create a new summary of this conversation given this new conversation log? Keep the resulting summary under 500 words. Re-word the previous conversation only if necessary. Attempt to retain as much of the information from the previous conversation as possible.`,
+        inputVariables: ['userInput', 'aiResponse'],
+      }
+    );
     const conversationSummary = await openaiApi.call([
       new HumanChatMessage(
-        await summaryPromptTemplate.format({
-          previousSummary: targetChatoom.conversationSummary,
-          userInput: data.text,
-          aiResponse: openAiResponse.text,
-        })
+        targetChatoom.conversationSummary
+          ? await summaryPromptTemplateWithPreviousConversation.format({
+              previousSummary: targetChatoom.conversationSummary,
+              userInput: data.text,
+              aiResponse: openAiResponse.text,
+            })
+          : await summaryPromptTemplateWithoutPreviousConversation.format({
+              userInput: data.text,
+              aiResponse: openAiResponse.text,
+            })
       ),
     ]);
 
@@ -139,6 +164,7 @@ export async function message({
       .values({
         slack_chatroom_id: targetChatoom.slack_chatroom_id,
         text: `USER: ${data.text} AI: ${openAiResponse.text}`,
+        updated_at: dayjs().toISOString(),
       })
       .returningAll()
       .execute();

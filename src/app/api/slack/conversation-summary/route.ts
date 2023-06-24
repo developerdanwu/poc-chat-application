@@ -10,6 +10,16 @@ export async function POST(req: NextRequest) {
     channel: parsedPayload.channel_id,
   }).then((res) => {
     if (res) {
+      if (!res.conversationSummary) {
+        axios
+          .post(parsedPayload.response_url, {
+            text: 'no summary found',
+          })
+          .catch((e) => {
+            console.log('ERROR', e);
+          });
+        return;
+      }
       axios
         .post(parsedPayload.response_url, {
           text: res.conversationSummary,

@@ -1,6 +1,5 @@
 import { protectedProcedure } from '@/server/api/trpc';
 import z from 'zod';
-import { ChatroomStatus } from '@prisma-generated/generated/types';
 import { TRPCError } from '@trpc/server';
 
 const deleteChatroomSoft = protectedProcedure
