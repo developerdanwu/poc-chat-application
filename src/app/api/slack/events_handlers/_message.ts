@@ -83,7 +83,6 @@ export async function message({
     if (!targetChatoom) {
       return;
     }
-    console.log('MESSAGES', targetChatoom.slack_messages);
 
     const messageArray: string[] = [];
     const conversationMemoryTemplate = new PromptTemplate({
@@ -163,7 +162,9 @@ export async function message({
       .insertInto('slack_message')
       .values({
         slack_chatroom_id: targetChatoom.slack_chatroom_id,
-        text: `USER: ${data.text} AI: ${openAiResponse.text}`,
+        text: `USER: ${data.text} \n  AI: ${
+          openAiResponse.text
+        } \n\n timestamp: ${dayjs().toISOString()}`,
         updated_at: dayjs().toISOString(),
       })
       .returningAll()

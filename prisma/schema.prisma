@@ -121,13 +121,12 @@ model SlackChatroom {
 }
 
 model SlackMessage {
-  id              Int                    @id @default(autoincrement()) @map("id")
-  slackChatroomId String                 @map("slack_chatroom_id")
+  id              Int           @id @default(autoincrement()) @map("id")
+  slackChatroomId String        @map("slack_chatroom_id")
   text            String
-  embedding       Unsupported("vector")? @map("embedding")
-  createdAt       DateTime               @default(now()) @map("created_at") @db.Timestamptz(3)
-  slackChatroom   SlackChatroom          @relation(fields: [slackChatroomId], references: [slackChatroomId])
-  updatedAt       DateTime               @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  slackChatroom   SlackChatroom @relation(fields: [slackChatroomId], references: [slackChatroomId])
+  updatedAt       DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   @@map("slack_message")
 }
