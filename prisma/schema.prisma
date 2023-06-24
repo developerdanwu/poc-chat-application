@@ -1,3 +1,8 @@
+// use prisma db push to push to local dev
+// supabase db diff --file [filename] to create migration file
+// supabase db reset to make sure all ok
+// supabase db push to apply migrations to prod
+
 generator client {
   provider        = "prisma-kysely"
   previewFeatures = ["postgresqlExtensions", "jsonProtocol"]
