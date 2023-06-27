@@ -3,7 +3,7 @@ import {
   type MeMessageEvent,
   type MessageEvent,
 } from '@slack/bolt';
-import { openaiApi, slackApi } from '@/app/api/slack/_utils';
+import { slackApi, textDaVinci } from '@/app/api/slack/_utils';
 import { type ChatPostMessageResponse } from '@slack/web-api';
 import { db } from '@/server/db';
 import { jsonArrayFrom } from 'kysely/helpers/postgres';
@@ -91,7 +91,7 @@ export async function message({
       inputVariables: ['conversationSummary', 'previousMessages'],
     });
 
-    const openAiResponse = await openaiApi.call(
+    const openAiResponse = await textDaVinci.call(
       [
         new SystemChatMessage(
           await conversationMemoryTemplate.format({
@@ -136,7 +136,7 @@ export async function message({
         inputVariables: ['userInput', 'aiResponse'],
       }
     );
-    const conversationSummary = await openaiApi.call([
+    const conversationSummary = await textDaVinci.call([
       new HumanChatMessage(
         targetChatoom.conversationSummary
           ? await summaryPromptTemplateWithPreviousConversation.format({

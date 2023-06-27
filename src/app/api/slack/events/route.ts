@@ -2,9 +2,13 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { validateSlackRequest } from './_validate';
 import { env } from '@/env.mjs';
 import { type SlackEvent } from '@slack/bolt';
-import { challenge } from '@/app/api/slack/events_handlers/_challenge';
-import { app_mention } from '@/app/api/slack/events_handlers/_app_mention';
-import { message, sendTyping } from '@/app/api/slack/events_handlers/_message';
+import { challenge } from '@/app/api/slack/events/_events_handlers/_challenge';
+import { app_mention } from '@/app/api/slack/events/_events_handlers/_app_mention';
+import {
+  message,
+  sendTyping,
+} from '@/app/api/slack/events/_events_handlers/_message';
+import { fileShare } from '@/app/api/slack/events/_events_handlers/_file_share';
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -44,10 +48,14 @@ export async function POST(req: NextRequest) {
             event.subtype === 'channel_name' ||
             event.subtype === 'channel_unarchive' ||
             event.subtype === 'channel_posting_permissions' ||
-            event.subtype === 'file_share' ||
             event.subtype === 'ekm_access_denied'
           ) {
             console.log(event.subtype);
+            return NextResponse.json({ ok: true });
+          }
+
+          if (event.subtype === 'file_share') {
+            fileShare({ data: event });
             return NextResponse.json({ ok: true });
           }
 

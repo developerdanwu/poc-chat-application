@@ -1,11 +1,12 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { parseSlashCommandPayload } from '@/app/api/slack/_utils';
-import { findSlackChatroom } from '@/app/api/slack/events_handlers/_message';
+import { parseSlashCommandRequest } from '@/app/api/slack/_utils';
+import { findSlackChatroom } from '@/app/api/slack/events/_events_handlers/_message';
 import axios from 'axios';
+import { type SlashCommand } from '@slack/bolt';
 
 export async function POST(req: NextRequest) {
-  const pa = await req.text();
-  const parsedPayload = parseSlashCommandPayload(pa);
+  const bodyAsText = await req.text();
+  const parsedPayload = parseSlashCommandRequest<SlashCommand>(bodyAsText);
   findSlackChatroom({
     channel: parsedPayload.channel_id,
   }).then((res) => {
