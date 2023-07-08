@@ -27,8 +27,9 @@ export async function POST(req: NextRequest) {
           });
           return NextResponse.json({ ok: true });
         }
-        case 'app_home_opened':
+        case 'app_home_opened': {
           return NextResponse.json({ ok: true });
+        }
         case 'message': {
           // HACK: subtype support is non-existent in bot message API
           if (event.subtype === 'bot_message' || 'bot_id' in event) {

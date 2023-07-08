@@ -41,3 +41,5 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+clerk-oauth2.json
