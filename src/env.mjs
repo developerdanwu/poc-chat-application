@@ -17,6 +17,7 @@ const server = z.object({
     DATABASE_URL_NON_POOLED: z.string(),
     SLACK_BOT_TOKEN: z.string(),
     SLACK_SIGNING_SECRET: z.string(),
+    SLACK_APP_TOKEN: z.string(),
 });
 
 /**
@@ -48,6 +49,7 @@ const processEnv = {
     DATABASE_URL_NON_POOLED: process.env.DATABASE_URL_NON_POOLED,
     SLACK_BOT_TOKEN: process.env.SLACK_BOT_TOKEN,
     SLACK_SIGNING_SECRET: process.env.SLACK_SIGNING_SECRET,
+    SLACK_APP_TOKEN: process.env.SLACK_APP_TOKEN,
 };
 
 // Don't touch the part below

@@ -15,19 +15,22 @@
     "slash_commands": [
       {
         "command": "/summary",
-        "url": "https://8f3c-185-174-108-6.ngrok-free.app/api/slack/conversation-summary",
+        "url": "https://4d90-58-152-217-232.ngrok-free.app/api/slack/conversation-summary",
         "description": "fetch conversation summary",
         "should_escape": false
       },
       {
         "command": "/imagine",
-        "url": "https://8f3c-185-174-108-6.ngrok-free.app/api/slack/imagine",
+        "url": "https://4d90-58-152-217-232.ngrok-free.app/api/slack/imagine",
         "description": "Generates an image",
         "should_escape": false
       }
     ]
   },
   "oauth_config": {
+    "redirect_urls": [
+      "https://4d90-58-152-217-232.ngrok-free.app"
+    ],
     "scopes": {
       "user": [
         "im:history"
@@ -46,7 +49,7 @@
   },
   "settings": {
     "event_subscriptions": {
-      "request_url": "https://8f3c-185-174-108-6.ngrok-free.app/api/slack/events",
+      "request_url": "https://4d90-58-152-217-232.ngrok-free.app/api/slack/events",
       "user_events": [
         "message.im"
       ],
@@ -59,7 +62,7 @@
     },
     "interactivity": {
       "is_enabled": true,
-      "request_url": "https://8f3c-185-174-108-6.ngrok-free.app/api/slack/interactive"
+      "request_url": "https://4d90-58-152-217-232.ngrok-free.app/api/slack/interactive"
     },
     "org_deploy_enabled": false,
     "socket_mode_enabled": false,

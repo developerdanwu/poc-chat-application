@@ -1,9 +1,10 @@
-import { type NextRequest, NextResponse } from 'next/server';
-import { parseSlashCommandRequest } from '@/app/api/slack/_utils';
-import { findSlackChatroom } from '@/app/api/slack/events/_events_handlers/_message';
+import {type NextRequest, NextResponse} from 'next/server';
+import {parseSlashCommandRequest} from '@/app/api/slack/_utils';
+import {findSlackChatroom} from '@/app/api/slack/events/_events_handlers/_message';
 import axios from 'axios';
-import { type SlashCommand } from '@slack/bolt';
+import {type SlashCommand} from '@slack/bolt';
 
+// save user id and team id to verify if user is authorised to use the app??
 export async function POST(req: NextRequest) {
   const bodyAsText = await req.text();
   const parsedPayload = parseSlashCommandRequest<SlashCommand>(bodyAsText);
