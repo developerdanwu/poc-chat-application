@@ -147,7 +147,7 @@ const ChatWindow = forwardRef<
           </div>
         );
       }}
-      itemContent={(_index, groupIndex, message) => {
+      itemContent={(_index, _groupIndex, message) => {
         return (
           <ChatWindowItem
             authorsHashmap={authorsHashmap}
