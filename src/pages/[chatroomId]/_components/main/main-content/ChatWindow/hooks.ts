@@ -8,7 +8,7 @@ import { useMemo } from 'react';
 import produce from 'immer';
 
 export const useChatroomMessages = ({ chatroomId }: { chatroomId: string }) => {
-  const messages = api.messaging.getMessages.useInfiniteQuery(
+  const messagesQuery = api.messaging.getMessages.useInfiniteQuery(
     {
       chatroomId: chatroomId,
     },
@@ -21,9 +21,9 @@ export const useChatroomMessages = ({ chatroomId }: { chatroomId: string }) => {
     }
   );
 
-  const messagesArray = useMemo(
+  const messages = useMemo(
     () =>
-      messages.data?.pages.reduce<
+      messagesQuery.data?.pages.reduce<
         RouterOutput['messaging']['getMessages']['messages']
       >((acc, nextVal) => {
         nextVal.messages.forEach((m) => {
@@ -31,10 +31,10 @@ export const useChatroomMessages = ({ chatroomId }: { chatroomId: string }) => {
         });
         return acc;
       }, []),
-    [messages.data?.pages]
+    [messagesQuery.data?.pages]
   );
 
-  const formattedMessages = messagesArray?.reduce<
+  const groupedMessages = messages?.reduce<
     Record<string, RouterOutput['messaging']['getMessages']['messages']>
   >((acc, nextVal) => {
     const date = dayjs
@@ -51,9 +51,18 @@ export const useChatroomMessages = ({ chatroomId }: { chatroomId: string }) => {
     return acc;
   }, {});
 
+  const groupedMessagesKeys = Object.keys(groupedMessages || {});
+
+  const groupedMessagesCount = groupedMessages
+    ? Object.values(groupedMessages).map((messages) => messages.length)
+    : undefined;
+
   return {
+    groupedMessagesKeys,
+    messagesQuery,
     messages,
-    formattedMessages,
+    groupedMessages,
+    groupedMessagesCount,
   };
 };
 

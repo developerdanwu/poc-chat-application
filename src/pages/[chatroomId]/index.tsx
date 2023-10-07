@@ -23,7 +23,7 @@ const ChatroomId: NextPageWithLayout = () => {
   return (
     <div className="flex h-full w-full flex-col">
       <ChatNameBar chatroomId={chatroomId} />
-      <ChatWindow chatroomId={chatroomId} />;
+      <ChatWindow chatroomId={chatroomId} />
       <SendMessagebar chatroomId={chatroomId} chatWindowRef={chatWindowRef} />
     </div>
   );
