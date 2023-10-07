@@ -35,7 +35,7 @@ export const ChatWindowLoading = () => {
 const ChatHeader = ({
   context,
 }: {
-  context: {
+  context?: {
     filteredChatroomUsers: {
       author_id: number;
       first_name: string;
@@ -43,6 +43,9 @@ const ChatHeader = ({
     }[];
   };
 }) => {
+  if (!context?.filteredChatroomUsers) {
+    return null;
+  }
   return <StartOfDirectMessage authors={context.filteredChatroomUsers} />;
 };
 
@@ -113,6 +116,7 @@ const ChatWindow = forwardRef<
 
   return (
     <GroupedVirtuoso
+      key={chatroomId}
       firstItemIndex={firstItemIndex}
       initialTopMostItemIndex={0}
       data={messages}
@@ -203,7 +207,8 @@ const ChatWindowItem = React.memo(
         }
         sendDate={message.created_at}
         differenceBetweenLastMessage={
-          isStartOfGroup ? 6 : differenceBetweenLastMessage
+          // TODO: get rid of magic number?
+          isStartOfGroup ? Infinity : differenceBetweenLastMessage
         }
         key={message.client_message_id}
         author={author}
@@ -215,7 +220,7 @@ const ChatWindowItem = React.memo(
             isLastMessageSenderEqualToCurrentMessageSender
           }
           differenceBetweenLastMessage={
-            isStartOfGroup ? 6 : differenceBetweenLastMessage
+            isStartOfGroup ? Infinity : differenceBetweenLastMessage
           }
           sendDate={message.created_at}
           author={author}
