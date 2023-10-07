@@ -4,7 +4,6 @@ import ScrollArea from '@/components/elements/ScrollArea';
 import dayjs from 'dayjs';
 import { cn, safeJSONParse, useApiTransformUtils } from '@/lib/utils';
 import { type RouterOutput } from '@/server/api/root';
-import InfiniteScroll from 'react-infinite-scroller';
 import { useUser } from '@clerk/nextjs';
 import RadialProgress from '@/components/elements/RadialProgress';
 import StartOfDirectMessage from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/StartOfDirectMessage';
@@ -76,15 +75,16 @@ const ChatWindow = forwardRef<
   );
 
   if (!chatroomDetails.data || !authorsHashmap) {
-    return <div className="flex w-full flex-[1_0_0] flex-col" />;
+    return <div className="flex w-full flex-grow flex-col " />;
   }
+
   return (
-    <div className="flex w-full flex-[1_0_0] flex-col">
-      <div className="flex-[1_1_0]" />
+    <div className="flex h-full flex-grow flex-col overflow-hidden">
+      <div className="flex-grow" />
       <ScrollArea
         componentProps={{
           root: {
-            className: 'flex overflow-hidden w-full rounded-xl bg-base-100',
+            className: 'flex w-full rounded-xl bg-base-100',
           },
           viewport: {
             ref: scrollAreaRef,
@@ -98,97 +98,78 @@ const ChatWindow = forwardRef<
             authors={filteredChatroomUsers}
           />
         ) : null}
-        <InfiniteScroll
-          pageStart={0}
-          className="flex flex-col py-3"
-          hasMore={messages.hasNextPage}
-          reversed={true}
-          getScrollParent={() => {
-            return scrollAreaRef.current;
-          }}
-          loadMore={() => {
-            messages.fetchNextPage();
-          }}
-          isReverse={true}
-          loader={<div className={'flex justify-center py-2'}>
-              <RadialProgress />
-            </div>}
-          useWindow={false}
-        >
-          {chatwindowEntries.map(([date, messages]) => {
-            const reversedMessages = [...messages].reverse();
-            console.log('REVVV', reversedMessages);
-            return (
+
+        {chatwindowEntries.map(([date, messages]) => {
+          const reversedMessages = [...messages].reverse();
+          return (
+            <div
+              key={date}
+              className={cn(
+                'relative flex flex-col after:absolute after:top-[20px] after:w-full after:border-t after:border-slate-300 after:content-[""]'
+              )}
+            >
               <div
-                key={date}
                 className={cn(
-                  'relative flex flex-col after:absolute after:top-[20px] after:w-full after:border-t after:border-slate-300 after:content-[""]'
+                  'sticky top-2 z-50 my-2 self-center rounded-full border border-slate-300 bg-white px-4 text-slate-700'
                 )}
               >
-                <div
-                  className={cn(
-                    'sticky top-2 z-50 my-2 self-center rounded-full border border-slate-300 bg-white px-4 text-slate-700'
-                  )}
-                >
-                  <p className="text-body">
-                    {dayjs(date).format('dddd, MMMM Do')}
-                  </p>
-                </div>
-                {reversedMessages.map((m, index) => {
-                  console.log('MESS', safeJSONParse(m.content));
-                  const author = authorsHashmap[m.author_id];
-                  if (!author) {
-                    throw new Error('author not found');
-                  }
-                  const isSentByMe = author.user_id === user.user?.id;
+                <p className="text-body">
+                  {dayjs(date).format('dddd, MMMM Do')}
+                </p>
+              </div>
+              {reversedMessages.map((m, index) => {
+                console.log('MESS', safeJSONParse(m.content));
+                const author = authorsHashmap[m.author_id];
+                if (!author) {
+                  throw new Error('author not found');
+                }
+                const isSentByMe = author.user_id === user.user?.id;
 
-                  const previousMessage = reversedMessages[index - 1];
-                  const previousMessageAuthor = previousMessage
-                    ? authorsHashmap[previousMessage.author_id]
-                    : undefined;
+                const previousMessage = reversedMessages[index - 1];
+                const previousMessageAuthor = previousMessage
+                  ? authorsHashmap[previousMessage.author_id]
+                  : undefined;
 
-                  const differenceBetweenLastMessage = previousMessage
-                    ? dayjs
-                        .utc(m.created_at)
-                        .diff(dayjs.utc(previousMessage.created_at), 'minute')
-                    : undefined;
+                const differenceBetweenLastMessage = previousMessage
+                  ? dayjs
+                      .utc(m.created_at)
+                      .diff(dayjs.utc(previousMessage.created_at), 'minute')
+                  : undefined;
 
-                  const isLastMessageSenderEqualToCurrentMessageSender =
-                    previousMessageAuthor?.author_id === author.author_id;
-                  return (
-                    <ChatReplyItemWrapper
+                const isLastMessageSenderEqualToCurrentMessageSender =
+                  previousMessageAuthor?.author_id === author.author_id;
+                return (
+                  <ChatReplyItemWrapper
+                    isLastMessageSenderEqualToCurrentMessageSender={
+                      isLastMessageSenderEqualToCurrentMessageSender
+                    }
+                    sendDate={m.created_at}
+                    differenceBetweenLastMessage={differenceBetweenLastMessage}
+                    key={m.client_message_id}
+                    author={author}
+                    communicator={isSentByMe ? 'sender' : 'receiver'}
+                  >
+                    <ChatReplyItem
+                      key={m.text}
                       isLastMessageSenderEqualToCurrentMessageSender={
                         isLastMessageSenderEqualToCurrentMessageSender
                       }
-                      sendDate={m.created_at}
                       differenceBetweenLastMessage={
                         differenceBetweenLastMessage
                       }
-                      key={m.client_message_id}
+                      sendDate={m.created_at}
                       author={author}
-                      communicator={isSentByMe ? 'sender' : 'receiver'}
-                    >
-                      <ChatReplyItem
-                        key={m.text}
-                        isLastMessageSenderEqualToCurrentMessageSender={
-                          isLastMessageSenderEqualToCurrentMessageSender
-                        }
-                        differenceBetweenLastMessage={
-                          differenceBetweenLastMessage
-                        }
-                        sendDate={m.created_at}
-                        author={author}
-                        text={m.text}
-                        content={m.content}
-                      />
-                    </ChatReplyItemWrapper>
-                  );
-                })}
-              </div>
-            );
-          })}
-        </InfiniteScroll>
-        <div ref={chatBottomRef} />
+                      text={m.text}
+                      content={m.content}
+                    />
+                  </ChatReplyItemWrapper>
+                );
+              })}
+            </div>
+          );
+        })}
+
+        {/*<div ref={chatBottomRef} />*/}
       </ScrollArea>
     </div>
   );

@@ -78,6 +78,7 @@
     "react-resizable-panels": "^0.0.48",
     "react-syntax-highlighter": "^15.5.0",
     "react-use": "^17.4.0",
+    "react-virtuoso": "^4.6.0",
     "superjson": "1.9.1",
     "svix": "^0.84.1",
     "tailwind-merge": "^1.13.0",

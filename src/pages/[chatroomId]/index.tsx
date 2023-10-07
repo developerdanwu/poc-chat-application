@@ -80,9 +80,9 @@ const TopControls = ({ chatroomId }: { chatroomId: string }) => {
 
   if (chatroomDetail.data.type === ChatroomType.HUMAN_CHATROOM) {
     return (
-      <>
+      <div className="flex-shrink-0">
         <ChatNameBar chatroomId={chatroomId} />
-      </>
+      </div>
     );
   }
 
@@ -102,11 +102,11 @@ const ChatroomId: NextPageWithLayout = () => {
   }
 
   return (
-    <>
+    <div className="flex h-full w-full flex-col">
       <TopControls chatroomId={chatroomId} />
-      <MainContent chatroomId={chatroomId} />
+      <ChatWindow chatroomId={chatroomId} />;
       <SendMessagebar chatroomId={chatroomId} chatWindowRef={chatWindowRef} />
-    </>
+    </div>
   );
 };
 

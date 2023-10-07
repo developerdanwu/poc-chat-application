@@ -150,7 +150,7 @@ const SendMessagebar = ({
       <form
         ref={chatFormRef}
         id="message-text-input-form"
-        className="flex w-full flex-none items-center justify-between space-x-4 bg-white px-6 py-3"
+        className="flex w-full flex-none flex-shrink-0 items-center justify-between space-x-4 bg-white px-6 py-3"
         onSubmit={chatForm.handleSubmit((data) => {
           sendMessage.mutate({
             ...data,
