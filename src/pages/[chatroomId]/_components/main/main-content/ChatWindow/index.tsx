@@ -67,6 +67,7 @@ const ChatWindow = forwardRef<
   const filteredChatroomUsers = filterAuthedUserFromChatroomAuthors(
     chatroomDetails.data?.authors ?? []
   );
+
   const testing =
     messagesQuery.data?.pages.length > 0
       ? (messagesQuery.data?.pages.length - 1) * 20
@@ -143,15 +144,6 @@ const ChatWindow = forwardRef<
               .utc(message.created_at)
               .diff(dayjs.utc(previousMessage.created_at), 'minute')
           : undefined;
-        console.log(
-          'DIFF',
-
-          differenceBetweenLastMessage,
-          message.client_message_id,
-          message.created_at,
-          previousMessage?.client_message_id,
-          previousMessage?.created_at
-        );
 
         const isLastMessageSenderEqualToCurrentMessageSender =
           previousMessageAuthor?.author_id === author.author_id;

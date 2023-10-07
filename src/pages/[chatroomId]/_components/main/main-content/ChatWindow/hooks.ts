@@ -24,7 +24,11 @@ export const useChatroomMessages = ({ chatroomId }: { chatroomId: string }) => {
   const messagesCountQuery = api.messaging.getMessagesCount.useQuery({
     chatroomId,
   });
-
+  // const chatwindowEntries = Object.entries(formattedMessages || {}).sort(
+  //     (a, b) => {
+  //       return dayjs(a[0]).isAfter(dayjs(b[0]), 'day') ? 1 : -1;
+  //     }
+  // );
   const messages = useMemo(
     () =>
       messagesQuery.data?.pages
@@ -37,7 +41,17 @@ export const useChatroomMessages = ({ chatroomId }: { chatroomId: string }) => {
           },
           []
         )
-        .reverse(),
+        .reverse()
+        .map((m, index, array) => {
+          return {
+            ...m,
+            ...(array[index - 2]
+              ? {
+                  previousMessage: array[index - 2],
+                }
+              : {}),
+          };
+        }),
     [messagesQuery.data?.pages]
   );
 
@@ -68,16 +82,7 @@ export const useChatroomMessages = ({ chatroomId }: { chatroomId: string }) => {
     messagesCountQuery,
     groupedMessagesKeys,
     messagesQuery,
-    messages: messages.map((m, index, array) => {
-      return {
-        ...m,
-        ...(array[index - 1]
-          ? {
-              previousMessage: array[index - 1],
-            }
-          : {}),
-      };
-    }),
+    messages,
     groupedMessages,
     groupedMessagesCount,
   };
