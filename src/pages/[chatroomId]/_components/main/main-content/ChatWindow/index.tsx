@@ -108,8 +108,8 @@ const ChatWindow = forwardRef<
         {/*  />*/}
         {/*) : null}*/}
         <GroupedVirtuoso
+          groupCounts={groupedMessagesCount}
           style={{ height: 400 }}
-          data={messages || []}
           groupContent={(index) => {
             return (
               <div
