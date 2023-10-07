@@ -1,6 +1,10 @@
-import React, { forwardRef, useImperativeHandle, useRef } from 'react';
+import React, {
+  forwardRef,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
 import { api } from '@/lib/api';
-import ScrollArea from '@/components/elements/ScrollArea';
 import dayjs from 'dayjs';
 import { cn, useApiTransformUtils } from '@/lib/utils';
 import { type RouterOutput } from '@/server/api/root';
@@ -10,11 +14,12 @@ import {
   useChatroomMessages,
   useMessageUpdate,
 } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/hooks';
+import { GroupedVirtuoso } from 'react-virtuoso';
+import StartOfDirectMessage from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/StartOfDirectMessage';
 import {
   ChatReplyItem,
   ChatReplyItemWrapper,
 } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/chat-reply-item';
-import { GroupedVirtuoso } from 'react-virtuoso';
 
 export type ChatWindowRef = {
   scrollToBottom: () => void;
@@ -47,7 +52,13 @@ const ChatWindow = forwardRef<
     groupedMessages,
     groupedMessagesKeys,
     groupedMessagesCount,
+    messagesQuery,
+    messagesCountQuery,
   } = useChatroomMessages({ chatroomId });
+
+  // TODO: hardcode for now
+  const [firstItemIndex, setFirstItemIndex] = useState(69 - 1);
+
   const user = useUser();
   const chatroomDetails = api.chatroom.getChatroom.useQuery({
     chatroomId: chatroomId,
@@ -83,100 +94,108 @@ const ChatWindow = forwardRef<
     return <div className="flex w-full flex-grow flex-col " />;
   }
 
-  if (!messages) {
+  if (!messages || !groupedMessagesCount) {
     return null;
   }
 
+  console.log('groupedMessagesCount', messages);
+
   return (
-    <div className="flex h-full flex-grow flex-col overflow-hidden">
-      <div className="flex-grow" />
-      <ScrollArea
-        slotProps={{
-          root: {
-            className: 'flex w-full rounded-xl bg-base-100 overflow-auto',
-          },
-          viewport: {
-            ref: scrollAreaRef,
-            className: 'h-full w-full',
+    <div className="relative flex h-full flex-col overflow-hidden">
+      <GroupedVirtuoso
+        firstItemIndex={firstItemIndex}
+        initialTopMostItemIndex={20 - 1}
+        groupCounts={groupedMessagesCount}
+        startReached={async () => {
+          if (messagesQuery.hasNextPage) {
+            await messagesQuery.fetchNextPage();
+            setFirstItemIndex((prev) => prev - 20);
+          }
+        }}
+        components={{
+          Header: () => {
+            return (
+              <StartOfDirectMessage
+                chatroomType={chatroomDetails.data.type}
+                authors={filteredChatroomUsers}
+              />
+            );
           },
         }}
-      >
-        {/*{!messages.hasNextPage && filteredChatroomUsers?.length > 0 ? (*/}
-        {/*  <StartOfDirectMessage*/}
-        {/*    chatroomType={chatroomDetails.data.type}*/}
-        {/*    authors={filteredChatroomUsers}*/}
-        {/*  />*/}
-        {/*) : null}*/}
-        <GroupedVirtuoso
-          groupCounts={groupedMessagesCount}
-          style={{ height: 400 }}
-          groupContent={(index) => {
-            return (
+        style={{ height: '100%', flex: '0 1 auto', position: 'relative' }}
+        groupContent={(index) => {
+          return (
+            <div className="relative flex w-full justify-center bg-transparent">
               <div
                 className={cn(
-                  'sticky top-2 z-50 my-2 self-center rounded-full border border-slate-300 bg-white px-4 text-slate-700'
+                  'left-[50%] z-50 my-2 w-max self-center rounded-full border border-slate-300 bg-white px-4 text-slate-700'
                 )}
               >
                 <p className="text-body">
                   {dayjs(groupedMessagesKeys[index]).format('dddd, MMMM Do')}
                 </p>
               </div>
-            );
-          }}
-          itemContent={(index) => {
-            const message = messages[index]!;
+            </div>
+          );
+        }}
+        itemContent={(index) => {
+          console.log('INDEXXX', messages, messages[index - 68], index - 68);
+          const message = messages[index - 68];
 
-            const author = authorsHashmap[message.author_id];
-            if (!author) {
-              throw new Error('author not found');
-            }
-            const isSentByMe = author.user_id === user.user?.id;
+          if (!message) {
+            return null;
+          }
 
-            const previousMessage = messages[index - 1];
-            const previousMessageAuthor = previousMessage
-              ? authorsHashmap[previousMessage.author_id]
-              : undefined;
+          const author = authorsHashmap[message.author_id];
+          if (!author) {
+            throw new Error('author not found');
+          }
+          const isSentByMe = author.user_id === user.user?.id;
 
-            const differenceBetweenLastMessage = previousMessage
-              ? dayjs
-                  .utc(message.created_at)
-                  .diff(dayjs.utc(previousMessage.created_at), 'minute')
-              : undefined;
+          const previousMessage = messages[index - 1];
+          const previousMessageAuthor = previousMessage
+            ? authorsHashmap[previousMessage.author_id]
+            : undefined;
 
-            const isLastMessageSenderEqualToCurrentMessageSender =
-              previousMessageAuthor?.author_id === author.author_id;
-            return (
-              <ChatReplyItemWrapper
+          const differenceBetweenLastMessage = previousMessage
+            ? dayjs
+                .utc(message.created_at)
+                .diff(dayjs.utc(previousMessage.created_at), 'minute')
+            : undefined;
+
+          const isLastMessageSenderEqualToCurrentMessageSender =
+            previousMessageAuthor?.author_id === author.author_id;
+          return (
+            <ChatReplyItemWrapper
+              isLastMessageSenderEqualToCurrentMessageSender={
+                isLastMessageSenderEqualToCurrentMessageSender
+              }
+              sendDate={message.created_at}
+              differenceBetweenLastMessage={differenceBetweenLastMessage}
+              key={message.client_message_id}
+              author={author}
+              communicator={isSentByMe ? 'sender' : 'receiver'}
+            >
+              <ChatReplyItem
+                key={message.text}
                 isLastMessageSenderEqualToCurrentMessageSender={
                   isLastMessageSenderEqualToCurrentMessageSender
                 }
-                sendDate={message.created_at}
                 differenceBetweenLastMessage={differenceBetweenLastMessage}
-                key={message.client_message_id}
+                sendDate={message.created_at}
                 author={author}
-                communicator={isSentByMe ? 'sender' : 'receiver'}
-              >
-                <ChatReplyItem
-                  key={message.text}
-                  isLastMessageSenderEqualToCurrentMessageSender={
-                    isLastMessageSenderEqualToCurrentMessageSender
-                  }
-                  differenceBetweenLastMessage={differenceBetweenLastMessage}
-                  sendDate={message.created_at}
-                  author={author}
-                  text={message.text}
-                  content={message.content}
-                />
-              </ChatReplyItemWrapper>
-            );
-          }}
-        />
-        {/*{chatwindowEntries.map(([date, messages]) => {*/}
-        {/* */}
-        {/*})}*/}
+                text={message.text}
+                content={message.content}
+              />
+            </ChatReplyItemWrapper>
+          );
+        }}
+      />
+      {/*{chatwindowEntries.map(([date, messages]) => {*/}
+      {/* */}
+      {/*})}*/}
 
-        {/*<div ref={chatBottomRef} />*/}
-      </ScrollArea>
+      {/*<div ref={chatBottomRef} />*/}
     </div>
   );
 });

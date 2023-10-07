@@ -21,16 +21,23 @@ export const useChatroomMessages = ({ chatroomId }: { chatroomId: string }) => {
     }
   );
 
+  const messagesCountQuery = api.messaging.getMessagesCount.useQuery({
+    chatroomId,
+  });
+
   const messages = useMemo(
     () =>
-      messagesQuery.data?.pages.reduce<
-        RouterOutput['messaging']['getMessages']['messages']
-      >((acc, nextVal) => {
-        nextVal.messages.forEach((m) => {
-          acc.push(m);
-        });
-        return acc;
-      }, []),
+      messagesQuery.data?.pages
+        .reduce<RouterOutput['messaging']['getMessages']['messages']>(
+          (acc, nextVal) => {
+            nextVal.messages.forEach((m) => {
+              acc.push(m);
+            });
+            return acc;
+          },
+          []
+        )
+        .reverse(),
     [messagesQuery.data?.pages]
   );
 
@@ -58,6 +65,7 @@ export const useChatroomMessages = ({ chatroomId }: { chatroomId: string }) => {
     : undefined;
 
   return {
+    messagesCountQuery,
     groupedMessagesKeys,
     messagesQuery,
     messages,

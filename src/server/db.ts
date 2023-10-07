@@ -6,7 +6,7 @@ import { type DB } from '@prisma-generated/generated/types';
 
 export const db = new Kysely<DB>({
   dialect: new PostgresJSDialect({
-    connectionString: env.DATABASE_URL_NON_POOLED,
+    connectionString: env.DATABASE_URL,
     options: {
       max: 50,
     },

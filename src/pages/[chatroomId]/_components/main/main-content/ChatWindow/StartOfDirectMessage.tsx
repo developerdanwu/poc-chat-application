@@ -26,7 +26,7 @@ const StartOfDirectMessage = ({
 }) => {
   const { getFullName } = useApiTransformUtils();
   return (
-    <div className="flex flex-col px-6 pt-10">
+    <div className="flex flex-col px-6 py-10">
       <div className="relative flex items-center space-x-2">
         <AvatarGroup limit={3}>
           <AvatarGroupList>

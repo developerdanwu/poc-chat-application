@@ -12,7 +12,7 @@ const getMessages = protectedProcedure
     })
   )
   .query(async ({ ctx, input }) => {
-    const limit = input.take || 10;
+    const limit = input.take || 20;
     try {
       const messages = await ctx.db
         .selectFrom((eb) => {
