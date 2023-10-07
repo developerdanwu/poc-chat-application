@@ -68,7 +68,16 @@ export const useChatroomMessages = ({ chatroomId }: { chatroomId: string }) => {
     messagesCountQuery,
     groupedMessagesKeys,
     messagesQuery,
-    messages,
+    messages: messages.map((m, index, array) => {
+      return {
+        ...m,
+        ...(array[index - 1]
+          ? {
+              previousMessage: array[index - 1],
+            }
+          : {}),
+      };
+    }),
     groupedMessages,
     groupedMessagesCount,
   };
