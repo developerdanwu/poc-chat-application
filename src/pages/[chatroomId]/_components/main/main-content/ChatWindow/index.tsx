@@ -32,6 +32,20 @@ export const ChatWindowLoading = () => {
   );
 };
 
+const ChatHeader = ({
+  context,
+}: {
+  context: {
+    filteredChatroomUsers: {
+      author_id: number;
+      first_name: string;
+      last_name: string;
+    }[];
+  };
+}) => {
+  return <StartOfDirectMessage authors={context.filteredChatroomUsers} />;
+};
+
 const ChatWindow = forwardRef<
   ChatWindowRef,
   {
@@ -42,75 +56,76 @@ const ChatWindow = forwardRef<
   const { filterAuthedUserFromChatroomAuthors } = useApiTransformUtils();
   const {
     messages,
-    groupedMessages,
     groupedMessagesKeys,
     groupedMessagesCount,
     messagesQuery,
     messagesCountQuery,
   } = useChatroomMessages({ chatroomId });
 
-  // TODO: hardcode for now
-  // const [firstItemIndex, setFirstItemIndex] = useState(69 - 1);
-
   const user = useUser();
-  const chatroomDetails = api.chatroom.getChatroom.useQuery({
-    chatroomId: chatroomId,
-  });
+  const authorsHashmap = api.chatroom.getChatroom.useQuery(
+    {
+      chatroomId: chatroomId,
+    },
+    {
+      select: (data) => {
+        return data.authors.reduce<
+          Record<
+            string,
+            RouterOutput['chatroom']['getChatroom']['authors'][number]
+          >
+        >((prevVal, author) => {
+          prevVal[author.author_id] = author;
+          return prevVal;
+        }, {});
+      },
+    }
+  ).data;
 
-  const authorsHashmap = chatroomDetails.data?.authors.reduce<
-    Record<string, RouterOutput['chatroom']['getChatroom']['authors'][number]>
-  >((prevVal, author) => {
-    prevVal[author.author_id] = author;
-    return prevVal;
-  }, {});
+  const filteredChatroomUsers = api.chatroom.getChatroom.useQuery(
+    {
+      chatroomId: chatroomId,
+    },
+    {
+      select: (data) => {
+        return filterAuthedUserFromChatroomAuthors(data?.authors ?? []);
+      },
+    }
+  ).data;
 
-  const filteredChatroomUsers = filterAuthedUserFromChatroomAuthors(
-    chatroomDetails.data?.authors ?? []
-  );
-
-  const testing =
-    messagesQuery.data?.pages.length > 0
-      ? (messagesQuery.data?.pages.length - 1) * 20
-      : 0;
+  if (
+    !messagesCountQuery.data ||
+    !messagesQuery.data ||
+    !filteredChatroomUsers ||
+    !authorsHashmap ||
+    !groupedMessagesCount
+  ) {
+    return <ChatWindowLoading />;
+  }
   const firstItemIndex =
     messagesCountQuery.data?.messages_count -
-    1 +
-    (groupedMessagesCount?.length * 4 - 1) -
-    testing;
-
-  if (!chatroomDetails.data || !authorsHashmap) {
-    return <div className="flex w-full flex-grow flex-col " />;
-  }
-
-  if (!messagesCountQuery.data || !messagesQuery.data) {
-    return null;
-  }
-
-  console.log('FIRST INDEX', firstItemIndex);
+      1 +
+      (groupedMessagesCount?.length * 4 - 1) -
+      messagesQuery.data?.pages.length >
+    0
+      ? (messagesQuery.data?.pages.length - 1) * 20
+      : 0;
 
   return (
     <GroupedVirtuoso
       firstItemIndex={firstItemIndex}
       initialTopMostItemIndex={0}
       data={messages}
+      overscan={50}
       groupCounts={groupedMessagesCount}
+      context={{ filteredChatroomUsers }}
       startReached={async () => {
         if (messagesQuery.hasNextPage) {
-          await messagesQuery.fetchNextPage();
-          // setFirstItemIndex((prev) => prev - 20);
+          messagesQuery.fetchNextPage();
         }
       }}
       components={{
-        Header: () => {
-          if (!messagesQuery.hasNextPage) {
-            return (
-              <StartOfDirectMessage
-                chatroomType={chatroomDetails.data.type}
-                authors={filteredChatroomUsers}
-              />
-            );
-          }
-        },
+        Header: ChatHeader,
       }}
       style={{ height: '100%', flex: '0 1 auto', position: 'relative' }}
       groupContent={(index) => {
@@ -128,50 +143,13 @@ const ChatWindow = forwardRef<
           </div>
         );
       }}
-      itemContent={(index, groupIndex, message, context) => {
-        const author = authorsHashmap[message.author_id];
-        if (!author) {
-          throw new Error('author not found');
-        }
-        const isSentByMe = author.user_id === user.user?.id;
-        const previousMessage = message?.previousMessage;
-        const previousMessageAuthor = previousMessage
-          ? authorsHashmap[previousMessage.author_id]
-          : undefined;
-
-        const differenceBetweenLastMessage = previousMessage
-          ? dayjs
-              .utc(message.created_at)
-              .diff(dayjs.utc(previousMessage.created_at), 'minute')
-          : undefined;
-
-        const isLastMessageSenderEqualToCurrentMessageSender =
-          previousMessageAuthor?.author_id === author.author_id;
+      itemContent={(_index, groupIndex, message) => {
         return (
-          <>
-            <ChatReplyItemWrapper
-              isLastMessageSenderEqualToCurrentMessageSender={
-                isLastMessageSenderEqualToCurrentMessageSender
-              }
-              sendDate={message.created_at}
-              differenceBetweenLastMessage={differenceBetweenLastMessage}
-              key={message.client_message_id}
-              author={author}
-              communicator={isSentByMe ? 'sender' : 'receiver'}
-            >
-              <ChatReplyItem
-                key={message.text}
-                isLastMessageSenderEqualToCurrentMessageSender={
-                  isLastMessageSenderEqualToCurrentMessageSender
-                }
-                differenceBetweenLastMessage={differenceBetweenLastMessage}
-                sendDate={message.created_at}
-                author={author}
-                text={message.text}
-                content={message.content}
-              />
-            </ChatReplyItemWrapper>
-          </>
+          <ChatWindowItem
+            authorsHashmap={authorsHashmap}
+            message={message}
+            user={user}
+          />
         );
       }}
     />
@@ -179,5 +157,76 @@ const ChatWindow = forwardRef<
 });
 
 ChatWindow.displayName = 'ChatWindow';
+
+const ChatWindowItem = React.memo(
+  ({
+    authorsHashmap,
+    message,
+    user,
+  }: {
+    authorsHashmap: Record<
+      string,
+      RouterOutput['chatroom']['getChatroom']['authors'][number]
+    >;
+    message: NonNullable<
+      ReturnType<typeof useChatroomMessages>['messages']
+    >[number];
+    user: ReturnType<typeof useUser>;
+  }) => {
+    const author = authorsHashmap[message.author_id];
+    if (!author) {
+      throw new Error('author not found');
+    }
+    const isSentByMe = author.user_id === user.user?.id;
+    const previousMessage = message?.previousMessage;
+    const previousMessageAuthor = previousMessage
+      ? authorsHashmap[previousMessage.author_id]
+      : undefined;
+    const isStartOfGroup = previousMessage
+      ? !dayjs
+          .utc(message.created_at)
+          .isSame(dayjs.utc(previousMessage.created_at), 'day')
+      : true;
+    // TODO: AVATAR PLACEMENT DUE TO TIME IS BUGGED??
+    const differenceBetweenLastMessage = previousMessage
+      ? dayjs
+          .utc(message.created_at)
+          .diff(dayjs.utc(previousMessage.created_at), 'minute')
+      : undefined;
+
+    const isLastMessageSenderEqualToCurrentMessageSender =
+      previousMessageAuthor?.author_id === author.author_id;
+    return (
+      <ChatReplyItemWrapper
+        isLastMessageSenderEqualToCurrentMessageSender={
+          isLastMessageSenderEqualToCurrentMessageSender
+        }
+        sendDate={message.created_at}
+        differenceBetweenLastMessage={
+          isStartOfGroup ? 6 : differenceBetweenLastMessage
+        }
+        key={message.client_message_id}
+        author={author}
+        communicator={isSentByMe ? 'sender' : 'receiver'}
+      >
+        <ChatReplyItem
+          key={message.text}
+          isLastMessageSenderEqualToCurrentMessageSender={
+            isLastMessageSenderEqualToCurrentMessageSender
+          }
+          differenceBetweenLastMessage={
+            isStartOfGroup ? 6 : differenceBetweenLastMessage
+          }
+          sendDate={message.created_at}
+          author={author}
+          text={message.text}
+          content={message.content}
+        />
+      </ChatReplyItemWrapper>
+    );
+  }
+);
+
+ChatWindowItem.displayName = 'ChatWindowItem';
 
 export default ChatWindow;
