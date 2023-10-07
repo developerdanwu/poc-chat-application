@@ -82,9 +82,9 @@ const ChatWindow = forwardRef<
     <div className="flex h-full flex-grow flex-col overflow-hidden">
       <div className="flex-grow" />
       <ScrollArea
-        componentProps={{
+        slotProps={{
           root: {
-            className: 'flex w-full rounded-xl bg-base-100',
+            className: 'flex w-full rounded-xl bg-base-100 overflow-auto',
           },
           viewport: {
             ref: scrollAreaRef,

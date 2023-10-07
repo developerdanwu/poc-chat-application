@@ -1,8 +1,19 @@
 import React, { Suspense } from 'react';
 import { cn } from '@/lib/utils';
 import ChatSidebar from '@/pages/[chatroomId]/_components/left-sidebar/ChatSidebar';
-import { MainChatWrapper } from '@/pages/[chatroomId]';
 import MainContentLoading from '@/pages/[chatroomId]/_components/main/MainContentLoading';
+
+export const MainChatWrapper = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  return (
+    <div className="flex h-screen w-full flex-col items-center justify-center overflow-hidden ">
+      {children}
+    </div>
+  );
+};
 
 const MainChatLayout = ({ children }: { children: React.ReactNode }) => {
   return (

@@ -156,7 +156,7 @@ const NewMessage: NextPageWithLayout = () => {
           <div className="flex w-full flex-[1_0_0] flex-col">
             <div className="flex-[1_1_0]" />
             <ScrollArea
-              componentProps={{
+              slotProps={{
                 root: {
                   className: 'h-auto w-full rounded-xl bg-base-100',
                 },

@@ -1,18 +1,18 @@
-import * as RadixScrollArea from "@radix-ui/react-scroll-area";
+import * as RadixScrollArea from '@radix-ui/react-scroll-area';
 
 const ScrollArea = ({
   children,
-  componentProps,
+  slotProps,
 }: {
-  componentProps?: {
+  slotProps?: {
     root?: React.ComponentProps<typeof RadixScrollArea.Root>;
     viewport?: React.ComponentProps<typeof RadixScrollArea.Viewport>;
   };
   children: React.ReactNode;
 }) => {
   return (
-    <RadixScrollArea.Root scrollHideDelay={2} {...componentProps?.root}>
-      <RadixScrollArea.Viewport {...componentProps?.viewport}>
+    <RadixScrollArea.Root scrollHideDelay={2} {...slotProps?.root}>
+      <RadixScrollArea.Viewport {...slotProps?.viewport}>
         {children}
       </RadixScrollArea.Viewport>
       <RadixScrollArea.Scrollbar orientation="horizontal">
