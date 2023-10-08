@@ -147,75 +147,84 @@ const ChatWindow = forwardRef<
       : 0;
 
   return (
-    <GroupedVirtuoso
-      key={chatroomId}
-      ref={(ref) => {
-        if (ref) {
-          chatroomState.chatroomWindowRefMap.set(chatroomId, ref);
-        }
-      }}
-      followOutput={(isAtBottom) => {
-        // TODO: virtualisation is a bit bugged lol sometimes works sometimes no
-        // send message && close to bottom scroll smooth
-        if (chatroomState.sentNewMessage[chatroomId] && isAtBottom) {
-          chatroomState.setSentNewMessage(chatroomId, false);
-          return 'smooth';
-        }
-        // sent new message scroll to bottom auto
-        if (chatroomState.sentNewMessage[chatroomId]) {
-          chatroomState.setSentNewMessage(chatroomId, false);
-          return 'auto';
-        }
-        // // receive new message && at bottom then scroll to bottom
-        if (isAtBottom) {
-          return 'smooth';
-        }
+    <>
+      <GroupedVirtuoso
+        key={chatroomId}
+        ref={(ref) => {
+          if (ref) {
+            chatroomState.chatroomWindowRefMap.set(chatroomId, ref);
+          }
+        }}
+        overscan={50}
+        followOutput={(isAtBottom) => {
+          // TODO: virtualisation is a bit bugged lol sometimes works sometimes no
+          // send message && close to bottom scroll smooth
+          if (chatroomState.sentNewMessage[chatroomId] && isAtBottom) {
+            chatroomState.setSentNewMessage(chatroomId, false);
+            return 'smooth';
+          }
+          // sent new message scroll to bottom auto
+          if (chatroomState.sentNewMessage[chatroomId]) {
+            chatroomState.setSentNewMessage(chatroomId, false);
+            return 'auto';
+          }
+          // // receive new message && at bottom then scroll to bottom
+          // if (isAtBottom) {
+          //   return 'smooth';
+          // }
 
-        return false;
-      }}
-      firstItemIndex={firstItemIndex}
-      initialTopMostItemIndex={messagesCountQuery.data?.messages_count - 1}
-      data={messages}
-      groupCounts={groupedMessagesCount}
-      context={{
-        filteredChatroomUsers,
-        hasPreviousPage: messagesQuery.hasPreviousPage,
-      }}
-      startReached={() => {
-        if (messagesQuery.hasPreviousPage) {
-          // TODO: work out how to do the scrolling??
-          messagesQuery.fetchPreviousPage();
-        }
-      }}
-      components={{
-        Header: ChatHeader,
-      }}
-      style={{ height: '100%', position: 'relative', flex: '1 1 0' }}
-      groupContent={(index) => {
-        return (
-          <div className="relative flex w-full justify-center bg-transparent">
-            <div
-              className={cn(
-                'left-[50%] z-50 my-2 w-max self-center rounded-full border border-slate-300 bg-white px-4 text-slate-700'
-              )}
-            >
-              <p className="text-body">
-                {dayjs(groupedMessagesKeys[index]).format('dddd, MMMM Do')}
-              </p>
+          return false;
+        }}
+        firstItemIndex={firstItemIndex}
+        initialTopMostItemIndex={messagesCountQuery.data?.messages_count - 1}
+        initialScrollTop={messagesCountQuery.data?.messages_count - 1}
+        data={messages}
+        groupCounts={groupedMessagesCount}
+        context={{
+          filteredChatroomUsers,
+          hasPreviousPage: messagesQuery.hasPreviousPage,
+        }}
+        startReached={() => {
+          if (messagesQuery.hasPreviousPage) {
+            chatroomState.chatroomWindowRefMap.get(chatroomId)?.scrollToIndex({
+              index: MESSAGES_PER_PAGE,
+              behavior: 'auto',
+              align: 'start',
+            });
+            // TODO: work out how to do the scrolling??
+            messagesQuery.fetchPreviousPage();
+          }
+        }}
+        components={{
+          Header: ChatHeader,
+        }}
+        style={{ height: '100%', position: 'relative', flex: '1 1 0' }}
+        groupContent={(index) => {
+          return (
+            <div className="relative flex w-full justify-center bg-transparent">
+              <div
+                className={cn(
+                  'left-[50%] z-50 my-2 w-max self-center rounded-full border border-slate-300 bg-white px-4 text-slate-700'
+                )}
+              >
+                <p className="text-body">
+                  {dayjs(groupedMessagesKeys[index]).format('dddd, MMMM Do')}
+                </p>
+              </div>
             </div>
-          </div>
-        );
-      }}
-      itemContent={(_index, _groupIndex, message) => {
-        return (
-          <ChatWindowItem
-            authorsHashmap={authorsHashmap}
-            message={message}
-            user={user}
-          />
-        );
-      }}
-    />
+          );
+        }}
+        itemContent={(_index, _groupIndex, message) => {
+          return (
+            <ChatWindowItem
+              authorsHashmap={authorsHashmap}
+              message={message}
+              user={user}
+            />
+          );
+        }}
+      />
+    </>
   );
 });
 
