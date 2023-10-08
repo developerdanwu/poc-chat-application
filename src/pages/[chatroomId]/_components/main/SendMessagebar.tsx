@@ -137,7 +137,7 @@ const SendMessagebar = ({
       <form
         ref={chatFormRef}
         id="message-text-input-form"
-        className="h-auto min-h-fit overflow-hidden"
+        className="h-auto min-h-fit overflow-hidden "
         onSubmit={chatForm.handleSubmit((data) => {
           sendMessage.mutate({
             ...data,
@@ -146,7 +146,7 @@ const SendMessagebar = ({
           });
         })}
       >
-        <div className="flex h-full min-h-fit px-6 py-4">
+        <div className="flex h-full min-h-fit px-6 pb-4">
           <Controller
             control={chatForm.control}
             render={({ field: { value, onChange } }) => {
