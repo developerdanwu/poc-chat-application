@@ -7,8 +7,8 @@ const Element = ({ attributes, children, element }: RenderElementProps) => {
   if (element.type === 'codeBlock') {
     return (
       <div
-        data-type="codeBlock"
         {...attributes}
+        className="rounded-md bg-slate-900 p-3 font-mono text-sm text-white"
         style={{ position: 'relative' }}
         spellCheck={false}
       >
@@ -19,11 +19,7 @@ const Element = ({ attributes, children, element }: RenderElementProps) => {
 
   if (element.type === 'codeLine') {
     return (
-      <div
-        {...attributes}
-        data-type="codeLine"
-        style={{ position: 'relative' }}
-      >
+      <div {...attributes} style={{ position: 'relative' }}>
         {children}
       </div>
     );
