@@ -93,7 +93,6 @@ const ChatWindow = forwardRef<
   }));
   const user = useUser();
 
-  console.log('HAS PREV PAGE', messagesQuery.hasPreviousPage);
   useEffect(() => {
     return () => {
       chatroomState.chatroomWindowRefMap.delete(chatroomId);
@@ -182,7 +181,7 @@ const ChatWindow = forwardRef<
         filteredChatroomUsers,
         hasPreviousPage: messagesQuery.hasPreviousPage,
       }}
-      startReached={(index) => {
+      startReached={() => {
         if (messagesQuery.hasPreviousPage) {
           messagesQuery.fetchPreviousPage();
         }
