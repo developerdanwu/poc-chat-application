@@ -1,4 +1,4 @@
-import { Editor, Node, type Text } from 'slate';
+import { Editor, Element, Node, type Text } from 'slate';
 
 export const isMarkActive = (
   editor: Editor,
@@ -44,3 +44,22 @@ export function getCommonBlock(editor: Editor) {
     });
   }
 }
+
+export const isBlockActive = (
+  editor: Editor,
+  format: Element['type'],
+  blockType: 'type' = 'type'
+) => {
+  const { selection } = editor;
+  if (!selection) return false;
+
+  const [match] = Array.from(
+    Editor.nodes(editor, {
+      at: Editor.unhangRange(editor, selection),
+      match: (n) =>
+        !Editor.isEditor(n) && Element.isElement(n) && n[blockType] === format,
+    })
+  );
+
+  return !!match;
+};

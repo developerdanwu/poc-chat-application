@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Editable, Slate, useSlateStatic, withReact } from 'slate-react';
+import { Editable, Slate, useSlate, withReact } from 'slate-react';
 import isHotkey from 'is-hotkey';
 import SlateElement from './Element';
 import {
@@ -21,7 +21,7 @@ import {
   RiStrikethrough,
 } from 'react-icons/ri';
 import {
-  getCommonBlock,
+  isBlockActive,
   isMarkActive,
   toChildren,
   toggleMark,
@@ -109,14 +109,16 @@ declare module 'slate' {
   },
 ];
 const CodeBlockButton = () => {
-  const editor = useSlateStatic();
+  const editor = useSlate();
+  const isCodeBlockActive = isBlockActive(editor, 'codeBlock');
   return (
     <IconButton
       size="sm"
       type="button"
       variant="ghost"
-      // state={isMarkActive(editor, 'codeBlock') ? 'active' : 'default'}
+      state={isCodeBlockActive ? 'active' : 'default'}
       onClick={() => {
+        Transforms.unwrapNodes(editor);
         Transforms.wrapNodes(
           editor,
           { type: 'codeBlock', language: 'html', children: [] },
@@ -138,10 +140,10 @@ const CodeBlockButton = () => {
 };
 
 const EditorMenuBar = () => {
-  const editor = useSlateStatic();
+  const editor = useSlate();
 
-  const commonBlock = getCommonBlock(editor);
-  console.log('PENIS', commonBlock);
+  const isCodeBlockActive = isBlockActive(editor, 'codeBlock');
+
   return (
     <div className="flex h-5 w-full items-center space-x-2">
       <IconButton
@@ -149,7 +151,7 @@ const EditorMenuBar = () => {
         size="sm"
         variant="ghost"
         state={isMarkActive(editor, 'bold') ? 'active' : 'default'}
-        disabled={commonBlock ? commonBlock[0]?.type === 'codeBlock' : false}
+        disabled={isCodeBlockActive}
         onClick={() => toggleMark(editor, 'bold')}
       >
         <RiBold size="18px" />
@@ -159,7 +161,7 @@ const EditorMenuBar = () => {
         type="button"
         variant="ghost"
         state={isMarkActive(editor, 'italic') ? 'active' : 'default'}
-        disabled={commonBlock ? commonBlock[0]?.type === 'codeBlock' : false}
+        disabled={isCodeBlockActive}
         onClick={() => toggleMark(editor, 'italic')}
       >
         <RiItalic size="18px" />
@@ -169,7 +171,7 @@ const EditorMenuBar = () => {
         type="button"
         variant="ghost"
         state={isMarkActive(editor, 'strike') ? 'active' : 'default'}
-        disabled={commonBlock ? commonBlock[0]?.type === 'codeBlock' : false}
+        disabled={isCodeBlockActive}
         onClick={() => toggleMark(editor, 'strike')}
       >
         <RiStrikethrough size="18px" />
@@ -180,7 +182,7 @@ const EditorMenuBar = () => {
         type="button"
         variant="ghost"
         state={isMarkActive(editor, 'code') ? 'active' : 'default'}
-        disabled={commonBlock ? commonBlock[0]?.type === 'codeBlock' : false}
+        disabled={isCodeBlockActive}
         onClick={() => toggleMark(editor, 'code')}
       >
         <RiCodeLine size="18px" />
