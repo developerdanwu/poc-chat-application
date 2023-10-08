@@ -19,6 +19,10 @@ const Leaf = ({ attributes, children, leaf }: RenderLeafProps) => {
     children = <u>{children}</u>;
   }
 
+  if (leaf.strike) {
+    children = <s>{children}</s>;
+  }
+
   return (
     <span {...attributes} className={Object.keys(rest).join(' ')}>
       {children}

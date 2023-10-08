@@ -21,7 +21,9 @@ import {
   RiStrikethrough,
 } from 'react-icons/ri';
 import {
+  getCommonBlock,
   isMarkActive,
+  toChildren,
   toggleMark,
 } from '@/pages/[chatroomId]/_components/main/RichTextEditor/utils';
 import { Separator } from '@/components/elements/separator';
@@ -49,8 +51,40 @@ const HOTKEYS = {
   'mod+u': 'underline',
   'mod+`': 'code',
 } as const;
-
 const initialValue: Element[] = [
+  {
+    type: 'paragraph',
+    children: toChildren(
+      "Here's one containing a single paragraph block with some text in it:"
+    ),
+  },
+  {
+    type: 'codeBlock',
+    language: 'jsx',
+    children: toCodeLines(`// Add the initial value.
+const initialValue = [
+  {
+    type: 'paragraph',
+    children: [{ text: 'A line of text in a paragraph.' }]
+  }
+]
+
+const App = () => {
+  const [editor] = useState(() => withReact(createEditor()))
+
+  return (
+    <Slate editor={editor} initialValue={initialValue}>
+      <Editable />
+    </Slate>
+  )
+}`),
+  },
+  {
+    type: 'paragraph',
+    children: toChildren(
+      'If you are using TypeScript, you will also need to extend the Editor with ReactEditor and add annotations as per the documentation on TypeScript. The example below also includes the custom types required for the rest of this example.'
+    ),
+  },
   {
     type: 'codeBlock',
     language: 'typescript',
@@ -69,8 +103,11 @@ declare module 'slate' {
   }
 }`),
   },
+  {
+    type: 'paragraph',
+    children: toChildren('There you have it!'),
+  },
 ];
-
 const CodeBlockButton = () => {
   const editor = useSlateStatic();
   return (
@@ -103,6 +140,8 @@ const CodeBlockButton = () => {
 const EditorMenuBar = () => {
   const editor = useSlateStatic();
 
+  const commonBlock = getCommonBlock(editor);
+  console.log('PENIS', commonBlock);
   return (
     <div className="flex h-5 w-full items-center space-x-2">
       <IconButton
@@ -110,7 +149,7 @@ const EditorMenuBar = () => {
         size="sm"
         variant="ghost"
         state={isMarkActive(editor, 'bold') ? 'active' : 'default'}
-        disabled={isMarkActive(editor, 'codeBlock')}
+        disabled={commonBlock ? commonBlock[0]?.type === 'codeBlock' : false}
         onClick={() => toggleMark(editor, 'bold')}
       >
         <RiBold size="18px" />
@@ -120,7 +159,7 @@ const EditorMenuBar = () => {
         type="button"
         variant="ghost"
         state={isMarkActive(editor, 'italic') ? 'active' : 'default'}
-        disabled={isMarkActive(editor, 'codeBlock')}
+        disabled={commonBlock ? commonBlock[0]?.type === 'codeBlock' : false}
         onClick={() => toggleMark(editor, 'italic')}
       >
         <RiItalic size="18px" />
@@ -130,7 +169,7 @@ const EditorMenuBar = () => {
         type="button"
         variant="ghost"
         state={isMarkActive(editor, 'strike') ? 'active' : 'default'}
-        disabled={isMarkActive(editor, 'codeBlock')}
+        disabled={commonBlock ? commonBlock[0]?.type === 'codeBlock' : false}
         onClick={() => toggleMark(editor, 'strike')}
       >
         <RiStrikethrough size="18px" />
@@ -141,7 +180,7 @@ const EditorMenuBar = () => {
         type="button"
         variant="ghost"
         state={isMarkActive(editor, 'code') ? 'active' : 'default'}
-        disabled={isMarkActive(editor, 'codeBlock')}
+        disabled={commonBlock ? commonBlock[0]?.type === 'codeBlock' : false}
         onClick={() => toggleMark(editor, 'code')}
       >
         <RiCodeLine size="18px" />
@@ -154,8 +193,9 @@ const EditorMenuBar = () => {
 const RichTextEditor = () => {
   const [editor] = useState(() => withHistory(withReact(createEditor())));
   const decorate = useDecorate(editor);
+
   return (
-    <div className="h-[500px] w-full space-y-2 overflow-scroll rounded-md border border-slate-300 p-3">
+    <div className="h-auto w-full space-y-2 overflow-hidden rounded-md border border-slate-300 p-3">
       <Slate editor={editor} initialValue={initialValue}>
         <EditorMenuBar />
         <SetNodeToDecorations />
@@ -166,9 +206,7 @@ const RichTextEditor = () => {
           autoFocus
           spellCheck
           placeholder="Enter some rich text…"
-          style={{
-            width: '100%',
-          }}
+          className="h-full max-h-[500px] w-full overflow-auto focus:outline-0"
           onKeyDown={(event) => {
             for (const hotkey in HOTKEYS) {
               if (isHotkey(hotkey, event as any)) {
