@@ -3,6 +3,7 @@ import { type AppProps } from 'next/app';
 import { api } from '@/lib/api';
 
 import '@/styles/globals.css';
+import '@/styles/prism.css';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import {
   ClerkProvider,

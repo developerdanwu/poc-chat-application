@@ -1,19 +1,17 @@
-import { Editor } from 'slate';
+import { Editor, type Text } from 'slate';
 import type Prism from 'prismjs';
 
-type MarkFormats =
-  | 'bold'
-  | 'italic'
-  | 'underline'
-  | 'codeBlock'
-  | 'code'
-  | 'strike';
-
-export const isMarkActive = (editor: Editor, format: MarkFormats) => {
+export const isMarkActive = (
+  editor: Editor,
+  format: keyof Omit<Text, 'text'>
+) => {
   const marks = Editor.marks(editor);
   return marks ? marks[format] === true : false;
 };
-export const toggleMark = (editor: Editor, format: MarkFormats) => {
+export const toggleMark = (
+  editor: Editor,
+  format: keyof Omit<Text, 'text'>
+) => {
   const isActive = isMarkActive(editor, format);
 
   if (isActive) {
