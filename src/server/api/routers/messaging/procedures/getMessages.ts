@@ -32,6 +32,7 @@ const getMessages = protectedProcedure
             .as('message');
         })
         .select([
+          'message_checksum',
           'client_message_id',
           'text',
           'is_edited',

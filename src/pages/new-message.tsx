@@ -11,7 +11,7 @@ import ChatWindow, {
 } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow';
 import ScrollArea from '@/components/elements/ScrollArea';
 import StartOfDirectMessage from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/StartOfDirectMessage';
-import { ChatroomType, Role } from '@prisma-generated/generated/types';
+import { Role } from '@prisma-generated/generated/types';
 import MainChatLayout from '@/pages/[chatroomId]/_components/MainChatLayout';
 import BaseRichTextEditor from '@/components/modules/rich-text/BaseRichTextEditor';
 import EditorMenuBar from '@/components/modules/rich-text/EditorMenuBar';
@@ -69,44 +69,6 @@ const NewMessage: NextPageWithLayout = () => {
       trpcUtils.chatroom.getAllHumanAuthors.invalidate();
       trpcUtils.chatroom.getChatrooms.invalidate();
       return router.push(`/${data.id}`);
-      // trpcUtils.messaging.getMessages.reset();
-      // trpcUtils.messaging.getMessages.setInfiniteData(
-      //   { chatroomId: data.chatroomId },
-      //   (old) => {
-      //     if (!old) {
-      //       return {
-      //         pages: [
-      //           {
-      //             messages: [data],
-      //             nextCursor: undefined,
-      //           },
-      //         ],
-      //         pageParams: [],
-      //       };
-      //     }
-      //     if (old.pages.length === 0) {
-      //       return {
-      //         pages: [
-      //           {
-      //             messages: [data],
-      //             nextCursor: undefined,
-      //           },
-      //         ],
-      //         pageParams: [],
-      //       };
-      //     }
-      //
-      //     const newState = produce(old.pages, (draft) => {
-      //       draft[0]?.messages.unshift(data);
-      //     });
-      //
-      //     return {
-      //       pages: newState,
-      //       pageParams: old.pageParams,
-      //     };
-      //   }
-      // );
-      // router.push(`/${data.chatroomId}`);
     },
   });
 
@@ -149,10 +111,7 @@ const NewMessage: NextPageWithLayout = () => {
               }}
             >
               {watchedAuthors?.length > 0 ? (
-                <StartOfDirectMessage
-                  chatroomType={ChatroomType.HUMAN_CHATROOM}
-                  authors={watchedAuthors}
-                />
+                <StartOfDirectMessage authors={watchedAuthors} />
               ) : null}
             </ScrollArea>
           </div>

@@ -41,6 +41,7 @@ const sendMessage = protectedProcedure
       const message = await ctx.db
         .selectFrom('message')
         .select([
+          'message_checksum',
           'client_message_id',
           'text',
           'content',
