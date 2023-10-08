@@ -6,6 +6,7 @@ import { type RouterOutput } from '@/server/api/root';
 import dayjs from 'dayjs';
 import { useMemo } from 'react';
 import useChatroomUpdateUtils from '@/pages/[chatroomId]/_components/useChatroomUpdateUtils';
+import { MESSAGES_PER_PAGE } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/constants';
 
 export const useChatroomMessages = ({ chatroomId }: { chatroomId: string }) => {
   const messagesQuery = api.messaging.getMessages.useInfiniteQuery(
@@ -14,7 +15,19 @@ export const useChatroomMessages = ({ chatroomId }: { chatroomId: string }) => {
     },
     {
       getNextPageParam: (lastPage) => {
-        return lastPage?.next_cursor === 0 ? undefined : lastPage?.next_cursor;
+        return undefined;
+      },
+      getPreviousPageParam: (firstPage) => {
+        console.log('FIRST PAGE', firstPage);
+        if (firstPage.messages.length < MESSAGES_PER_PAGE) {
+          return undefined;
+        } else {
+          return firstPage.messages[firstPage.messages.length - 1]
+            .client_message_id;
+        }
+        // return firstPage?.next_cursor === 0
+        //   ? undefined
+        //   : firstPage?.next_cursor;
       },
       staleTime: Infinity,
     }
@@ -36,7 +49,12 @@ export const useChatroomMessages = ({ chatroomId }: { chatroomId: string }) => {
           },
           []
         )
-        .reverse()
+        .sort((a, b) => {
+          return (
+            dayjs.utc(a.created_at).local().unix() -
+            dayjs.utc(b.created_at).local().unix()
+          );
+        })
         .map((m, index, array) => {
           return {
             ...m,

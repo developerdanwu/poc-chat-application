@@ -86,6 +86,8 @@ const ChatWindow = forwardRef<
     setSentNewMessage: state.setSentNewMessage,
   }));
   const user = useUser();
+
+  console.log('HAS PREV PAGE', messagesQuery.hasPreviousPage);
   useEffect(() => {
     return () => {
       chatroomState.chatroomWindowRefMap.delete(chatroomId);
@@ -172,8 +174,8 @@ const ChatWindow = forwardRef<
       groupCounts={groupedMessagesCount}
       context={{ filteredChatroomUsers }}
       startReached={async () => {
-        if (messagesQuery.hasNextPage) {
-          messagesQuery.fetchNextPage();
+        if (messagesQuery.hasPreviousPage) {
+          messagesQuery.fetchPreviousPage();
         }
       }}
       components={{
