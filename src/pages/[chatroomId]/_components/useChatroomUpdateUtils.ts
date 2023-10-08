@@ -12,6 +12,7 @@ const useChatroomUpdateUtils = () => {
     chatroomId: string;
     message: RouterOutput['messaging']['getMessages']['messages'][number];
   }) => {
+    console.log('MESSY', message);
     trpcUtils.messaging.getMessages.setInfiniteData({ chatroomId }, (old) => {
       if (!old) {
         return {
@@ -32,16 +33,39 @@ const useChatroomUpdateUtils = () => {
         };
       }
 
-      const newState = produce(old.pages, (draft) => {
-        if (draft[0] && draft[0].messages.length < 10) {
-          draft[0]?.messages.unshift(message);
-          return draft;
-        }
+      const isMessageAlreadyInState = old.pages.some((page) =>
+        page.messages.some(
+          (m) =>
+            m.client_message_id === message.client_message_id ||
+            message.message_checksum === m.message_checksum
+        )
+      );
 
-        draft.unshift({
-          messages: [message],
-          next_cursor: null as unknown as number,
-        });
+      const newState = produce(old.pages, (draft) => {
+        if (isMessageAlreadyInState) {
+          // update message
+          draft.forEach((page) => {
+            page.messages.forEach((m) => {
+              if (
+                m.message_checksum === message.message_checksum ||
+                m.client_message_id === message.client_message_id
+              ) {
+                m = message;
+              }
+            });
+          });
+        } else {
+          // append new message
+          if (draft[0] && draft[0].messages.length < 10) {
+            draft[0]?.messages.unshift(message);
+            return draft;
+          }
+
+          draft.unshift({
+            messages: [message],
+            next_cursor: null as unknown as number,
+          });
+        }
 
         return draft;
       });

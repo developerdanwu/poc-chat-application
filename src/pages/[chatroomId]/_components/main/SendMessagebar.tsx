@@ -12,6 +12,7 @@ import {
 } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow';
 import BaseRichTextEditor from '@/components/modules/rich-text/BaseRichTextEditor';
 import { safeJSONParse } from '@/lib/utils';
+
 import {
   resetEditor,
   slateJSONToPlainText,
@@ -19,6 +20,7 @@ import {
 import isHotkey from 'is-hotkey';
 import EditorMenuBar from '@/components/modules/rich-text/EditorMenuBar';
 import useChatroomUpdateUtils from '@/pages/[chatroomId]/_components/useChatroomUpdateUtils';
+import { v4 as uuid } from 'uuid';
 
 const SendMessagebar = ({
   chatroomId,
@@ -60,6 +62,7 @@ const SendMessagebar = ({
         chatroomUpdateUtils.updateMessages({
           chatroomId: variables.chatroomId,
           message: {
+            message_checksum: variables.messageChecksum,
             client_message_id:
               flatMapMessages.length > 0
                 ? flatMapMessages[0]!.client_message_id + 1
@@ -104,6 +107,7 @@ const SendMessagebar = ({
             ...data,
             content: JSON.stringify(data.content),
             chatroomId,
+            messageChecksum: uuid(),
           });
         })}
       >

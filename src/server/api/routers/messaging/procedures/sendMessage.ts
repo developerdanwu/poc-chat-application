@@ -12,6 +12,7 @@ import { TRPCError } from '@trpc/server';
 const sendMessage = protectedProcedure
   .input(
     z.object({
+      messageChecksum: z.string().min(1),
       text: z.string().min(1),
       chatroomId: z.string().min(1),
       content: z.string(),
@@ -27,6 +28,7 @@ const sendMessage = protectedProcedure
           type: MessageType.MESSAGE,
           status: MessageStatus.SENT,
           visibility: MessageVisibility.ALL,
+          message_checksum: input.messageChecksum,
           content: input.content,
           author_id: eb
             .selectFrom('author')
