@@ -1,17 +1,33 @@
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Editable,
-  type RenderLeafProps,
   Slate,
   useSlate,
+  useSlateStatic,
   withReact,
 } from 'slate-react';
 import isHotkey from 'is-hotkey';
-
-import { createEditor, type Element } from 'slate';
+import SlateElement from './Element';
+import {
+  createEditor,
+  Editor,
+  Element,
+  Node,
+  type NodeEntry,
+  type Range,
+} from 'slate';
 import { IconButton } from '@/components/elements/IconButton';
 import { withHistory } from 'slate-history';
-
+import Prism from 'prismjs';
+import 'prismjs/components/prism-javascript';
+import 'prismjs/components/prism-jsx';
+import 'prismjs/components/prism-typescript';
+import 'prismjs/components/prism-tsx';
+import 'prismjs/components/prism-markdown';
+import 'prismjs/components/prism-python';
+import 'prismjs/components/prism-php';
+import 'prismjs/components/prism-sql';
+import 'prismjs/components/prism-java';
 import {
   RiBold,
   RiCodeBoxLine,
@@ -21,9 +37,119 @@ import {
 } from 'react-icons/ri';
 import {
   isMarkActive,
+  normalizeTokens,
   toggleMark,
 } from '@/pages/[chatroomId]/_components/main/RichTextEditor/utils';
 import { Separator } from '@/components/elements/separator';
+import Leaf from '@/pages/[chatroomId]/_components/main/RichTextEditor/Leaf';
+import { type CodeBlockElement } from '@/pages/[chatroomId]/_components/main/RichTextEditor/types';
+
+const useDecorate = (editor: Editor) => {
+  return ([node]: NodeEntry<Node>) => {
+    if (Element.isElement(node) && node.type === 'codeLine') {
+      console.log('RANGES', editor.nodeToDecorations.get(node));
+      const ranges = editor.nodeToDecorations.get(node) || [];
+      return ranges;
+    }
+
+    return [];
+  };
+};
+
+const mergeMaps = <K, V>(...maps: Map<K, V>[]) => {
+  const map = new Map<K, V>();
+
+  for (const m of maps) {
+    for (const item of m) {
+      map.set(...item);
+    }
+  }
+
+  return map;
+};
+
+const getChildNodeToDecorations = ([
+  block,
+  blockPath,
+]: NodeEntry<CodeBlockElement>) => {
+  const nodeToDecorations = new Map<Element, Range[]>();
+
+  const text = block.children.map((line) => Node.string(line)).join('\n');
+  const language = block.language;
+  const grammer = Prism.languages[language];
+
+  if (!grammer) {
+    throw new Error(`language ${language} is not a supported Prism language`);
+  }
+
+  const tokens = Prism.tokenize(text, grammer);
+  const normalizedTokens = normalizeTokens(tokens); // make tokens flat and grouped by line
+  const blockChildren = block.children as Element[];
+  for (let index = 0; index < normalizedTokens.length; index++) {
+    const tokens = normalizedTokens[index];
+    const element = blockChildren[index];
+
+    console.log('token', tokens, 'element', element);
+    if (!element) {
+      throw new Error(`element: ${element} cannot be undefined`);
+    }
+
+    if (!tokens) {
+      throw new Error(`tokens: ${tokens} cannot be undefined`);
+    }
+
+    if (!nodeToDecorations.has(element)) {
+      nodeToDecorations.set(element, []);
+    }
+
+    let start = 0;
+    for (const token of tokens) {
+      const length = token.content.length;
+      if (!length) {
+        continue;
+      }
+
+      const end = start + length;
+
+      const path = [...blockPath, index, 0];
+      const range: Range = {
+        anchor: { path, offset: start },
+        focus: { path, offset: end },
+        token: true,
+        ...Object.fromEntries(token.types.map((type) => [type, true])),
+      };
+
+      nodeToDecorations.get(element)!.push(range);
+
+      start = end;
+    }
+  }
+
+  return nodeToDecorations;
+};
+
+// precalculate editor.nodeToDecorations map to use it inside decorate function then
+const SetNodeToDecorations = () => {
+  const editor = useSlate();
+
+  const blockEntries: NodeEntry<CodeBlockElement>[] = Array.from(
+    Editor.nodes(editor, {
+      at: [],
+      mode: 'highest',
+      match: (n) => Element.isElement(n) && n.type === 'codeBlock',
+    })
+  );
+
+  const nodeToDecorations = mergeMaps(
+    ...blockEntries.map(getChildNodeToDecorations)
+  );
+
+  console.log('NODDY', nodeToDecorations);
+
+  editor.nodeToDecorations = nodeToDecorations;
+
+  return null;
+};
 
 const toChildren = (content: string) => [{ text: content }];
 const toCodeLines = (content: string): Element[] =>
@@ -39,39 +165,6 @@ const HOTKEYS = {
 } as const;
 
 const initialValue: Element[] = [
-  {
-    type: 'paragraph',
-    children: toChildren(
-      "Here's one containing a single paragraph block with some text in it:"
-    ),
-  },
-  {
-    type: 'codeBlock',
-    language: 'jsx',
-    children: toCodeLines(`// Add the initial value.
-const initialValue = [
-  {
-    type: 'paragraph',
-    children: [{ text: 'A line of text in a paragraph.' }]
-  }
-]
-
-const App = () => {
-  const [editor] = useState(() => withReact(createEditor()))
-
-  return (
-    <Slate editor={editor} initialValue={initialValue}>
-      <Editable />
-    </Slate>
-  )
-}`),
-  },
-  {
-    type: 'paragraph',
-    children: toChildren(
-      'If you are using TypeScript, you will also need to extend the Editor with ReactEditor and add annotations as per the documentation on TypeScript. The example below also includes the custom types required for the rest of this example.'
-    ),
-  },
   {
     type: 'codeBlock',
     language: 'typescript',
@@ -90,34 +183,10 @@ declare module 'slate' {
   }
 }`),
   },
-  {
-    type: 'paragraph',
-    children: toChildren('There you have it!'),
-  },
 ];
 
-const Leaf = ({ attributes, children, leaf }: RenderLeafProps) => {
-  if (leaf.bold) {
-    children = <strong>{children}</strong>;
-  }
-
-  if (leaf.code) {
-    children = <code>{children}</code>;
-  }
-
-  if (leaf.italic) {
-    children = <em>{children}</em>;
-  }
-
-  if (leaf.underline) {
-    children = <u>{children}</u>;
-  }
-
-  return <span {...attributes}>{children}</span>;
-};
-
 const EditorMenuBar = () => {
-  const editor = useSlate();
+  const editor = useSlateStatic();
 
   return (
     <div className="flex h-5 w-full items-center space-x-2">
@@ -178,17 +247,16 @@ const EditorMenuBar = () => {
 
 const RichTextEditor = () => {
   const [editor] = useState(() => withHistory(withReact(createEditor())));
-
-  const renderLeaf = useCallback(
-    (props: RenderLeafProps) => <Leaf {...props} />,
-    []
-  );
+  const decorate = useDecorate(editor);
   return (
-    <div className="w-full space-y-2 rounded-md border border-slate-300 p-3">
+    <div className="h-[500px] w-full space-y-2 overflow-scroll rounded-md border border-slate-300 p-3">
       <Slate editor={editor} initialValue={initialValue}>
         <EditorMenuBar />
+        <SetNodeToDecorations />
         <Editable
-          renderLeaf={renderLeaf}
+          decorate={decorate}
+          renderLeaf={Leaf}
+          renderElement={SlateElement}
           autoFocus
           spellCheck
           placeholder="Enter some rich text…"
@@ -205,9 +273,153 @@ const RichTextEditor = () => {
             }
           }}
         />
+        <style>{prismThemeCss}</style>
       </Slate>
     </div>
   );
 };
+
+const prismThemeCss = `
+/**
+ * prism.js default theme for JavaScript, CSS and HTML
+ * Based on dabblet (http://dabblet.com)
+ * @author Lea Verou
+ */
+
+code[class*="language-"],
+pre[class*="language-"] {
+    color: black;
+    background: none;
+    text-shadow: 0 1px white;
+    font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+    font-size: 1em;
+    text-align: left;
+    white-space: pre;
+    word-spacing: normal;
+    word-break: normal;
+    word-wrap: normal;
+    line-height: 1.5;
+
+    -moz-tab-size: 4;
+    -o-tab-size: 4;
+    tab-size: 4;
+
+    -webkit-hyphens: none;
+    -moz-hyphens: none;
+    -ms-hyphens: none;
+    hyphens: none;
+}
+
+pre[class*="language-"]::-moz-selection, pre[class*="language-"] ::-moz-selection,
+code[class*="language-"]::-moz-selection, code[class*="language-"] ::-moz-selection {
+    text-shadow: none;
+    background: #b3d4fc;
+}
+
+pre[class*="language-"]::selection, pre[class*="language-"] ::selection,
+code[class*="language-"]::selection, code[class*="language-"] ::selection {
+    text-shadow: none;
+    background: #b3d4fc;
+}
+
+@media print {
+    code[class*="language-"],
+    pre[class*="language-"] {
+        text-shadow: none;
+    }
+}
+
+/* Code blocks */
+pre[class*="language-"] {
+    padding: 1em;
+    margin: .5em 0;
+    overflow: auto;
+}
+
+:not(pre) > code[class*="language-"],
+pre[class*="language-"] {
+    background: #f5f2f0;
+}
+
+/* Inline code */
+:not(pre) > code[class*="language-"] {
+    padding: .1em;
+    border-radius: .3em;
+    white-space: normal;
+}
+
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+    color: slategray;
+}
+
+.token.punctuation {
+    color: #999;
+}
+
+.token.namespace {
+    opacity: .7;
+}
+
+.token.property,
+.token.tag,
+.token.boolean,
+.token.number,
+.token.constant,
+.token.symbol,
+.token.deleted {
+    color: #905;
+}
+
+.token.selector,
+.token.attr-name,
+.token.string,
+.token.char,
+.token.builtin,
+.token.inserted {
+    color: #690;
+}
+
+.token.operator,
+.token.entity,
+.token.url,
+.language-css .token.string,
+.style .token.string {
+    color: #9a6e3a;
+    /* This background color was intended by the author of this theme. */
+    background: hsla(0, 0%, 100%, .5);
+}
+
+.token.atrule,
+.token.attr-value,
+.token.keyword {
+    color: #07a;
+}
+
+.token.function,
+.token.class-name {
+    color: #DD4A68;
+}
+
+.token.regex,
+.token.important,
+.token.variable {
+    color: #e90;
+}
+
+.token.important,
+.token.bold {
+    font-weight: bold;
+}
+.token.italic {
+    font-style: italic;
+}
+
+.token.entity {
+    cursor: help;
+}
+`;
 
 export default RichTextEditor;

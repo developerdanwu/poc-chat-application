@@ -1,9 +1,13 @@
 // This example is for an Editor with `ReactEditor` and `HistoryEditor`
-import { type BaseEditor } from 'slate';
+import { type BaseEditor, type Element, type Range } from 'slate';
 import { type ReactEditor } from 'slate-react';
 import { type HistoryEditor } from 'slate-history';
 
-export type CustomEditor = BaseEditor & ReactEditor & HistoryEditor;
+export type CustomEditor = BaseEditor &
+  ReactEditor &
+  HistoryEditor & {
+    nodeToDecorations: Map<Element, Range[]>;
+  };
 
 export type ParagraphElement = {
   type: 'paragraph';
@@ -26,6 +30,8 @@ export type CustomElement =
   | CodeBlockElement
   | CodeLineElement;
 
+export type CustomRange = Range & { token: boolean };
+
 interface FormattedText {
   text: string;
   bold?: boolean;
@@ -42,5 +48,6 @@ declare module 'slate' {
     Editor: CustomEditor;
     Element: CustomElement;
     Text: CustomText;
+    Range: CustomRange;
   }
 }
