@@ -131,7 +131,7 @@ const ChatWindow = forwardRef<
       components={{
         Header: ChatHeader,
       }}
-      style={{ height: '100%', flex: '0 1 auto', position: 'relative' }}
+      style={{ height: '100%', position: 'relative', flex: '1 1 0px' }}
       groupContent={(index) => {
         return (
           <div className="relative flex w-full justify-center bg-transparent">

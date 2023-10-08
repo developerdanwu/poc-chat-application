@@ -183,29 +183,31 @@ const RichTextEditor = () => {
   const decorate = useDecorate(editor);
 
   return (
-    <div className="h-auto w-full space-y-2 overflow-hidden rounded-md border border-slate-300 p-3">
-      <Slate editor={editor} initialValue={initialValue}>
-        <EditorMenuBar />
-        <SetNodeToDecorations />
-        <Editable
-          decorate={decorate}
-          renderLeaf={Leaf}
-          renderElement={SlateElement}
-          autoFocus
-          spellCheck
-          placeholder="Enter some rich text…"
-          className="h-full max-h-[500px] w-full overflow-auto focus:outline-0"
-          onKeyDown={(event) => {
-            for (const hotkey in HOTKEYS) {
-              if (isHotkey(hotkey, event as any)) {
-                event.preventDefault();
-                const mark = HOTKEYS[hotkey as keyof typeof HOTKEYS];
-                toggleMark(editor, mark);
+    <div className="flex h-full  h-auto min-h-fit px-6 py-4">
+      <div className="flex h-auto  min-h-fit w-full flex-col space-y-2 rounded-md border border-slate-300 p-3">
+        <Slate editor={editor} initialValue={initialValue}>
+          <EditorMenuBar />
+          <SetNodeToDecorations />
+          <Editable
+            decorate={decorate}
+            renderLeaf={Leaf}
+            renderElement={SlateElement}
+            autoFocus
+            spellCheck
+            placeholder="Enter some rich text…"
+            className="min-h-fit w-full overflow-auto focus:outline-0"
+            onKeyDown={(event) => {
+              for (const hotkey in HOTKEYS) {
+                if (isHotkey(hotkey, event as any)) {
+                  event.preventDefault();
+                  const mark = HOTKEYS[hotkey as keyof typeof HOTKEYS];
+                  toggleMark(editor, mark);
+                }
               }
-            }
-          }}
-        />
-      </Slate>
+            }}
+          />
+        </Slate>
+      </div>
     </div>
   );
 };
