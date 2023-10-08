@@ -157,7 +157,7 @@ const ChatWindow = forwardRef<
         // sent new message scroll to bottom auto
         if (chatroomState.sentNewMessage[chatroomId]) {
           chatroomState.setSentNewMessage(chatroomId, false);
-          return 'smooth';
+          return 'auto';
         }
         // // receive new message && at bottom then scroll to bottom
         if (isAtBottom) {
@@ -179,7 +179,7 @@ const ChatWindow = forwardRef<
       components={{
         Header: ChatHeader,
       }}
-      style={{ height: '100%', position: 'relative' }}
+      style={{ height: '100%', position: 'relative', flex: '1 1 0' }}
       groupContent={(index) => {
         return (
           <div className="relative flex w-full justify-center bg-transparent">

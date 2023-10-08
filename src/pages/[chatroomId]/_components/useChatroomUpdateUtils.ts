@@ -14,6 +14,15 @@ const useChatroomUpdateUtils = () => {
     message: RouterOutput['messaging']['getMessages']['messages'][number];
   }) => {
     console.log('MESSY', message);
+    trpcUtils.messaging.getMessagesCount.setData({ chatroomId }, (old) => {
+      if (!old) {
+        return old;
+      }
+
+      return {
+        messages_count: old.messages_count + 1,
+      };
+    });
     trpcUtils.messaging.getMessages.setInfiniteData({ chatroomId }, (old) => {
       if (!old) {
         return {
