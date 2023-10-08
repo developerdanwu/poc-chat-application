@@ -97,7 +97,6 @@ export const AiModelsSection = () => {
                         <CommandItem
                           value={model.value}
                           onSelect={(currentValue) => {
-                            console.log('VAL', currentValue);
                             setSelectedAi((prev) =>
                               prev === currentValue.toUpperCase()
                                 ? ''

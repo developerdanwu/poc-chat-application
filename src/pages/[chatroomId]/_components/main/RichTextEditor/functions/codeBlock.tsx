@@ -144,7 +144,6 @@ export const getChildNodeToDecorations = ([
     const tokens = normalizedTokens[index];
     const element = blockChildren[index];
 
-    console.log('token', tokens, 'element', element);
     if (!element) {
       throw new Error(`element: ${element} cannot be undefined`);
     }

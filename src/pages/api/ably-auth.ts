@@ -18,7 +18,6 @@ export default async function handler(
         clientId: '1',
       });
 
-      console.log('TOKEN', token);
       return res.status(200).send(token);
     } catch (e) {
       console.log('err', e);

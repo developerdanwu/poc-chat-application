@@ -145,7 +145,6 @@ export const useMessageUpdate = ({ chatroomId }: { chatroomId: string }) => {
                   if (
                     message.client_message_id === newMessage.client_message_id
                   ) {
-                    console.log('FIREDDDD');
                     draft[pageIndex].messages[messageIndex] = newMessage;
                     updated = true;
                   }
@@ -172,13 +171,10 @@ export const useMessageUpdate = ({ chatroomId }: { chatroomId: string }) => {
               pageParams: old.pageParams,
             };
 
-            console.log('TYPED', typedMessage);
             return old;
           }
         );
       }
-
-      console.log('MESSAGE', message);
     }
     // const typedMessage =
     //   message.data as RouterOutput['messaging']['sendMessage'];

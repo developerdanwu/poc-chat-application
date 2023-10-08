@@ -8,7 +8,6 @@ import {
   Element,
   type Node,
   type NodeEntry,
-  Transforms,
 } from 'slate';
 import { IconButton } from '@/components/elements/IconButton';
 import { withHistory } from 'slate-history';
@@ -24,6 +23,7 @@ import {
   isBlockActive,
   isMarkActive,
   toChildren,
+  toggleBlock,
   toggleMark,
 } from '@/pages/[chatroomId]/_components/main/RichTextEditor/utils';
 import { Separator } from '@/components/elements/separator';
@@ -36,7 +36,6 @@ import {
 const useDecorate = (editor: Editor) => {
   return ([node]: NodeEntry<Node>) => {
     if (Element.isElement(node) && node.type === 'codeLine') {
-      console.log('RANGES', editor.nodeToDecorations.get(node));
       const ranges = editor.nodeToDecorations.get(node) || [];
       return ranges;
     }
@@ -118,20 +117,7 @@ const CodeBlockButton = () => {
       variant="ghost"
       state={isCodeBlockActive ? 'active' : 'default'}
       onClick={() => {
-        Transforms.unwrapNodes(editor);
-        Transforms.wrapNodes(
-          editor,
-          { type: 'codeBlock', language: 'html', children: [] },
-          {
-            match: (n) => Element.isElement(n) && n.type === 'paragraph',
-            split: true,
-          }
-        );
-        Transforms.setNodes(
-          editor,
-          { type: 'codeLine' },
-          { match: (n) => Element.isElement(n) && n.type === 'paragraph' }
-        );
+        toggleBlock(editor, 'codeBlock');
       }}
     >
       <RiCodeBoxLine size="18px" />

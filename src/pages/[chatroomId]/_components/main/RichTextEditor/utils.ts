@@ -1,4 +1,4 @@
-import { Editor, Element, Node, type Text } from 'slate';
+import { Editor, Element as SlateElement, type Text, Transforms } from 'slate';
 
 export const isMarkActive = (
   editor: Editor,
@@ -22,32 +22,9 @@ export const toggleMark = (
 
 export const toChildren = (content: string) => [{ text: content }];
 
-export function getCommonBlock(editor: Editor) {
-  if (!editor.selection) {
-    return;
-  }
-
-  const range = Editor.unhangRange(editor, editor.selection, { voids: true });
-
-  const [common, path] = Node.common(
-    editor,
-    range.anchor.path,
-    range.focus.path
-  );
-
-  if (Editor.isBlock(editor, common) || Editor.isEditor(common)) {
-    return [common, path];
-  } else {
-    return Editor.above(editor, {
-      at: path,
-      match: (n) => Editor.isBlock(editor, n) || Editor.isEditor(n),
-    });
-  }
-}
-
 export const isBlockActive = (
   editor: Editor,
-  format: Element['type'],
+  format: SlateElement['type'],
   blockType: 'type' = 'type'
 ) => {
   const { selection } = editor;
@@ -57,9 +34,43 @@ export const isBlockActive = (
     Editor.nodes(editor, {
       at: Editor.unhangRange(editor, selection),
       match: (n) =>
-        !Editor.isEditor(n) && Element.isElement(n) && n[blockType] === format,
+        !Editor.isEditor(n) &&
+        SlateElement.isElement(n) &&
+        n[blockType] === format,
     })
   );
 
   return !!match;
+};
+
+export const toggleBlock = (editor: Editor, format: SlateElement['type']) => {
+  const isActive = isBlockActive(editor, format, 'type');
+
+  if (isActive) {
+    Transforms.unwrapNodes(editor, {
+      match: (n) =>
+        !Editor.isEditor(n) &&
+        SlateElement.isElement(n) &&
+        n.type === 'codeBlock',
+      split: true,
+    });
+
+    Transforms.setNodes<SlateElement>(editor, {
+      type: 'paragraph' as const,
+    });
+  } else {
+    Transforms.wrapNodes(
+      editor,
+      { type: 'codeBlock', language: 'typescript', children: [] },
+      {
+        match: (n) => SlateElement.isElement(n) && n.type === 'paragraph',
+        split: true,
+      }
+    );
+    Transforms.setNodes(
+      editor,
+      { type: 'codeLine' },
+      { match: (n) => SlateElement.isElement(n) && n.type === 'paragraph' }
+    );
+  }
 };
