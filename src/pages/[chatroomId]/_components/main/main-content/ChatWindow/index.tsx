@@ -52,6 +52,7 @@ const ChatHeader = ({
   context,
 }: {
   context?: {
+    hasPreviousPage?: boolean;
     filteredChatroomUsers: {
       author_id: number;
       first_name: string;
@@ -59,9 +60,14 @@ const ChatHeader = ({
     }[];
   };
 }) => {
-  if (!context?.filteredChatroomUsers) {
-    return null;
+  if (!context?.filteredChatroomUsers || context?.hasPreviousPage) {
+    return (
+      <div className="flex justify-center py-2">
+        <RadialProgress />
+      </div>
+    );
   }
+
   return <StartOfDirectMessage authors={context.filteredChatroomUsers} />;
 };
 
@@ -169,11 +175,14 @@ const ChatWindow = forwardRef<
         return false;
       }}
       firstItemIndex={firstItemIndex}
-      initialTopMostItemIndex={0}
+      initialTopMostItemIndex={messagesCountQuery.data?.messages_count - 1}
       data={messages}
       groupCounts={groupedMessagesCount}
-      context={{ filteredChatroomUsers }}
-      startReached={async () => {
+      context={{
+        filteredChatroomUsers,
+        hasPreviousPage: messagesQuery.hasPreviousPage,
+      }}
+      startReached={(index) => {
         if (messagesQuery.hasPreviousPage) {
           messagesQuery.fetchPreviousPage();
         }
