@@ -51,8 +51,7 @@ export const useChatroomMessages = ({ chatroomId }: { chatroomId: string }) => {
         )
         .sort((a, b) => {
           return (
-            dayjs.utc(a.created_at).local().unix() -
-            dayjs.utc(b.created_at).local().unix()
+            dayjs.utc(a.created_at).unix() - dayjs.utc(b.created_at).unix()
           );
         })
         .map((m, index, array) => {
