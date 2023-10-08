@@ -1,5 +1,5 @@
 import React, { type RefObject, useRef } from 'react';
-import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
+import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { api } from '@/lib/api';
 import dayjs from 'dayjs';
 import produce from 'immer';
@@ -32,7 +32,7 @@ const SendMessagebar = ({
   });
   const sendMessageToAI = api.messaging.sendMessageOpenAI.useMutation();
   const chatroomState = useChatroomState((state) => ({
-    chatroomWindowRefMap: state.chatroomWindowRefMap,
+    setSentNewMessage: state.setSentNewMessage,
   }));
   const trpcUtils = api.useContext();
   const ownAuthor = api.chatroom.getOwnAuthor.useQuery();
@@ -114,12 +114,7 @@ const SendMessagebar = ({
       });
 
       chatForm.reset();
-
-      // // not sure if this is the way to do this? But it will make sure the latest message is shown on screen on send message
-      // requestAnimationFrame(() => {
-      //   chatWindowRef.current?.scrollToBottom();
-      // });
-
+      chatroomState.setSentNewMessage(variables.chatroomId, true);
       return {
         oldData,
       };
@@ -135,11 +130,6 @@ const SendMessagebar = ({
         );
       }
     },
-  });
-
-  const text = useWatch({
-    name: 'text',
-    control: chatForm.control,
   });
 
   return (

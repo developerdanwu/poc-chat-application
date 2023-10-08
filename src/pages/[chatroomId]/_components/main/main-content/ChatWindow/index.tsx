@@ -24,8 +24,16 @@ export type ChatWindowRef = {
 
 export const useChatroomState = create<{
   chatroomWindowRefMap: Map<string, GroupedVirtuosoHandle>;
+  setSentNewMessage: (chatroomId: string, value: boolean) => void;
+  sentNewMessage: Record<string, boolean>;
 }>((setState) => ({
   chatroomWindowRefMap: new Map(),
+  sentNewMessage: {},
+  setSentNewMessage: (chatroomId, value) => {
+    setState((state) => ({
+      sentNewMessage: { ...state.sentNewMessage, [chatroomId]: value },
+    }));
+  },
 }));
 
 export const ChatWindowLoading = () => {
@@ -73,6 +81,8 @@ const ChatWindow = forwardRef<
   } = useChatroomMessages({ chatroomId });
   const chatroomState = useChatroomState((state) => ({
     chatroomWindowRefMap: state.chatroomWindowRefMap,
+    sentNewMessage: state.sentNewMessage,
+    setSentNewMessage: state.setSentNewMessage,
   }));
   const user = useUser();
   useEffect(() => {
@@ -137,6 +147,17 @@ const ChatWindow = forwardRef<
         }
       }}
       followOutput={(isAtBottom) => {
+        // send message && close to bottom scroll smooth
+        if (chatroomState.sentNewMessage[chatroomId] && isAtBottom) {
+          chatroomState.setSentNewMessage(chatroomId, false);
+          return 'smooth';
+        }
+        // sent new message scroll to bottom auto
+        if (chatroomState.sentNewMessage[chatroomId]) {
+          chatroomState.setSentNewMessage(chatroomId, false);
+          return 'auto';
+        }
+        // // receive new message && at bottom then scroll to bottom
         if (isAtBottom) {
           return 'smooth';
         }
