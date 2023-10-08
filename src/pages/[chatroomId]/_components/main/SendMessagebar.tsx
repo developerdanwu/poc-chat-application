@@ -138,6 +138,7 @@ const SendMessagebar = ({
                       editable: {
                         onKeyDown: (event, editor) => {
                           if (isHotkey('enter', event as any)) {
+                            // TODO: check if form valid before reset
                             resetEditor(editor);
                             event.preventDefault();
                             chatFormRef.current?.dispatchEvent(
