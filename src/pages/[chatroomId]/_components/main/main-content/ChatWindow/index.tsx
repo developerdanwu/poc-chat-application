@@ -260,6 +260,7 @@ const ChatWindowItem = React.memo(
       previousMessageAuthor?.author_id === author.author_id;
     return (
       <ChatReplyItemWrapper
+        isStartOfGroup={isStartOfGroup}
         isLastMessageSenderEqualToCurrentMessageSender={
           isLastMessageSenderEqualToCurrentMessageSender
         }
