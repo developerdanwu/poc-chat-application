@@ -19,6 +19,7 @@ datasource db {
 
 model Message {
   clientMessageId Int               @id @default(autoincrement()) @map("client_message_id")
+  messageChecksum String?           @map("message_checksum")
   text            String
   type            MessageType
   content         String
