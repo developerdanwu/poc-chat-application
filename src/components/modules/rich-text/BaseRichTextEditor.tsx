@@ -98,7 +98,7 @@ export const RichTextEditable = ({
   onKeyDown,
   readOnly,
 }: Pick<EditableProps, 'readOnly'> & {
-  onKeyDown: (
+  onKeyDown?: (
     event: React.KeyboardEvent<HTMLDivElement>,
     editor: Editor
   ) => void;
@@ -143,7 +143,7 @@ const BaseRichTextEditor = ({
       onChange?: ((value: Descendant[], editor: Editor) => void) | undefined;
     };
     editable?: Pick<EditableProps, 'readOnly'> & {
-      onKeyDown: (
+      onKeyDown?: (
         event: React.KeyboardEvent<HTMLDivElement>,
         editor: Editor
       ) => void;

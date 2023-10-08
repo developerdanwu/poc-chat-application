@@ -7,7 +7,10 @@ import { type InfiniteData } from '@tanstack/react-query';
 import { type RouterOutput } from '@/server/api/root';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
-import { type ChatWindowRef } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow';
+import {
+  type ChatWindowRef,
+  useChatroomState,
+} from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow';
 import BaseRichTextEditor from '@/components/modules/rich-text/BaseRichTextEditor';
 import { safeJSONParse } from '@/lib/utils';
 import {
@@ -28,7 +31,9 @@ const SendMessagebar = ({
     chatroomId: chatroomId,
   });
   const sendMessageToAI = api.messaging.sendMessageOpenAI.useMutation();
-
+  const chatroomState = useChatroomState((state) => ({
+    chatroomWindowRefMap: state.chatroomWindowRefMap,
+  }));
   const trpcUtils = api.useContext();
   const ownAuthor = api.chatroom.getOwnAuthor.useQuery();
   const chatFormRef = useRef<HTMLFormElement>(null);
@@ -110,10 +115,10 @@ const SendMessagebar = ({
 
       chatForm.reset();
 
-      // not sure if this is the way to do this? But it will make sure the latest message is shown on screen on send message
-      requestAnimationFrame(() => {
-        chatWindowRef.current?.scrollToBottom();
-      });
+      // // not sure if this is the way to do this? But it will make sure the latest message is shown on screen on send message
+      // requestAnimationFrame(() => {
+      //   chatWindowRef.current?.scrollToBottom();
+      // });
 
       return {
         oldData,

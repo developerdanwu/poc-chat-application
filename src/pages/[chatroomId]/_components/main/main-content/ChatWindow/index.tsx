@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useEffect } from 'react';
 import { api } from '@/lib/api';
 import dayjs from 'dayjs';
 import { cn, useApiTransformUtils } from '@/lib/utils';
@@ -9,17 +9,24 @@ import {
   useChatroomMessages,
   useMessageUpdate,
 } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/hooks';
-import { GroupedVirtuoso } from 'react-virtuoso';
+import { GroupedVirtuoso, type GroupedVirtuosoHandle } from 'react-virtuoso';
 import StartOfDirectMessage from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/StartOfDirectMessage';
 import {
   ChatReplyItem,
   ChatReplyItemWrapper,
 } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/chat-reply-item';
+import { create } from 'zustand';
 
 export type ChatWindowRef = {
   scrollToBottom: () => void;
   scrollAreaRef: HTMLDivElement;
 };
+
+export const useChatroomState = create<{
+  chatroomWindowRefMap: Map<string, GroupedVirtuosoHandle>;
+}>((setState) => ({
+  chatroomWindowRefMap: new Map(),
+}));
 
 export const ChatWindowLoading = () => {
   return (
@@ -64,8 +71,15 @@ const ChatWindow = forwardRef<
     messagesQuery,
     messagesCountQuery,
   } = useChatroomMessages({ chatroomId });
-
+  const chatroomState = useChatroomState((state) => ({
+    chatroomWindowRefMap: state.chatroomWindowRefMap,
+  }));
   const user = useUser();
+  useEffect(() => {
+    return () => {
+      chatroomState.chatroomWindowRefMap.delete(chatroomId);
+    };
+  }, [chatroomId, chatroomState.chatroomWindowRefMap]);
   const authorsHashmap = api.chatroom.getChatroom.useQuery(
     {
       chatroomId: chatroomId,
@@ -117,6 +131,17 @@ const ChatWindow = forwardRef<
   return (
     <GroupedVirtuoso
       key={chatroomId}
+      ref={(ref) => {
+        if (ref) {
+          chatroomState.chatroomWindowRefMap.set(chatroomId, ref);
+        }
+      }}
+      followOutput={(isAtBottom) => {
+        if (isAtBottom) {
+          return 'smooth';
+        }
+        return false;
+      }}
       firstItemIndex={firstItemIndex}
       initialTopMostItemIndex={0}
       data={messages}
