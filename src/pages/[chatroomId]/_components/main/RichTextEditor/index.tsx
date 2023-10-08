@@ -15,6 +15,7 @@ import {
   Node,
   type NodeEntry,
   type Range,
+  Transforms,
 } from 'slate';
 import { IconButton } from '@/components/elements/IconButton';
 import { withHistory } from 'slate-history';
@@ -144,8 +145,6 @@ const SetNodeToDecorations = () => {
     ...blockEntries.map(getChildNodeToDecorations)
   );
 
-  console.log('NODDY', nodeToDecorations);
-
   editor.nodeToDecorations = nodeToDecorations;
 
   return null;
@@ -184,6 +183,35 @@ declare module 'slate' {
 }`),
   },
 ];
+
+const CodeBlockButton = () => {
+  const editor = useSlateStatic();
+  return (
+    <IconButton
+      size="sm"
+      type="button"
+      variant="ghost"
+      // state={isMarkActive(editor, 'codeBlock') ? 'active' : 'default'}
+      onClick={() => {
+        Transforms.wrapNodes(
+          editor,
+          { type: 'codeBlock', language: 'html', children: [] },
+          {
+            match: (n) => Element.isElement(n) && n.type === 'paragraph',
+            split: true,
+          }
+        );
+        Transforms.setNodes(
+          editor,
+          { type: 'codeLine' },
+          { match: (n) => Element.isElement(n) && n.type === 'paragraph' }
+        );
+      }}
+    >
+      <RiCodeBoxLine size="18px" />
+    </IconButton>
+  );
+};
 
 const EditorMenuBar = () => {
   const editor = useSlateStatic();
@@ -231,16 +259,7 @@ const EditorMenuBar = () => {
       >
         <RiCodeLine size="18px" />
       </IconButton>
-
-      <IconButton
-        size="sm"
-        type="button"
-        variant="ghost"
-        state={isMarkActive(editor, 'codeBlock') ? 'active' : 'default'}
-        onClick={() => toggleMark(editor, 'codeBlock')}
-      >
-        <RiCodeBoxLine size="18px" />
-      </IconButton>
+      <CodeBlockButton />
     </div>
   );
 };
