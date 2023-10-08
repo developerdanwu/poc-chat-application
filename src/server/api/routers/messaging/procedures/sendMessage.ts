@@ -4,11 +4,8 @@ import {
   MessageStatus,
   MessageType,
   MessageVisibility,
-  type Role,
 } from '@prisma-generated/generated/types';
 import dayjs from 'dayjs';
-
-import { sql } from 'kysely';
 import { ablyChannelKeyStore } from '@/lib/ably';
 import { TRPCError } from '@trpc/server';
 
@@ -46,20 +43,12 @@ const sendMessage = protectedProcedure
         .select([
           'client_message_id',
           'text',
-          'message.created_at',
-          'message.updated_at',
           'content',
-          sql<{
-            first_name: string;
-            last_name: string;
-            author_id: number;
-            user_id: string;
-            role: (typeof Role)[keyof typeof Role];
-          }>`JSON_BUILD_OBJECT('first_name',author.first_name, 'last_name', author.last_name, 'email', author.email, 'author_id', author.author_id, 'role', author.role, 'user_id', author.user_id, 'role', author.role)`.as(
-            'author'
-          ),
+          'is_edited',
+          'created_at',
+          'updated_at',
+          'author_id',
         ])
-        .innerJoin('author', 'author.author_id', 'message.author_id')
         .where('client_message_id', '=', insertedMessage.client_message_id)
         .executeTakeFirstOrThrow();
 

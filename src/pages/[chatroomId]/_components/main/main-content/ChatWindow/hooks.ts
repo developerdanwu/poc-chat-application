@@ -1,11 +1,11 @@
 import { useChannel } from '@ably-labs/react-hooks';
-import { ablyChannelKeyStore, MESSAGE_STREAM_NAMES } from '@/lib/ably';
+import { ablyChannelKeyStore } from '@/lib/ably';
 import { api } from '@/lib/api';
 import { useUser } from '@clerk/nextjs';
 import { type RouterOutput } from '@/server/api/root';
 import dayjs from 'dayjs';
 import { useMemo } from 'react';
-import produce from 'immer';
+import useChatroomUpdateUtils from '@/pages/[chatroomId]/_components/useChatroomUpdateUtils';
 
 export const useChatroomMessages = ({ chatroomId }: { chatroomId: string }) => {
   const messagesQuery = api.messaging.getMessages.useInfiniteQuery(
@@ -24,11 +24,7 @@ export const useChatroomMessages = ({ chatroomId }: { chatroomId: string }) => {
   const messagesCountQuery = api.messaging.getMessagesCount.useQuery({
     chatroomId,
   });
-  // const chatwindowEntries = Object.entries(formattedMessages || {}).sort(
-  //     (a, b) => {
-  //       return dayjs(a[0]).isAfter(dayjs(b[0]), 'day') ? 1 : -1;
-  //     }
-  // );
+
   const messages = useMemo(
     () =>
       messagesQuery.data?.pages
@@ -91,91 +87,99 @@ export const useChatroomMessages = ({ chatroomId }: { chatroomId: string }) => {
 export const useMessageUpdate = ({ chatroomId }: { chatroomId: string }) => {
   const currentUser = useUser();
   const trpcUtils = api.useContext();
+  const chatroomUpdateUtils = useChatroomUpdateUtils();
   useChannel(ablyChannelKeyStore.chatroom(chatroomId), async (message) => {
-    const messageNameCast =
-      message.name as (typeof MESSAGE_STREAM_NAMES)[keyof typeof MESSAGE_STREAM_NAMES];
-
-    if (messageNameCast === MESSAGE_STREAM_NAMES.openAiMessage) {
-      const typedMessage = message.data as {
-        message: string;
-        runId: string;
-        parentRunId: string;
-        authorId: number;
-      };
-      if (typedMessage) {
-        trpcUtils.messaging.getMessages.setInfiniteData(
-          {
-            chatroomId,
-          },
-          (old) => {
-            if (!old) {
-              return {
-                pages: [{ messages: [], next_cursor: 0 }],
-                pageParams: [],
-              };
-            }
-
-            const newMessage = {
-              created_at: dayjs.utc().toDate(),
-              updated_at: dayjs.utc().toDate(),
-              text: typedMessage.message,
-              author_id: typedMessage.authorId,
-              client_message_id: typedMessage.runId,
-              content: typedMessage.message,
-              is_edited: false,
-            };
-
-            if (old.pages.length === 0) {
-              return {
-                pages: [
-                  {
-                    messages: [newMessage],
-                    next_cursor: 0,
-                  },
-                ],
-                pageParams: [],
-              };
-            }
-
-            const newState = produce(old.pages, (draft) => {
-              let updated = false;
-
-              draft.forEach((page, pageIndex) => {
-                page.messages.forEach((message, messageIndex) => {
-                  if (
-                    message.client_message_id === newMessage.client_message_id
-                  ) {
-                    draft[pageIndex].messages[messageIndex] = newMessage;
-                    updated = true;
-                  }
-                });
-              });
-
-              if (!updated && draft[0] && draft[0].messages.length < 10) {
-                draft[0]?.messages.unshift(newMessage);
-                return draft;
-              }
-
-              if (!updated) {
-                draft.unshift({
-                  messages: [newMessage],
-                  next_cursor: undefined as unknown as number,
-                });
-              }
-
-              return draft;
-            });
-
-            return {
-              pages: newState || [],
-              pageParams: old.pageParams,
-            };
-
-            return old;
-          }
-        );
-      }
-    }
+    console.log('MESSAGE??', message.data);
+    chatroomUpdateUtils.updateMessages({
+      chatroomId,
+      message:
+        message.data as RouterOutput['messaging']['getMessages']['messages'][number],
+    });
+    // const castedMessageData = message.data;
+    // const messageNameCast =
+    //   message.name as (typeof MESSAGE_STREAM_NAMES)[keyof typeof MESSAGE_STREAM_NAMES];
+    //
+    // if (messageNameCast === MESSAGE_STREAM_NAMES.openAiMessage) {
+    //   const typedMessage = message.data as {
+    //     message: string;
+    //     runId: string;
+    //     parentRunId: string;
+    //     authorId: number;
+    //   };
+    //   if (typedMessage) {
+    //     trpcUtils.messaging.getMessages.setInfiniteData(
+    //       {
+    //         chatroomId,
+    //       },
+    //       (old) => {
+    //         if (!old) {
+    //           return {
+    //             pages: [{ messages: [], next_cursor: 0 }],
+    //             pageParams: [],
+    //           };
+    //         }
+    //
+    //         const newMessage = {
+    //           created_at: dayjs.utc().toDate(),
+    //           updated_at: dayjs.utc().toDate(),
+    //           text: typedMessage.message,
+    //           author_id: typedMessage.authorId,
+    //           client_message_id: typedMessage.runId,
+    //           content: typedMessage.message,
+    //           is_edited: false,
+    //         };
+    //
+    //         if (old.pages.length === 0) {
+    //           return {
+    //             pages: [
+    //               {
+    //                 messages: [newMessage],
+    //                 next_cursor: 0,
+    //               },
+    //             ],
+    //             pageParams: [],
+    //           };
+    //         }
+    //
+    //         const newState = produce(old.pages, (draft) => {
+    //           let updated = false;
+    //
+    //           draft.forEach((page, pageIndex) => {
+    //             page.messages.forEach((message, messageIndex) => {
+    //               if (
+    //                 message.client_message_id === newMessage.client_message_id
+    //               ) {
+    //                 draft[pageIndex].messages[messageIndex] = newMessage;
+    //                 updated = true;
+    //               }
+    //             });
+    //           });
+    //
+    //           if (!updated && draft[0] && draft[0].messages.length < 10) {
+    //             draft[0]?.messages.unshift(newMessage);
+    //             return draft;
+    //           }
+    //
+    //           if (!updated) {
+    //             draft.unshift({
+    //               messages: [newMessage],
+    //               next_cursor: undefined as unknown as number,
+    //             });
+    //           }
+    //
+    //           return draft;
+    //         });
+    //
+    //         return {
+    //           pages: newState || [],
+    //           pageParams: old.pageParams,
+    //         };
+    //
+    //         return old;
+    //       }
+    //     );
+    //   }
+    // }
     // const typedMessage =
     //   message.data as RouterOutput['messaging']['sendMessage'];
     //

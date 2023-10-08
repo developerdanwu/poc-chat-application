@@ -147,6 +147,7 @@ const ChatWindow = forwardRef<
         }
       }}
       followOutput={(isAtBottom) => {
+        // TODO: virtualisation is a bit bugged lol sometimes works sometimes no
         // send message && close to bottom scroll smooth
         if (chatroomState.sentNewMessage[chatroomId] && isAtBottom) {
           chatroomState.setSentNewMessage(chatroomId, false);
