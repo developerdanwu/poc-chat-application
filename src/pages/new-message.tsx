@@ -74,7 +74,7 @@ const NewMessage: NextPageWithLayout = () => {
   });
 
   return (
-    <>
+    <div className="flex h-full w-full flex-col">
       <FormProvider {...newMessageForm}>
         <div className="flex w-full flex-[0_0_48px] items-center border-b border-slate-300 px-6">
           <p className="font-semibold">New message</p>
@@ -178,7 +178,7 @@ const NewMessage: NextPageWithLayout = () => {
           </div>
         </form>
       </FormProvider>
-    </>
+    </div>
   );
 };
 
