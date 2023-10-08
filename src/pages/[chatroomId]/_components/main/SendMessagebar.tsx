@@ -9,10 +9,11 @@ import { type RouterOutput } from '@/server/api/root';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
 import { type ChatWindowRef } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow';
-import RichTextEditor from '@/pages/[chatroomId]/_components/main/RichTextEditor';
+import { BaseRichTextEditor } from '@/pages/[chatroomId]/_components/main/rich-text/RichTextEditor';
 import { safeJSONParse } from '@/lib/utils';
-import { slateJSONToPlainText } from '@/pages/[chatroomId]/_components/main/RichTextEditor/utils';
+import { slateJSONToPlainText } from '@/pages/[chatroomId]/_components/main/rich-text/utils';
 import isHotkey from 'is-hotkey';
+import EditorMenuBar from '@/pages/[chatroomId]/_components/main/rich-text/EditorMenuBar';
 
 const SendMessagebar = ({
   chatroomId,
@@ -164,36 +165,51 @@ const SendMessagebar = ({
           });
         })}
       >
-        <Controller
-          control={chatForm.control}
-          render={({ field: { value, onChange } }) => {
-            return (
-              <RichTextEditor
-                onKeyDown={(event) => {
-                  if (isHotkey('enter', event as any)) {
-                    event.preventDefault();
-                    chatFormRef.current?.dispatchEvent(
-                      new Event('submit', { cancelable: true, bubbles: true })
-                    );
-                  }
-                }}
-                initialValue={
-                  safeJSONParse(value) || [
-                    {
-                      type: 'paragraph',
-                      children: [{ text: '' }],
-                    },
-                  ]
-                }
-                onChange={(value) => {
-                  chatForm.setValue('text', slateJSONToPlainText(value));
-                  onChange(value);
-                }}
-              />
-            );
-          }}
-          name="content"
-        />
+        <div className="flex h-full min-h-fit px-6 py-4">
+          <Controller
+            control={chatForm.control}
+            render={({ field: { value, onChange } }) => {
+              return (
+                <div className="flex h-auto  min-h-fit w-full flex-col space-y-2 rounded-md border border-slate-300 p-3">
+                  <BaseRichTextEditor
+                    header={<EditorMenuBar />}
+                    slotProps={{
+                      root: {
+                        initialValue: safeJSONParse(value) || [
+                          {
+                            type: 'paragraph',
+                            children: [{ text: '' }],
+                          },
+                        ],
+                        onChange: (value) => {
+                          chatForm.setValue(
+                            'text',
+                            slateJSONToPlainText(value)
+                          );
+                          onChange(value);
+                        },
+                      },
+                      editable: {
+                        onKeyDown: (event) => {
+                          if (isHotkey('enter', event as any)) {
+                            event.preventDefault();
+                            chatFormRef.current?.dispatchEvent(
+                              new Event('submit', {
+                                cancelable: true,
+                                bubbles: true,
+                              })
+                            );
+                          }
+                        },
+                      },
+                    }}
+                  />
+                </div>
+              );
+            }}
+            name="content"
+          />
+        </div>
       </form>
     </FormProvider>
   );

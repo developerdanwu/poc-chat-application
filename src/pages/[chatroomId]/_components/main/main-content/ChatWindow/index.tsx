@@ -223,7 +223,6 @@ const ChatWindowItem = React.memo(
           }
           sendDate={message.created_at}
           author={author}
-          text={message.text}
           content={message.content}
         />
       </ChatReplyItemWrapper>

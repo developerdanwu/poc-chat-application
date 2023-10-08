@@ -1,4 +1,3 @@
-import { type Editor } from '@tiptap/react';
 import {
   RiBold,
   RiCodeBoxLine,
@@ -8,8 +7,10 @@ import {
 } from 'react-icons/ri';
 import { IconButton } from '@/components/elements/IconButton';
 import { Separator } from '@/components/elements/separator';
+import { useSlate } from 'slate-react';
 
-const EditorMenuBar = ({ editor }: { editor: Editor }) => {
+const EditorMenuBar = () => {
+  const editor = useSlate();
   return (
     <div className="flex h-5 w-full items-center space-x-2">
       <IconButton

@@ -10,30 +10,18 @@ import {
   type Node,
   type NodeEntry,
 } from 'slate';
-import { IconButton } from '@/components/elements/IconButton';
 import { withHistory } from 'slate-history';
-
 import {
-  RiBold,
-  RiCodeBoxLine,
-  RiCodeLine,
-  RiItalic,
-  RiStrikethrough,
-} from 'react-icons/ri';
-import {
-  isBlockActive,
-  isMarkActive,
   toChildren,
-  toggleBlock,
   toggleMark,
-} from '@/pages/[chatroomId]/_components/main/RichTextEditor/utils';
-import { Separator } from '@/components/elements/separator';
-import Leaf from '@/pages/[chatroomId]/_components/main/RichTextEditor/Leaf';
+} from '@/pages/[chatroomId]/_components/main/rich-text/utils';
+import Leaf from '@/pages/[chatroomId]/_components/main/rich-text/Leaf';
 import {
   SetNodeToDecorations,
   toCodeLines,
-} from '@/pages/[chatroomId]/_components/main/RichTextEditor/blocks/codeBlock';
+} from '@/pages/[chatroomId]/_components/main/rich-text/blocks/codeBlock';
 import { type EditableProps } from 'slate-react/dist/components/editable';
+import EditorMenuBar from '@/pages/[chatroomId]/_components/main/rich-text/EditorMenuBar';
 
 const useDecorate = (editor: Editor) => {
   return ([node]: NodeEntry<Node>) => {
@@ -109,78 +97,8 @@ declare module 'slate' {
     children: toChildren('There you have it!'),
   },
 ];
-const CodeBlockButton = () => {
-  const editor = useSlate();
-  const isCodeBlockActive = isBlockActive(editor, 'codeBlock');
-  return (
-    <IconButton
-      size="sm"
-      type="button"
-      variant="ghost"
-      state={isCodeBlockActive ? 'active' : 'default'}
-      onClick={() => {
-        toggleBlock(editor, 'codeBlock');
-      }}
-    >
-      <RiCodeBoxLine size="18px" />
-    </IconButton>
-  );
-};
 
-const EditorMenuBar = () => {
-  const editor = useSlate();
-
-  const isCodeBlockActive = isBlockActive(editor, 'codeBlock');
-
-  return (
-    <div className="flex h-5 w-full items-center space-x-2">
-      <IconButton
-        type="button"
-        size="sm"
-        variant="ghost"
-        state={isMarkActive(editor, 'bold') ? 'active' : 'default'}
-        disabled={isCodeBlockActive}
-        onClick={() => toggleMark(editor, 'bold')}
-      >
-        <RiBold size="18px" />
-      </IconButton>
-      <IconButton
-        size="sm"
-        type="button"
-        variant="ghost"
-        state={isMarkActive(editor, 'italic') ? 'active' : 'default'}
-        disabled={isCodeBlockActive}
-        onClick={() => toggleMark(editor, 'italic')}
-      >
-        <RiItalic size="18px" />
-      </IconButton>
-      <IconButton
-        size="sm"
-        type="button"
-        variant="ghost"
-        state={isMarkActive(editor, 'strike') ? 'active' : 'default'}
-        disabled={isCodeBlockActive}
-        onClick={() => toggleMark(editor, 'strike')}
-      >
-        <RiStrikethrough size="18px" />
-      </IconButton>
-      <Separator orientation="vertical" />
-      <IconButton
-        size="sm"
-        type="button"
-        variant="ghost"
-        state={isMarkActive(editor, 'code') ? 'active' : 'default'}
-        disabled={isCodeBlockActive}
-        onClick={() => toggleMark(editor, 'code')}
-      >
-        <RiCodeLine size="18px" />
-      </IconButton>
-      <CodeBlockButton />
-    </div>
-  );
-};
-
-export const RichTextDisplay = ({
+export const RichTextEditable = ({
   onKeyDown,
   readOnly,
 }: Pick<EditableProps, 'onKeyDown' | 'readOnly'>) => {
@@ -211,6 +129,33 @@ export const RichTextDisplay = ({
   );
 };
 
+export const BaseRichTextEditor = ({
+  header,
+  footer,
+  slotProps,
+}: {
+  header?: React.ReactNode;
+  footer?: React.ReactNode;
+  slotProps: {
+    root: {
+      initialValue: Descendant[];
+      onChange?: ((value: Descendant[]) => void) | undefined;
+    };
+    editable?: Pick<EditableProps, 'onKeyDown' | 'readOnly'>;
+  };
+}) => {
+  const [editor] = useState(() => withHistory(withReact(createEditor())));
+
+  return (
+    <Slate editor={editor} {...slotProps.root}>
+      {header}
+      <SetNodeToDecorations />
+      <RichTextEditable {...slotProps?.editable} />
+      {footer}
+    </Slate>
+  );
+};
+
 const RichTextEditor = ({
   initialValue,
   onChange,
@@ -222,14 +167,12 @@ const RichTextEditor = ({
   const [editor] = useState(() => withHistory(withReact(createEditor())));
 
   return (
-    <div className="flex h-full min-h-fit px-6 py-4">
-      <div className="flex h-auto  min-h-fit w-full flex-col space-y-2 rounded-md border border-slate-300 p-3">
-        <Slate editor={editor} initialValue={initialValue} onChange={onChange}>
-          <EditorMenuBar />
-          <SetNodeToDecorations />
-          <RichTextDisplay onKeyDown={onKeyDown} />
-        </Slate>
-      </div>
+    <div className="flex h-auto  min-h-fit w-full flex-col space-y-2 rounded-md border border-slate-300 p-3">
+      <Slate editor={editor} initialValue={initialValue} onChange={onChange}>
+        <EditorMenuBar />
+        <SetNodeToDecorations />
+        <RichTextEditable onKeyDown={onKeyDown} />
+      </Slate>
     </div>
   );
 };

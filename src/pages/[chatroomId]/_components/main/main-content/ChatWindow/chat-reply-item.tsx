@@ -16,11 +16,7 @@ import {
 } from '@/components/elements/avatar';
 import dayjs from 'dayjs';
 import { type Author } from '@prisma-generated/generated/types';
-import { RichTextDisplay } from '@/pages/[chatroomId]/_components/main/RichTextEditor';
-import { Slate, withReact } from 'slate-react';
-import { withHistory } from 'slate-history';
-import { createEditor } from 'slate';
-import { SetNodeToDecorations } from '@/pages/[chatroomId]/_components/main/RichTextEditor/blocks/codeBlock';
+import { BaseRichTextEditor } from '@/pages/[chatroomId]/_components/main/rich-text/RichTextEditor';
 
 const EditableWrapper = ({
   children,
@@ -301,42 +297,42 @@ const ChatReplyItemHeader = ({
   return null;
 };
 export const ChatReplyItem = ({
-  text,
   isLastMessageSenderEqualToCurrentMessageSender,
   differenceBetweenLastMessage,
   author,
   sendDate,
   content,
 }: {
-  text: string;
   isLastMessageSenderEqualToCurrentMessageSender: boolean;
   differenceBetweenLastMessage: number | undefined;
   content: string;
   author: Pick<Author, 'first_name' | 'last_name'>;
   sendDate: Date;
 }) => {
-  const [editor] = useState(() => withHistory(withReact(createEditor())));
-
   return (
-    <>
-      <div className="flex w-full flex-col space-y-2">
-        <ChatReplyItemHeader
-          isLastMessageSenderEqualToCurrentMessageSender={
-            isLastMessageSenderEqualToCurrentMessageSender
-          }
-          sendDate={sendDate}
-          differenceBetweenLastMessage={differenceBetweenLastMessage}
-          lastName={author.last_name}
-          firstName={author.first_name}
-        />
+    <div className="flex w-full flex-col space-y-2">
+      <ChatReplyItemHeader
+        isLastMessageSenderEqualToCurrentMessageSender={
+          isLastMessageSenderEqualToCurrentMessageSender
+        }
+        sendDate={sendDate}
+        differenceBetweenLastMessage={differenceBetweenLastMessage}
+        lastName={author.last_name}
+        firstName={author.first_name}
+      />
 
-        <div className="relative flex flex-col space-y-2">
-          <Slate editor={editor} initialValue={safeJSONParse(content)}>
-            <SetNodeToDecorations />
-            <RichTextDisplay readOnly />
-          </Slate>
-        </div>
+      <div className="relative flex flex-col space-y-2">
+        <BaseRichTextEditor
+          slotProps={{
+            root: {
+              initialValue: safeJSONParse(content),
+            },
+            editable: {
+              readOnly: true,
+            },
+          }}
+        />
       </div>
-    </>
+    </div>
   );
 };
