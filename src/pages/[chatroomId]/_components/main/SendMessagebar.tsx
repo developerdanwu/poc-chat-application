@@ -147,7 +147,7 @@ const SendMessagebar = ({
       <form
         ref={chatFormRef}
         id="message-text-input-form"
-        className="h-auto min-h-fit  overflow-hidden"
+        className="h-auto min-h-fit overflow-hidden"
         onSubmit={chatForm.handleSubmit((data) => {
           sendMessage.mutate({
             ...data,
