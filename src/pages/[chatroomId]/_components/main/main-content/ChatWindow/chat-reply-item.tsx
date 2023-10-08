@@ -8,7 +8,7 @@ import { type RouterOutput } from '@/server/api/root';
 import HookFormTiptapEditor from '@/components/elements/text-editor/HookFormTiptapEditor';
 import { cn, safeJSONParse, useApiTransformUtils } from '@/lib/utils';
 import EditorMenuBar from '@/components/elements/text-editor/EditorMenuBar';
-import { EditorContent, useEditor } from '@tiptap/react';
+import { EditorContent } from '@tiptap/react';
 import {
   Avatar,
   AvatarFallback,
@@ -16,11 +16,11 @@ import {
 } from '@/components/elements/avatar';
 import dayjs from 'dayjs';
 import { type Author } from '@prisma-generated/generated/types';
-import {
-  TiptapCodeBlockLight,
-  TipTapStarterKit,
-} from '@/components/elements/text-editor/extensions';
-import TiptapEditorWrapper from '@/components/elements/text-editor/TiptapEditorWrapper';
+import { RichTextDisplay } from '@/pages/[chatroomId]/_components/main/RichTextEditor';
+import { Slate, withReact } from 'slate-react';
+import { withHistory } from 'slate-history';
+import { createEditor } from 'slate';
+import { SetNodeToDecorations } from '@/pages/[chatroomId]/_components/main/RichTextEditor/blocks/codeBlock';
 
 const EditableWrapper = ({
   children,
@@ -315,15 +315,7 @@ export const ChatReplyItem = ({
   author: Pick<Author, 'first_name' | 'last_name'>;
   sendDate: Date;
 }) => {
-  const editor = useEditor({
-    extensions: [TipTapStarterKit, TiptapCodeBlockLight],
-    editable: false,
-    content: safeJSONParse(content) || text,
-  });
-
-  if (!editor) {
-    return null;
-  }
+  const [editor] = useState(() => withHistory(withReact(createEditor())));
 
   return (
     <>
@@ -339,14 +331,10 @@ export const ChatReplyItem = ({
         />
 
         <div className="relative flex flex-col space-y-2">
-          <TiptapEditorWrapper
-            editable={false}
-            content={safeJSONParse(content) || text}
-          >
-            {(editor) => {
-              return <EditorContent editor={editor} />;
-            }}
-          </TiptapEditorWrapper>
+          <Slate editor={editor} initialValue={safeJSONParse(content)}>
+            <SetNodeToDecorations />
+            <RichTextDisplay readOnly />
+          </Slate>
         </div>
       </div>
     </>

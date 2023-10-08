@@ -1,5 +1,5 @@
 import React, { type RefObject, useMemo, useRef } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
+import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { Extension } from '@tiptap/core';
 import { api } from '@/lib/api';
 import dayjs from 'dayjs';
@@ -10,6 +10,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
 import { type ChatWindowRef } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow';
 import RichTextEditor from '@/pages/[chatroomId]/_components/main/RichTextEditor';
+import { safeJSONParse } from '@/lib/utils';
+import { slateJSONToPlainText } from '@/pages/[chatroomId]/_components/main/RichTextEditor/utils';
+import isHotkey from 'is-hotkey';
 
 const SendMessagebar = ({
   chatroomId,
@@ -142,6 +145,11 @@ const SendMessagebar = ({
     },
   });
 
+  const text = useWatch({
+    name: 'text',
+    control: chatForm.control,
+  });
+
   return (
     <FormProvider {...chatForm}>
       <form
@@ -156,32 +164,36 @@ const SendMessagebar = ({
           });
         })}
       >
-        <RichTextEditor />
-        {/*<HookFormTiptapEditor*/}
-        {/*  editorProps={{*/}
-        {/*    attributes: {*/}
-        {/*      class: cn('border-0 max-h-[55vh] overflow-auto w-full py-3'),*/}
-        {/*    },*/}
-        {/*  }}*/}
-        {/*  extensions={[SubmitFormOnEnter]}*/}
-        {/*  fieldName="content"*/}
-        {/*>*/}
-        {/*  {(editor) => {*/}
-        {/*    return (*/}
-        {/*      <div*/}
-        {/*        className={cn(*/}
-        {/*          'border-warm-gray-400  group w-full rounded-lg border border-slate-300 px-3 py-3',*/}
-        {/*          {*/}
-        {/*            'border-slate-400': editor.isFocused,*/}
-        {/*          }*/}
-        {/*        )}*/}
-        {/*      >*/}
-        {/*        <EditorMenuBar editor={editor} />*/}
-        {/*        <EditorContent editor={editor} />*/}
-        {/*      </div>*/}
-        {/*    );*/}
-        {/*  }}*/}
-        {/*</HookFormTiptapEditor>*/}
+        <Controller
+          control={chatForm.control}
+          render={({ field: { value, onChange } }) => {
+            return (
+              <RichTextEditor
+                onKeyDown={(event) => {
+                  if (isHotkey('enter', event as any)) {
+                    event.preventDefault();
+                    chatFormRef.current?.dispatchEvent(
+                      new Event('submit', { cancelable: true, bubbles: true })
+                    );
+                  }
+                }}
+                initialValue={
+                  safeJSONParse(value) || [
+                    {
+                      type: 'paragraph',
+                      children: [{ text: '' }],
+                    },
+                  ]
+                }
+                onChange={(value) => {
+                  chatForm.setValue('text', slateJSONToPlainText(value));
+                  onChange(value);
+                }}
+              />
+            );
+          }}
+          name="content"
+        />
       </form>
     </FormProvider>
   );

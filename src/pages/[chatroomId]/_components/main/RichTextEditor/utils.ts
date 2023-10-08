@@ -1,4 +1,11 @@
-import { Editor, Element as SlateElement, type Text, Transforms } from 'slate';
+import {
+  type Descendant,
+  Editor,
+  Element as SlateElement,
+  Node,
+  type Text,
+  Transforms,
+} from 'slate';
 
 export const isMarkActive = (
   editor: Editor,
@@ -81,4 +88,12 @@ export const toggleBlock = (editor: Editor, format: SlateElement['type']) => {
       throw new Error(`${format} is not a toggle-able block type`);
     }
   }
+};
+
+export const slateJSONToPlainText = (nodes: Descendant[]) => {
+  return nodes
+    .map((n) => {
+      return Node.string(n);
+    })
+    .join('\n');
 };

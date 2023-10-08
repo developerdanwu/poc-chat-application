@@ -4,6 +4,7 @@ import isHotkey from 'is-hotkey';
 import SlateElement from './Element';
 import {
   createEditor,
+  type Descendant,
   type Editor,
   Element,
   type Node,
@@ -31,7 +32,8 @@ import Leaf from '@/pages/[chatroomId]/_components/main/RichTextEditor/Leaf';
 import {
   SetNodeToDecorations,
   toCodeLines,
-} from '@/pages/[chatroomId]/_components/main/RichTextEditor/functions/codeBlock';
+} from '@/pages/[chatroomId]/_components/main/RichTextEditor/blocks/codeBlock';
+import { type EditableProps } from 'slate-react/dist/components/editable';
 
 const useDecorate = (editor: Editor) => {
   return ([node]: NodeEntry<Node>) => {
@@ -178,34 +180,54 @@ const EditorMenuBar = () => {
   );
 };
 
-const RichTextEditor = () => {
-  const [editor] = useState(() => withHistory(withReact(createEditor())));
+export const RichTextDisplay = ({
+  onKeyDown,
+  readOnly,
+}: Pick<EditableProps, 'onKeyDown' | 'readOnly'>) => {
+  const editor = useSlate();
   const decorate = useDecorate(editor);
 
   return (
-    <div className="flex h-full  h-auto min-h-fit px-6 py-4">
+    <Editable
+      decorate={decorate}
+      renderLeaf={Leaf}
+      renderElement={SlateElement}
+      autoFocus
+      spellCheck
+      readOnly={readOnly}
+      placeholder="Enter some rich text…"
+      className="min-h-fit w-full overflow-auto focus:outline-0"
+      onKeyDown={(event) => {
+        onKeyDown?.(event);
+        for (const hotkey in HOTKEYS) {
+          if (isHotkey(hotkey, event as any)) {
+            event.preventDefault();
+            const mark = HOTKEYS[hotkey as keyof typeof HOTKEYS];
+            toggleMark(editor, mark);
+          }
+        }
+      }}
+    />
+  );
+};
+
+const RichTextEditor = ({
+  initialValue,
+  onChange,
+  onKeyDown,
+}: {
+  initialValue: Descendant[];
+  onChange?: (value: Descendant[]) => void;
+} & Pick<EditableProps, 'onKeyDown'>) => {
+  const [editor] = useState(() => withHistory(withReact(createEditor())));
+
+  return (
+    <div className="flex h-full min-h-fit px-6 py-4">
       <div className="flex h-auto  min-h-fit w-full flex-col space-y-2 rounded-md border border-slate-300 p-3">
-        <Slate editor={editor} initialValue={initialValue}>
+        <Slate editor={editor} initialValue={initialValue} onChange={onChange}>
           <EditorMenuBar />
           <SetNodeToDecorations />
-          <Editable
-            decorate={decorate}
-            renderLeaf={Leaf}
-            renderElement={SlateElement}
-            autoFocus
-            spellCheck
-            placeholder="Enter some rich text…"
-            className="min-h-fit w-full overflow-auto focus:outline-0"
-            onKeyDown={(event) => {
-              for (const hotkey in HOTKEYS) {
-                if (isHotkey(hotkey, event as any)) {
-                  event.preventDefault();
-                  const mark = HOTKEYS[hotkey as keyof typeof HOTKEYS];
-                  toggleMark(editor, mark);
-                }
-              }
-            }}
-          />
+          <RichTextDisplay onKeyDown={onKeyDown} />
         </Slate>
       </div>
     </div>

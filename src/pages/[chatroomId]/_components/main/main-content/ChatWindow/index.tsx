@@ -207,7 +207,6 @@ const ChatWindowItem = React.memo(
         }
         sendDate={message.created_at}
         differenceBetweenLastMessage={
-          // TODO: get rid of magic number?
           isStartOfGroup ? Infinity : differenceBetweenLastMessage
         }
         key={message.client_message_id}
