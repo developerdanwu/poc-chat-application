@@ -14,20 +14,19 @@ export const useChatroomMessages = ({ chatroomId }: { chatroomId: string }) => {
       chatroomId: chatroomId,
     },
     {
-      getNextPageParam: (lastPage) => {
+      getNextPageParam: () => {
         return undefined;
       },
       getPreviousPageParam: (firstPage) => {
-        console.log('FIRST PAGE', firstPage);
         if (firstPage.messages.length < MESSAGES_PER_PAGE) {
           return undefined;
         } else {
-          return firstPage.messages[firstPage.messages.length - 1]
+          if (firstPage.messages.length === 0) {
+            return undefined;
+          }
+          return firstPage.messages[firstPage.messages.length - 1]!
             .client_message_id;
         }
-        // return firstPage?.next_cursor === 0
-        //   ? undefined
-        //   : firstPage?.next_cursor;
       },
       staleTime: Infinity,
     }
