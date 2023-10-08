@@ -183,6 +183,7 @@ const ChatWindow = forwardRef<
       }}
       startReached={() => {
         if (messagesQuery.hasPreviousPage) {
+          // TODO: work out how to do the scrolling??
           messagesQuery.fetchPreviousPage();
         }
       }}
