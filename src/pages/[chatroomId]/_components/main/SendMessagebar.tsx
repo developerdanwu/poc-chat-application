@@ -27,11 +27,7 @@ const SendMessagebar = ({
   chatroomId: string;
   chatWindowRef: RefObject<ChatWindowRef>;
 }) => {
-  const chatroomDetails = api.chatroom.getChatroom.useQuery({
-    chatroomId: chatroomId,
-  });
   const chatroomUpdateUtils = useChatroomUpdateUtils();
-  const sendMessageToAI = api.messaging.sendMessageOpenAI.useMutation();
   const chatroomState = useChatroomState((state) => ({
     setSentNewMessage: state.setSentNewMessage,
   }));
@@ -77,64 +73,6 @@ const SendMessagebar = ({
           },
         });
       }
-
-      //
-      // trpcUtils.messaging.getMessages.setInfiniteData({ chatroomId }, (old) => {
-      //   if (!old) {
-      //     return {
-      //       pages: [{ messages: [], next_cursor: 0 }],
-      //       pageParams: [],
-      //     };
-      //   }
-      //   if (!ownAuthor.data) {
-      //     return old;
-      //   }
-      //   const flatMapMessages = old.pages.flatMap((page) => page.messages);
-      //
-      //   const newMessage = {
-      //     client_message_id:
-      //       flatMapMessages.length > 0
-      //         ? flatMapMessages[0]!.client_message_id + 1
-      //         : 1,
-      //     text: variables.text,
-      //     content: variables.content,
-      //     is_edited: false,
-      //     created_at: dayjs.utc().toDate(),
-      //     updated_at: dayjs.utc().toDate(),
-      //     author_id: ownAuthor.data.author_id,
-      //   };
-      //
-      //   if (old.pages.length === 0) {
-      //     return {
-      //       pages: [
-      //         {
-      //           messages: [newMessage],
-      //           next_cursor: 0,
-      //         },
-      //       ],
-      //       pageParams: [],
-      //     };
-      //   }
-      //
-      //   const newState = produce(old.pages, (draft) => {
-      //     if (draft[0] && draft[0].messages.length < 10) {
-      //       draft[0]?.messages.unshift(newMessage);
-      //       return draft;
-      //     }
-      //
-      //     draft.unshift({
-      //       messages: [newMessage],
-      //       next_cursor: null as unknown as number,
-      //     });
-      //
-      //     return draft;
-      //   });
-      //
-      //   return {
-      //     pages: newState || [],
-      //     pageParams: old.pageParams,
-      //   };
-      // });
 
       chatForm.reset();
       chatroomState.setSentNewMessage(variables.chatroomId, true);

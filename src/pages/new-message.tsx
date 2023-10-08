@@ -1,5 +1,4 @@
-import React, { useMemo, useRef } from 'react';
-import { cn } from '@/lib/utils';
+import React, { useRef } from 'react';
 import { type NextPageWithLayout } from '@/pages/_app';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -7,17 +6,21 @@ import z from 'zod';
 import AuthorsAutocomplete from '@/pages/[chatroomId]/_components/main/top-controls/AuthorsAutocomplete';
 import { api } from '@/lib/api';
 import { useRouter } from 'next/router';
-import HookFormTiptapEditor from '@/components/elements/text-editor/HookFormTiptapEditor';
-import { EditorContent } from '@tiptap/react';
-import EditorMenuBar from '@/components/elements/text-editor/EditorMenuBar';
 import ChatWindow, {
   type ChatWindowRef,
 } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow';
 import ScrollArea from '@/components/elements/ScrollArea';
-import { Extension } from '@tiptap/core';
 import StartOfDirectMessage from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/StartOfDirectMessage';
 import { ChatroomType, Role } from '@prisma-generated/generated/types';
 import MainChatLayout from '@/pages/[chatroomId]/_components/MainChatLayout';
+import BaseRichTextEditor from '@/components/modules/rich-text/BaseRichTextEditor';
+import EditorMenuBar from '@/components/modules/rich-text/EditorMenuBar';
+import { safeJSONParse } from '@/lib/utils';
+import {
+  resetEditor,
+  slateJSONToPlainText,
+} from '@/components/modules/rich-text/utils';
+import isHotkey from 'is-hotkey';
 
 const newMessageSchema = z.object({
   authors: z.array(
@@ -107,23 +110,6 @@ const NewMessage: NextPageWithLayout = () => {
     },
   });
 
-  const SubmitFormOnEnter = useMemo(
-    () =>
-      Extension.create({
-        addKeyboardShortcuts() {
-          return {
-            Enter: () => {
-              chatFormRef.current?.dispatchEvent(
-                new Event('submit', { cancelable: true, bubbles: true })
-              );
-              return true;
-            },
-          };
-        },
-      }),
-    []
-  );
-
   return (
     <>
       <FormProvider {...newMessageForm}>
@@ -174,7 +160,7 @@ const NewMessage: NextPageWithLayout = () => {
         <form
           ref={chatFormRef}
           id="message-text-input-form"
-          className="flex w-full items-center justify-between space-x-4 bg-transparent bg-secondary px-6 py-3"
+          className="h-auto min-h-fit w-full overflow-hidden"
           onSubmit={newMessageForm.handleSubmit((data) => {
             startNewChat.mutate({
               authors: data.authors,
@@ -183,31 +169,52 @@ const NewMessage: NextPageWithLayout = () => {
             });
           })}
         >
-          <HookFormTiptapEditor
-            editorProps={{
-              attributes: {
-                class: cn('border-0 max-h-[55vh] overflow-auto w-full py-3'),
-              },
-            }}
-            extensions={[SubmitFormOnEnter]}
-            fieldName="content"
-          >
-            {(editor) => {
-              return (
-                <div
-                  className={cn(
-                    'border-warm-gray-400  group w-full rounded-lg border border-slate-300 px-3 py-3',
-                    {
-                      'border-slate-400': editor.isFocused,
-                    }
-                  )}
-                >
-                  <EditorMenuBar editor={editor} />
-                  <EditorContent editor={editor} />
-                </div>
-              );
-            }}
-          </HookFormTiptapEditor>
+          <div className="flex h-full min-h-fit px-6 pb-4">
+            <Controller
+              control={newMessageForm.control}
+              render={({ field: { value, onChange } }) => {
+                return (
+                  <div className="flex h-auto  min-h-fit w-full flex-col space-y-2 rounded-md border border-slate-300 p-3">
+                    <BaseRichTextEditor
+                      header={<EditorMenuBar />}
+                      slotProps={{
+                        root: {
+                          initialValue: safeJSONParse(value) || [
+                            {
+                              type: 'paragraph',
+                              children: [{ text: '' }],
+                            },
+                          ],
+                          onChange: (value) => {
+                            newMessageForm.setValue(
+                              'text',
+                              slateJSONToPlainText(value)
+                            );
+                            onChange(value);
+                          },
+                        },
+                        editable: {
+                          onKeyDown: (event, editor) => {
+                            if (isHotkey('enter', event as any)) {
+                              resetEditor(editor);
+                              event.preventDefault();
+                              chatFormRef.current?.dispatchEvent(
+                                new Event('submit', {
+                                  cancelable: true,
+                                  bubbles: true,
+                                })
+                              );
+                            }
+                          },
+                        },
+                      }}
+                    />
+                  </div>
+                );
+              }}
+              name="content"
+            />
+          </div>
         </form>
       </FormProvider>
     </>
