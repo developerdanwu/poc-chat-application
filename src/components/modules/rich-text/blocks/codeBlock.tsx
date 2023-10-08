@@ -4,9 +4,9 @@
  * */
 import Prism from 'prismjs';
 import { Editor, Element, Node, type NodeEntry, type Range } from 'slate';
-import { type CodeBlockElement } from '@/pages/[chatroomId]/_components/main/rich-text/types';
+import { type CodeBlockElement } from '@/components/modules/rich-text/types';
 import { useSlate } from 'slate-react';
-import { toChildren } from '@/pages/[chatroomId]/_components/main/rich-text/utils';
+import { toChildren } from '@/components/modules/rich-text/utils';
 import 'prismjs/components/prism-javascript';
 import 'prismjs/components/prism-jsx';
 import 'prismjs/components/prism-typescript';

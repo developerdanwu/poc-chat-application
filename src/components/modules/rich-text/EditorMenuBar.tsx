@@ -4,7 +4,7 @@ import {
   isMarkActive,
   toggleBlock,
   toggleMark,
-} from '@/pages/[chatroomId]/_components/main/rich-text/utils';
+} from '@/components/modules/rich-text/utils';
 import { IconButton } from '@/components/elements/IconButton';
 import {
   RiBold,

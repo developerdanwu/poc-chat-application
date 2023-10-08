@@ -11,17 +11,14 @@ import {
   type NodeEntry,
 } from 'slate';
 import { withHistory } from 'slate-history';
-import {
-  toChildren,
-  toggleMark,
-} from '@/pages/[chatroomId]/_components/main/rich-text/utils';
-import Leaf from '@/pages/[chatroomId]/_components/main/rich-text/Leaf';
+import { toChildren, toggleMark } from '@/components/modules/rich-text/utils';
+import Leaf from '@/components/modules/rich-text/Leaf';
 import {
   SetNodeToDecorations,
   toCodeLines,
-} from '@/pages/[chatroomId]/_components/main/rich-text/blocks/codeBlock';
+} from '@/components/modules/rich-text/blocks/codeBlock';
 import { type EditableProps } from 'slate-react/dist/components/editable';
-import EditorMenuBar from '@/pages/[chatroomId]/_components/main/rich-text/EditorMenuBar';
+import EditorMenuBar from '@/components/modules/rich-text/EditorMenuBar';
 
 const useDecorate = (editor: Editor) => {
   return ([node]: NodeEntry<Node>) => {

@@ -9,11 +9,11 @@ import { type RouterOutput } from '@/server/api/root';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
 import { type ChatWindowRef } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow';
-import { BaseRichTextEditor } from '@/pages/[chatroomId]/_components/main/rich-text/RichTextEditor';
+import { BaseRichTextEditor } from '@/components/modules/rich-text/RichTextEditor';
 import { safeJSONParse } from '@/lib/utils';
-import { slateJSONToPlainText } from '@/pages/[chatroomId]/_components/main/rich-text/utils';
+import { slateJSONToPlainText } from '@/components/modules/rich-text/utils';
 import isHotkey from 'is-hotkey';
-import EditorMenuBar from '@/pages/[chatroomId]/_components/main/rich-text/EditorMenuBar';
+import EditorMenuBar from '@/components/modules/rich-text/EditorMenuBar';
 
 const SendMessagebar = ({
   chatroomId,
