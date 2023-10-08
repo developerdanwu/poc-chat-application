@@ -168,7 +168,7 @@ const ChatWindow = forwardRef<
             chatroomState.setSentNewMessage(chatroomId, false);
             return 'auto';
           }
-          // // receive new message && at bottom then scroll to bottom
+          // TODO: receive new message && at bottom then scroll to bottom
           // if (isAtBottom) {
           //   return 'smooth';
           // }
