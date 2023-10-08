@@ -46,31 +46,39 @@ export const isBlockActive = (
 export const toggleBlock = (editor: Editor, format: SlateElement['type']) => {
   const isActive = isBlockActive(editor, format, 'type');
 
-  if (isActive) {
-    Transforms.unwrapNodes(editor, {
-      match: (n) =>
-        !Editor.isEditor(n) &&
-        SlateElement.isElement(n) &&
-        n.type === 'codeBlock',
-      split: true,
-    });
+  switch (format) {
+    case 'codeBlock': {
+      if (isActive) {
+        Transforms.unwrapNodes(editor, {
+          match: (n) =>
+            !Editor.isEditor(n) &&
+            SlateElement.isElement(n) &&
+            n.type === 'codeBlock',
+          split: true,
+        });
 
-    Transforms.setNodes<SlateElement>(editor, {
-      type: 'paragraph' as const,
-    });
-  } else {
-    Transforms.wrapNodes(
-      editor,
-      { type: 'codeBlock', language: 'typescript', children: [] },
-      {
-        match: (n) => SlateElement.isElement(n) && n.type === 'paragraph',
-        split: true,
+        Transforms.setNodes<SlateElement>(editor, {
+          type: 'paragraph' as const,
+        });
+      } else {
+        Transforms.wrapNodes(
+          editor,
+          { type: 'codeBlock', language: 'typescript', children: [] },
+          {
+            match: (n) => SlateElement.isElement(n) && n.type === 'paragraph',
+            split: true,
+          }
+        );
+        Transforms.setNodes(
+          editor,
+          { type: 'codeLine' },
+          { match: (n) => SlateElement.isElement(n) && n.type === 'paragraph' }
+        );
       }
-    );
-    Transforms.setNodes(
-      editor,
-      { type: 'codeLine' },
-      { match: (n) => SlateElement.isElement(n) && n.type === 'paragraph' }
-    );
+      break;
+    }
+    default: {
+      throw new Error(`${format} is not a toggle-able block type`);
+    }
   }
 };
