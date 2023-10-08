@@ -18,7 +18,6 @@ import dayjs from 'dayjs';
 import { type Author } from '@prisma-generated/generated/types';
 import {
   TiptapCodeBlockLight,
-  TipTapParagraph,
   TipTapStarterKit,
 } from '@/components/elements/text-editor/extensions';
 import TiptapEditorWrapper from '@/components/elements/text-editor/TiptapEditorWrapper';
@@ -317,7 +316,7 @@ export const ChatReplyItem = ({
   sendDate: Date;
 }) => {
   const editor = useEditor({
-    extensions: [TipTapStarterKit, TipTapParagraph, TiptapCodeBlockLight],
+    extensions: [TipTapStarterKit, TiptapCodeBlockLight],
     editable: false,
     content: safeJSONParse(content) || text,
   });

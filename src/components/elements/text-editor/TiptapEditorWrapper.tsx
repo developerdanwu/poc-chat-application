@@ -1,8 +1,6 @@
-import React from 'react';
 import { type Editor, type EditorOptions, useEditor } from '@tiptap/react';
 import {
   TiptapCodeBlockLight,
-  TipTapParagraph,
   TipTapStarterKit,
 } from '@/components/elements/text-editor/extensions';
 
@@ -24,7 +22,6 @@ const TiptapEditorWrapper = ({
     extensions: [
       ...(extensions ? extensions : []),
       TipTapStarterKit,
-      TipTapParagraph,
       TiptapCodeBlockLight,
     ],
     editorProps: {

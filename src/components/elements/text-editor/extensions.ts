@@ -1,10 +1,14 @@
 import StarterKit from '@tiptap/starter-kit';
 import { CodeBlockLowlight } from '@tiptap/extension-code-block-lowlight';
 import { lowlight } from 'lowlight';
-import { Paragraph } from '@tiptap/extension-paragraph';
 
 export const TipTapStarterKit = StarterKit.configure({
   codeBlock: false,
+  paragraph: {
+    HTMLAttributes: {
+      class: 'text-subtle text-slate-700',
+    },
+  },
 });
 
 export const TiptapCodeBlockLight = CodeBlockLowlight.configure({
@@ -14,10 +18,4 @@ export const TiptapCodeBlockLight = CodeBlockLowlight.configure({
   },
   languageClassPrefix: 'codeblock-language-',
   lowlight,
-});
-
-export const TipTapParagraph = Paragraph.configure({
-  HTMLAttributes: {
-    class: 'text-subtle text-slate-700',
-  },
 });

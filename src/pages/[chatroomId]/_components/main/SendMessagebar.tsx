@@ -1,9 +1,5 @@
 import React, { type RefObject, useMemo, useRef } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import HookFormTiptapEditor from '@/components/elements/text-editor/HookFormTiptapEditor';
-import { cn } from '@/lib/utils';
-import EditorMenuBar from '@/components/elements/text-editor/EditorMenuBar';
-import { EditorContent } from '@tiptap/react';
 import { Extension } from '@tiptap/core';
 import { api } from '@/lib/api';
 import dayjs from 'dayjs';
@@ -13,6 +9,7 @@ import { type RouterOutput } from '@/server/api/root';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
 import { type ChatWindowRef } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow';
+import RichTextEditor from '@/pages/[chatroomId]/_components/main/RichTextEditor';
 
 const SendMessagebar = ({
   chatroomId,
@@ -159,31 +156,33 @@ const SendMessagebar = ({
           });
         })}
       >
-        <HookFormTiptapEditor
-          editorProps={{
-            attributes: {
-              class: cn('border-0 max-h-[55vh] overflow-auto w-full py-3'),
-            },
-          }}
-          extensions={[SubmitFormOnEnter]}
-          fieldName="content"
-        >
-          {(editor) => {
-            return (
-              <div
-                className={cn(
-                  'border-warm-gray-400  group w-full rounded-lg border border-slate-300 px-3 py-3',
-                  {
-                    'border-slate-400': editor.isFocused,
-                  }
-                )}
-              >
-                <EditorMenuBar editor={editor} />
-                <EditorContent editor={editor} />
-              </div>
-            );
-          }}
-        </HookFormTiptapEditor>
+        <RichTextEditor />
+
+        {/*<HookFormTiptapEditor*/}
+        {/*  editorProps={{*/}
+        {/*    attributes: {*/}
+        {/*      class: cn('border-0 max-h-[55vh] overflow-auto w-full py-3'),*/}
+        {/*    },*/}
+        {/*  }}*/}
+        {/*  extensions={[SubmitFormOnEnter]}*/}
+        {/*  fieldName="content"*/}
+        {/*>*/}
+        {/*  {(editor) => {*/}
+        {/*    return (*/}
+        {/*      <div*/}
+        {/*        className={cn(*/}
+        {/*          'border-warm-gray-400  group w-full rounded-lg border border-slate-300 px-3 py-3',*/}
+        {/*          {*/}
+        {/*            'border-slate-400': editor.isFocused,*/}
+        {/*          }*/}
+        {/*        )}*/}
+        {/*      >*/}
+        {/*        <EditorMenuBar editor={editor} />*/}
+        {/*        <EditorContent editor={editor} />*/}
+        {/*      </div>*/}
+        {/*    );*/}
+        {/*  }}*/}
+        {/*</HookFormTiptapEditor>*/}
       </form>
     </FormProvider>
   );
