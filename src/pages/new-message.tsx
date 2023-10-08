@@ -21,6 +21,7 @@ import {
   slateJSONToPlainText,
 } from '@/components/modules/rich-text/utils';
 import isHotkey from 'is-hotkey';
+import { v4 as uuid } from 'uuid';
 
 const newMessageSchema = z.object({
   authors: z.array(
@@ -122,6 +123,7 @@ const NewMessage: NextPageWithLayout = () => {
           className="h-auto min-h-fit w-full overflow-hidden"
           onSubmit={newMessageForm.handleSubmit((data) => {
             startNewChat.mutate({
+              message_checksum: uuid(),
               authors: data.authors,
               text: data.text,
               content: JSON.stringify(data.content),

@@ -16,6 +16,7 @@ import {
   ChatReplyItemWrapper,
 } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/chat-reply-item';
 import { create } from 'zustand';
+import { MESSAGES_PER_PAGE } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/constants';
 
 export type ChatWindowRef = {
   scrollToBottom: () => void;
@@ -135,7 +136,7 @@ const ChatWindow = forwardRef<
       (groupedMessagesCount?.length * 4 - 1) -
       messagesQuery.data?.pages.length >
     0
-      ? (messagesQuery.data?.pages.length - 1) * 20
+      ? (messagesQuery.data?.pages.length - 1) * MESSAGES_PER_PAGE
       : 0;
 
   return (
@@ -156,18 +157,18 @@ const ChatWindow = forwardRef<
         // sent new message scroll to bottom auto
         if (chatroomState.sentNewMessage[chatroomId]) {
           chatroomState.setSentNewMessage(chatroomId, false);
-          return 'auto';
+          return 'smooth';
         }
         // // receive new message && at bottom then scroll to bottom
         if (isAtBottom) {
           return 'smooth';
         }
+
         return false;
       }}
       firstItemIndex={firstItemIndex}
       initialTopMostItemIndex={0}
       data={messages}
-      overscan={50}
       groupCounts={groupedMessagesCount}
       context={{ filteredChatroomUsers }}
       startReached={async () => {
@@ -178,7 +179,7 @@ const ChatWindow = forwardRef<
       components={{
         Header: ChatHeader,
       }}
-      style={{ height: '100%', position: 'relative', flex: '1 1 0px' }}
+      style={{ height: '100%', position: 'relative' }}
       groupContent={(index) => {
         return (
           <div className="relative flex w-full justify-center bg-transparent">

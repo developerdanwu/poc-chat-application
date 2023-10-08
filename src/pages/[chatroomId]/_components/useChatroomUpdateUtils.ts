@@ -1,6 +1,7 @@
 import { api } from '@/lib/api';
 import produce from 'immer';
 import { type RouterOutput } from '@/server/api/root';
+import { MESSAGES_PER_PAGE } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/constants';
 
 const useChatroomUpdateUtils = () => {
   const trpcUtils = api.useContext();
@@ -56,7 +57,7 @@ const useChatroomUpdateUtils = () => {
           });
         } else {
           // append new message
-          if (draft[0] && draft[0].messages.length < 10) {
+          if (draft[0] && draft[0].messages.length < MESSAGES_PER_PAGE) {
             draft[0]?.messages.unshift(message);
             return draft;
           }

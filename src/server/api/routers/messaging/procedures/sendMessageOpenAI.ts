@@ -6,6 +6,7 @@ import { ablyChannelKeyStore, MESSAGE_STREAM_NAMES } from '@/lib/ably';
 import { z } from 'zod';
 import { PromptTemplate } from 'langchain/prompts';
 import { StructuredOutputParser } from 'langchain/output_parsers';
+import { MESSAGES_PER_PAGE } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/constants';
 
 const llm = new ChatOpenAI({
   openAIApiKey: env.OPENAI_ACCESS_TOKEN,
@@ -85,7 +86,7 @@ const sendMessageOpenAI = protectedProcedure
           ): Promise<void> {
             messageArray.push(token);
             // slow down message stream to avoid rate limiting
-            if (messageArray.length % 20 === 0) {
+            if (messageArray.length % MESSAGES_PER_PAGE === 0) {
               await ablyRest.channels
                 .get(ablyChannelKeyStore.chatroom(input.chatroomId))
                 .publish(MESSAGE_STREAM_NAMES.openAiMessage, {

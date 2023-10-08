@@ -92,7 +92,7 @@ export type Chatroom = {
 };
 export type Message = {
   client_message_id: Generated<number>;
-  message_checksum: string | null;
+  message_checksum: string;
   text: string;
   type: MessageType;
   content: string;

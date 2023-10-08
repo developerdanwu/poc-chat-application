@@ -22,6 +22,7 @@ const startNewChat = protectedProcedure
       authors: authorsInputSchema,
       text: z.string().min(1),
       content: z.any(),
+      message_checksum: z.string().min(1),
     })
   )
   .mutation(async ({ ctx, input }) => {
@@ -93,6 +94,7 @@ const startNewChat = protectedProcedure
           .insertInto('message')
           .values((eb) => {
             return {
+              message_checksum: input.message_checksum,
               text: input.text,
               type: MessageType.MESSAGE,
               content: input.content,

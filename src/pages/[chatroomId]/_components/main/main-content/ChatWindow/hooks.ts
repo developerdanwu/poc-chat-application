@@ -16,7 +16,6 @@ export const useChatroomMessages = ({ chatroomId }: { chatroomId: string }) => {
       getNextPageParam: (lastPage) => {
         return lastPage?.next_cursor === 0 ? undefined : lastPage?.next_cursor;
       },
-      keepPreviousData: true,
       staleTime: Infinity,
     }
   );
