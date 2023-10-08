@@ -7,7 +7,7 @@ import {
 } from '@/components/elements/avatar';
 import dayjs from 'dayjs';
 import { type Author } from '@prisma-generated/generated/types';
-import { BaseRichTextEditor } from '@/components/modules/rich-text/RichTextEditor';
+import BaseRichTextEditor from '@/components/modules/rich-text/BaseRichTextEditor';
 
 const EditableWrapper = ({
   children,

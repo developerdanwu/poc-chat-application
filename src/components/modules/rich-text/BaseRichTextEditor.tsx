@@ -18,7 +18,6 @@ import {
   toCodeLines,
 } from '@/components/modules/rich-text/blocks/codeBlock';
 import { type EditableProps } from 'slate-react/dist/components/editable';
-import EditorMenuBar from '@/components/modules/rich-text/EditorMenuBar';
 
 const useDecorate = (editor: Editor) => {
   return ([node]: NodeEntry<Node>) => {
@@ -98,7 +97,12 @@ declare module 'slate' {
 export const RichTextEditable = ({
   onKeyDown,
   readOnly,
-}: Pick<EditableProps, 'onKeyDown' | 'readOnly'>) => {
+}: Pick<EditableProps, 'readOnly'> & {
+  onKeyDown: (
+    event: React.KeyboardEvent<HTMLDivElement>,
+    editor: Editor
+  ) => void;
+}) => {
   const editor = useSlate();
   const decorate = useDecorate(editor);
 
@@ -113,7 +117,7 @@ export const RichTextEditable = ({
       placeholder="Enter some rich text…"
       className="min-h-fit w-full overflow-auto focus:outline-0"
       onKeyDown={(event) => {
-        onKeyDown?.(event);
+        onKeyDown?.(event, editor);
         for (const hotkey in HOTKEYS) {
           if (isHotkey(hotkey, event as any)) {
             event.preventDefault();
@@ -126,7 +130,7 @@ export const RichTextEditable = ({
   );
 };
 
-export const BaseRichTextEditor = ({
+const BaseRichTextEditor = ({
   header,
   footer,
   slotProps,
@@ -136,15 +140,26 @@ export const BaseRichTextEditor = ({
   slotProps: {
     root: {
       initialValue: Descendant[];
-      onChange?: ((value: Descendant[]) => void) | undefined;
+      onChange?: ((value: Descendant[], editor: Editor) => void) | undefined;
     };
-    editable?: Pick<EditableProps, 'onKeyDown' | 'readOnly'>;
+    editable?: Pick<EditableProps, 'readOnly'> & {
+      onKeyDown: (
+        event: React.KeyboardEvent<HTMLDivElement>,
+        editor: Editor
+      ) => void;
+    };
   };
 }) => {
   const [editor] = useState(() => withHistory(withReact(createEditor())));
 
   return (
-    <Slate editor={editor} {...slotProps.root}>
+    <Slate
+      editor={editor}
+      initialValue={slotProps.root.initialValue}
+      onChange={(value) => {
+        slotProps.root?.onChange?.(value, editor);
+      }}
+    >
       {header}
       <SetNodeToDecorations />
       <RichTextEditable {...slotProps?.editable} />
@@ -153,25 +168,4 @@ export const BaseRichTextEditor = ({
   );
 };
 
-const RichTextEditor = ({
-  initialValue,
-  onChange,
-  onKeyDown,
-}: {
-  initialValue: Descendant[];
-  onChange?: (value: Descendant[]) => void;
-} & Pick<EditableProps, 'onKeyDown'>) => {
-  const [editor] = useState(() => withHistory(withReact(createEditor())));
-
-  return (
-    <div className="flex h-auto  min-h-fit w-full flex-col space-y-2 rounded-md border border-slate-300 p-3">
-      <Slate editor={editor} initialValue={initialValue} onChange={onChange}>
-        <EditorMenuBar />
-        <SetNodeToDecorations />
-        <RichTextEditable onKeyDown={onKeyDown} />
-      </Slate>
-    </div>
-  );
-};
-
-export default RichTextEditor;
+export default BaseRichTextEditor;

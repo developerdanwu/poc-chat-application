@@ -97,3 +97,22 @@ export const slateJSONToPlainText = (nodes: Descendant[]) => {
     })
     .join('\n');
 };
+
+export const resetEditor = (editor: Editor) => {
+  Transforms.delete(editor, {
+    at: {
+      anchor: Editor.start(editor, []),
+      focus: Editor.end(editor, []),
+    },
+  });
+
+  // Removes empty node
+  Transforms.removeNodes(editor, {
+    at: [0],
+  });
+
+  // Insert array of children nodes
+  Transforms.insertNodes(editor, [
+    { type: 'paragraph', children: [{ text: '' }] },
+  ]);
+};

@@ -1,6 +1,5 @@
-import React, { type RefObject, useMemo, useRef } from 'react';
+import React, { type RefObject, useRef } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
-import { Extension } from '@tiptap/core';
 import { api } from '@/lib/api';
 import dayjs from 'dayjs';
 import produce from 'immer';
@@ -9,9 +8,12 @@ import { type RouterOutput } from '@/server/api/root';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
 import { type ChatWindowRef } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow';
-import { BaseRichTextEditor } from '@/components/modules/rich-text/RichTextEditor';
+import BaseRichTextEditor from '@/components/modules/rich-text/BaseRichTextEditor';
 import { safeJSONParse } from '@/lib/utils';
-import { slateJSONToPlainText } from '@/components/modules/rich-text/utils';
+import {
+  resetEditor,
+  slateJSONToPlainText,
+} from '@/components/modules/rich-text/utils';
 import isHotkey from 'is-hotkey';
 import EditorMenuBar from '@/components/modules/rich-text/EditorMenuBar';
 
@@ -42,22 +44,6 @@ const SendMessagebar = ({
       content: '',
     },
   });
-  const SubmitFormOnEnter = useMemo(
-    () =>
-      Extension.create({
-        addKeyboardShortcuts() {
-          return {
-            Enter: () => {
-              chatFormRef.current?.dispatchEvent(
-                new Event('submit', { cancelable: true, bubbles: true })
-              );
-              return true;
-            },
-          };
-        },
-      }),
-    []
-  );
 
   const sendMessage = api.messaging.sendMessage.useMutation({
     mutationKey: ['sendMessage', chatroomId],
@@ -190,8 +176,9 @@ const SendMessagebar = ({
                         },
                       },
                       editable: {
-                        onKeyDown: (event) => {
+                        onKeyDown: (event, editor) => {
                           if (isHotkey('enter', event as any)) {
+                            resetEditor(editor);
                             event.preventDefault();
                             chatFormRef.current?.dispatchEvent(
                               new Event('submit', {
