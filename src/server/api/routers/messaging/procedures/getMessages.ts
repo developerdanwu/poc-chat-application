@@ -1,12 +1,14 @@
-import { protectedProcedure } from '@/server/api/trpc';
-import { z } from 'zod';
+import {protectedProcedure} from '@/server/api/trpc';
+import {z} from 'zod'; // implement a before and latest
+
+// implement a before and latest
 
 const getMessages = protectedProcedure
   .input(
     z.object({
       chatroomId: z.string().min(1),
       orderBy: z.enum(['asc', 'desc']).optional(),
-      cursor: z.number().nullish(),
+      cursor: z.date().nullish(),
       skip: z.number().optional(),
       take: z.number().optional(),
     })
@@ -23,12 +25,12 @@ const getMessages = protectedProcedure
               return and([
                 cmpr('chatroom_id', '=', input.chatroomId),
                 ...(input.cursor !== null && input.cursor !== undefined
-                  ? [cmpr('client_message_id', '<', input.cursor)]
+                  ? [cmpr('created_at', '<', input.cursor)]
                   : []),
               ]);
             })
             .limit(limit)
-            .orderBy('client_message_id', input.orderBy || 'desc')
+            .orderBy('created_at', input.orderBy || 'desc')
             .as('message');
         })
         .select([
@@ -41,7 +43,6 @@ const getMessages = protectedProcedure
           'message.updated_at',
           'message.author_id',
         ])
-        .orderBy('client_message_id', input.orderBy || 'desc')
         .execute();
 
       return {

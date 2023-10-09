@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect } from 'react';
+import React, { forwardRef, useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import dayjs from 'dayjs';
 import { cn, useApiTransformUtils } from '@/lib/utils';
@@ -16,7 +16,6 @@ import {
   ChatReplyItemWrapper,
 } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/chat-reply-item';
 import { create } from 'zustand';
-import { MESSAGES_PER_PAGE } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/constants';
 
 export type ChatWindowRef = {
   scrollToBottom: () => void;
@@ -52,7 +51,7 @@ const ChatHeader = ({
   context,
 }: {
   context?: {
-    hasPreviousPage?: boolean;
+    hasNextPage?: boolean;
     filteredChatroomUsers: {
       author_id: number;
       first_name: string;
@@ -60,7 +59,7 @@ const ChatHeader = ({
     }[];
   };
 }) => {
-  if (!context?.filteredChatroomUsers || context?.hasPreviousPage) {
+  if (!context?.filteredChatroomUsers || context?.hasNextPage) {
     return (
       <div className="flex justify-center py-2">
         <RadialProgress />
@@ -78,14 +77,20 @@ const ChatWindow = forwardRef<
   }
 >(({ chatroomId }, ref) => {
   useMessageUpdate({ chatroomId });
-  const { filterAuthedUserFromChatroomAuthors } = useApiTransformUtils();
+  // TODO fix this first item index so it calculates more reliably
   const {
     messages,
     groupedMessagesKeys,
     groupedMessagesCount,
     messagesQuery,
     messagesCountQuery,
+    groupedMessages,
   } = useChatroomMessages({ chatroomId });
+  const [firstItemIndex, setFirstItemIndex] = useState(10000000);
+
+  console.log('firstItemIndex', firstItemIndex);
+  const { filterAuthedUserFromChatroomAuthors } = useApiTransformUtils();
+
   const chatroomState = useChatroomState((state) => ({
     chatroomWindowRefMap: state.chatroomWindowRefMap,
     sentNewMessage: state.sentNewMessage,
@@ -137,14 +142,6 @@ const ChatWindow = forwardRef<
   ) {
     return <ChatWindowLoading />;
   }
-  const firstItemIndex =
-    messagesCountQuery.data?.messages_count -
-      1 +
-      (groupedMessagesCount?.length * 4 - 1) -
-      messagesQuery.data?.pages.length >
-    0
-      ? (messagesQuery.data?.pages.length - 1) * MESSAGES_PER_PAGE
-      : 0;
 
   return (
     <>
@@ -178,50 +175,54 @@ const ChatWindow = forwardRef<
         firstItemIndex={firstItemIndex}
         initialTopMostItemIndex={messagesCountQuery.data?.messages_count - 1}
         initialScrollTop={messagesCountQuery.data?.messages_count - 1}
-        data={messages}
         groupCounts={groupedMessagesCount}
         context={{
+          groupedMessagesKeys,
           filteredChatroomUsers,
-          hasPreviousPage: messagesQuery.hasPreviousPage,
+          hasNextPage: messagesQuery.hasNextPage,
         }}
         startReached={() => {
-          if (messagesQuery.hasPreviousPage) {
-            chatroomState.chatroomWindowRefMap.get(chatroomId)?.scrollToIndex({
-              index: MESSAGES_PER_PAGE,
-              behavior: 'auto',
-              align: 'start',
-            });
-            // TODO: work out how to do the scrolling??
-            messagesQuery.fetchPreviousPage();
+          if (messagesQuery.hasNextPage) {
+            messagesQuery.fetchNextPage();
+            setFirstItemIndex((prevState) => prevState - 20);
           }
         }}
+        // cannot pass data prop lib bug!
         components={{
           Header: ChatHeader,
         }}
         style={{ height: '100%', position: 'relative', flex: '1 1 0' }}
-        groupContent={(index) => {
+        groupContent={(index, context) => {
           return (
-            <div className="relative flex w-full justify-center bg-transparent">
+            <div className="relative flex w-full justify-center bg-transparent before:absolute  before:top-1/2 before:left-1/2 before:h-[1px] before:w-full before:-translate-x-1/2 before:-translate-y-1/2  before:bg-slate-300">
               <div
                 className={cn(
                   'left-[50%] z-50 my-2 w-max self-center rounded-full border border-slate-300 bg-white px-4 text-slate-700'
                 )}
               >
                 <p className="text-body">
-                  {dayjs(groupedMessagesKeys[index]).format('dddd, MMMM Do')}
+                  {dayjs(context.groupedMessagesKeys[index]).format(
+                    'dddd, MMMM Do'
+                  )}
                 </p>
               </div>
             </div>
           );
         }}
-        itemContent={(_index, _groupIndex, message) => {
-          return (
-            <ChatWindowItem
-              authorsHashmap={authorsHashmap}
-              message={message}
-              user={user}
-            />
-          );
+        itemContent={(_index, _groupIndex) => {
+          const message = messages?.[_index - firstItemIndex];
+          if (!message) {
+            return null;
+          }
+          if (message) {
+            return (
+              <ChatWindowItem
+                authorsHashmap={authorsHashmap}
+                message={message}
+                user={user}
+              />
+            );
+          }
         }}
       />
     </>
@@ -257,20 +258,27 @@ const ChatWindowItem = React.memo(
     const isStartOfGroup = previousMessage
       ? !dayjs
           .utc(message.created_at)
-          .isSame(dayjs.utc(previousMessage.created_at), 'day')
+          .local()
+          .hour(0)
+          .minute(0)
+          .second(0)
+          .isSame(
+            dayjs.utc(previousMessage.created_at).hour(0).minute(0).second(0),
+            'day'
+          )
       : true;
     // TODO: AVATAR PLACEMENT DUE TO TIME IS BUGGED??
     const differenceBetweenLastMessage = previousMessage
       ? dayjs
           .utc(message.created_at)
-          .diff(dayjs.utc(previousMessage.created_at), 'minute')
+          .local()
+          .diff(dayjs.utc(previousMessage.created_at).local(), 'minute')
       : undefined;
 
     const isLastMessageSenderEqualToCurrentMessageSender =
       previousMessageAuthor?.author_id === author.author_id;
     return (
       <ChatReplyItemWrapper
-        isStartOfGroup={isStartOfGroup}
         isLastMessageSenderEqualToCurrentMessageSender={
           isLastMessageSenderEqualToCurrentMessageSender
         }

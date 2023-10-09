@@ -14,20 +14,18 @@ export const useChatroomMessages = ({ chatroomId }: { chatroomId: string }) => {
       chatroomId: chatroomId,
     },
     {
-      getNextPageParam: () => {
-        return undefined;
-      },
-      getPreviousPageParam: (firstPage) => {
-        if (firstPage.messages.length < MESSAGES_PER_PAGE) {
+      suspense: true,
+      getNextPageParam: (lastPage) => {
+        if (lastPage.messages.length < MESSAGES_PER_PAGE) {
           return undefined;
         } else {
-          if (firstPage.messages.length === 0) {
+          if (lastPage.messages.length === 0) {
             return undefined;
           }
-          return firstPage.messages[firstPage.messages.length - 1]!
-            .client_message_id;
+          return lastPage.messages[lastPage.messages.length - 1]!.created_at;
         }
       },
+
       staleTime: Infinity,
     }
   );
@@ -48,11 +46,8 @@ export const useChatroomMessages = ({ chatroomId }: { chatroomId: string }) => {
           },
           []
         )
-        .sort((a, b) => {
-          return (
-            dayjs.utc(a.created_at).unix() - dayjs.utc(b.created_at).unix()
-          );
-        })
+        .reverse()
+
         .map((m, index, array) => {
           return {
             ...m,
@@ -66,20 +61,25 @@ export const useChatroomMessages = ({ chatroomId }: { chatroomId: string }) => {
     [messagesQuery.data?.pages]
   );
 
+  console.log('MESS', messages);
+
   const groupedMessages = messages?.reduce<
     Record<string, RouterOutput['messaging']['getMessages']['messages']>
   >((acc, nextVal) => {
-    const date = dayjs
-      .utc(nextVal.created_at)
-      .local()
-      .hour(0)
-      .minute(0)
-      .second(0)
-      .format();
-    if (!acc[date]) {
-      acc[date] = [];
+    if (nextVal) {
+      const date = dayjs
+        .utc(nextVal.created_at)
+        .local()
+        .hour(0)
+        .minute(0)
+        .second(0)
+        .format();
+      if (!acc[date]) {
+        acc[date] = [];
+      }
+      acc[date]!.push(nextVal);
     }
-    acc[date]!.push(nextVal);
+
     return acc;
   }, {});
 
