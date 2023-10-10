@@ -8,6 +8,7 @@ import { ReactEditor, useFocused, useSlate } from 'slate-react';
 import { LucideAnnoyed } from 'lucide-react';
 import * as Dialog from '@radix-ui/react-dialog';
 import EmojiPicker from 'emoji-picker-react';
+import * as Popover from '@radix-ui/react-popover';
 
 const EditorFooterMenu = () => {
   const editor = useSlate();
@@ -54,7 +55,6 @@ const HoveringEmojiPicker = ({
   useLayoutEffect(() => {
     const el = ref.current;
 
-    console.log('ELEMENT??', el);
     if (!el) {
       return;
     }
@@ -64,9 +64,7 @@ const HoveringEmojiPicker = ({
       return;
     }
 
-    console.log('FIRED??');
     ReactEditor.focus(editor);
-
     const domSelection = window.getSelection();
     if (domSelection && domSelection.rangeCount > 0) {
       const domRange = domSelection.getRangeAt(0);
@@ -79,6 +77,7 @@ const HoveringEmojiPicker = ({
       }px`;
     }
   }, [ref.current]);
+
   return (
     <Dialog.Root
       open={open}
@@ -89,17 +88,18 @@ const HoveringEmojiPicker = ({
       <Dialog.Portal>
         <Dialog.Overlay className="DialogOverlay" />
         <Dialog.Content className="emoji-picker absolute top-0" ref={ref}>
-          <div>
-            <EmojiPicker />
-          </div>
+          <Popover.Root open={true}>
+            <Popover.Trigger></Popover.Trigger>
+            <Popover.Portal>
+              <Popover.Content>
+                <div>
+                  <EmojiPicker />
+                </div>
+              </Popover.Content>
+            </Popover.Portal>
+          </Popover.Root>
         </Dialog.Content>
       </Dialog.Portal>
-      {/*{createPortal(*/}
-      {/*  <div className="absolute top-0 opacity-0" ref={ref}>*/}
-      {/*    <EmojiPicker />*/}
-      {/*  </div>,*/}
-      {/*  document.body*/}
-      {/*)}*/}
     </Dialog.Root>
   );
 };
