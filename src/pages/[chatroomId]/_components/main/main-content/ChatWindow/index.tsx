@@ -26,9 +26,17 @@ export const useChatroomState = create<{
   chatroomWindowRefMap: Map<string, GroupedVirtuosoHandle>;
   setSentNewMessage: (chatroomId: string, value: boolean) => void;
   sentNewMessage: Record<string, boolean>;
+  setReceivedNewMessage: (chatroomId: string, value: boolean) => void;
+  receivedNewMessage: Record<string, boolean>;
 }>((setState) => ({
   chatroomWindowRefMap: new Map(),
+  receivedNewMessage: {},
   sentNewMessage: {},
+  setReceivedNewMessage: (chatroomId, value) => {
+    setState((state) => ({
+      receivedNewMessage: { ...state.receivedNewMessage, [chatroomId]: value },
+    }));
+  },
   setSentNewMessage: (chatroomId, value) => {
     setState((state) => ({
       sentNewMessage: { ...state.sentNewMessage, [chatroomId]: value },
@@ -77,27 +85,25 @@ const ChatWindow = forwardRef<
   }
 >(({ chatroomId }, ref) => {
   useMessageUpdate({ chatroomId });
-  // TODO fix this first item index so it calculates more reliably
   const {
     messages,
     groupedMessagesKeys,
     groupedMessagesCount,
     messagesQuery,
     messagesCountQuery,
-    groupedMessages,
   } = useChatroomMessages({ chatroomId });
+  // TODO fix this first item index so it calculates more reliably
   const [firstItemIndex, setFirstItemIndex] = useState(10000000);
-
-  console.log('firstItemIndex', firstItemIndex);
   const { filterAuthedUserFromChatroomAuthors } = useApiTransformUtils();
 
   const chatroomState = useChatroomState((state) => ({
     chatroomWindowRefMap: state.chatroomWindowRefMap,
     sentNewMessage: state.sentNewMessage,
     setSentNewMessage: state.setSentNewMessage,
+    receivedNewMessage: state.receivedNewMessage,
+    setReceivedNewMessage: state.setReceivedNewMessage,
   }));
   const user = useUser();
-
   useEffect(() => {
     return () => {
       chatroomState.chatroomWindowRefMap.delete(chatroomId);
@@ -144,88 +150,89 @@ const ChatWindow = forwardRef<
   }
 
   return (
-    <>
-      <GroupedVirtuoso
-        key={chatroomId}
-        ref={(ref) => {
-          if (ref) {
-            chatroomState.chatroomWindowRefMap.set(chatroomId, ref);
-          }
-        }}
-        overscan={50}
-        followOutput={(isAtBottom) => {
-          // TODO: virtualisation is a bit bugged lol sometimes works sometimes no
-          // send message && close to bottom scroll smooth
-          if (chatroomState.sentNewMessage[chatroomId] && isAtBottom) {
-            chatroomState.setSentNewMessage(chatroomId, false);
-            return 'smooth';
-          }
-          // sent new message scroll to bottom auto
-          if (chatroomState.sentNewMessage[chatroomId]) {
-            chatroomState.setSentNewMessage(chatroomId, false);
-            return 'auto';
-          }
-          // TODO: receive new message && at bottom then scroll to bottom
-          // if (isAtBottom) {
-          //   return 'smooth';
-          // }
+    // TODO: fix not reliable scroll to top and fetch?
+    <GroupedVirtuoso
+      key={chatroomId}
+      ref={(ref) => {
+        if (ref) {
+          chatroomState.chatroomWindowRefMap.set(chatroomId, ref);
+        }
+      }}
+      overscan={50}
+      followOutput={(isAtBottom) => {
+        // TODO: virtualisation is a bit bugged lol sometimes works sometimes no
+        // send message && close to bottom scroll smooth
+        if (chatroomState.sentNewMessage[chatroomId] && isAtBottom) {
+          chatroomState.setSentNewMessage(chatroomId, false);
+          return 'smooth';
+        }
+        // sent new message scroll to bottom auto
+        if (chatroomState.sentNewMessage[chatroomId]) {
+          chatroomState.setSentNewMessage(chatroomId, false);
+          return 'auto';
+        }
+        // TODO: receive new message && at bottom then scroll to bottom
+        console.log('INNER STATE', chatroomState.receivedNewMessage);
+        if (isAtBottom && chatroomState.receivedNewMessage[chatroomId]) {
+          chatroomState.setReceivedNewMessage(chatroomId, false);
+          return 'smooth';
+        }
 
-          return false;
-        }}
-        firstItemIndex={firstItemIndex}
-        initialTopMostItemIndex={messagesCountQuery.data?.messages_count - 1}
-        initialScrollTop={messagesCountQuery.data?.messages_count - 1}
-        groupCounts={groupedMessagesCount}
-        context={{
-          groupedMessagesKeys,
-          filteredChatroomUsers,
-          hasNextPage: messagesQuery.hasNextPage,
-        }}
-        startReached={() => {
-          if (messagesQuery.hasNextPage) {
-            messagesQuery.fetchNextPage();
-            setFirstItemIndex((prevState) => prevState - 20);
-          }
-        }}
-        // cannot pass data prop lib bug!
-        components={{
-          Header: ChatHeader,
-        }}
-        style={{ height: '100%', position: 'relative', flex: '1 1 0' }}
-        groupContent={(index, context) => {
-          return (
-            <div className="relative flex w-full justify-center bg-transparent before:absolute  before:top-1/2 before:left-1/2 before:h-[1px] before:w-full before:-translate-x-1/2 before:-translate-y-1/2  before:bg-slate-300">
-              <div
-                className={cn(
-                  'left-[50%] z-50 my-2 w-max self-center rounded-full border border-slate-300 bg-white px-4 text-slate-700'
+        return false;
+      }}
+      firstItemIndex={firstItemIndex}
+      initialTopMostItemIndex={messagesCountQuery.data?.messages_count - 1}
+      initialScrollTop={messagesCountQuery.data?.messages_count - 1}
+      groupCounts={groupedMessagesCount}
+      context={{
+        groupedMessagesKeys,
+        filteredChatroomUsers,
+        hasNextPage: messagesQuery.hasNextPage,
+      }}
+      startReached={() => {
+        if (messagesQuery.hasNextPage) {
+          messagesQuery.fetchNextPage();
+          setFirstItemIndex((prevState) => prevState - 20);
+        }
+      }}
+      // cannot pass data prop to grouped virtual list lib bug! https://github.com/petyosi/react-virtuoso/issues/608
+      components={{
+        Header: ChatHeader,
+      }}
+      style={{ height: '100%', position: 'relative', flex: '1 1 0' }}
+      groupContent={(index, context) => {
+        return (
+          <div className="relative flex w-full justify-center bg-transparent before:absolute  before:top-1/2 before:left-1/2 before:h-[1px] before:w-full before:-translate-x-1/2 before:-translate-y-1/2  before:bg-slate-300">
+            <div
+              className={cn(
+                'left-[50%] z-50 my-2 w-max self-center rounded-full border border-slate-300 bg-white px-4 text-slate-700'
+              )}
+            >
+              <p className="text-body">
+                {dayjs(context.groupedMessagesKeys[index]).format(
+                  'dddd, MMMM Do'
                 )}
-              >
-                <p className="text-body">
-                  {dayjs(context.groupedMessagesKeys[index]).format(
-                    'dddd, MMMM Do'
-                  )}
-                </p>
-              </div>
+              </p>
             </div>
+          </div>
+        );
+      }}
+      itemContent={(_index, _groupIndex) => {
+        const message = messages?.[_index - firstItemIndex];
+        if (!message) {
+          return null;
+        }
+        if (message) {
+          return (
+            <ChatWindowItem
+              authorsHashmap={authorsHashmap}
+              message={message}
+              user={user}
+            />
           );
-        }}
-        itemContent={(_index, _groupIndex) => {
-          const message = messages?.[_index - firstItemIndex];
-          if (!message) {
-            return null;
-          }
-          if (message) {
-            return (
-              <ChatWindowItem
-                authorsHashmap={authorsHashmap}
-                message={message}
-                user={user}
-              />
-            );
-          }
-        }}
-      />
-    </>
+        }
+      }}
+    />
   );
 });
 
@@ -255,18 +262,7 @@ const ChatWindowItem = React.memo(
     const previousMessageAuthor = previousMessage
       ? authorsHashmap[previousMessage.author_id]
       : undefined;
-    const isStartOfGroup = previousMessage
-      ? !dayjs
-          .utc(message.created_at)
-          .local()
-          .hour(0)
-          .minute(0)
-          .second(0)
-          .isSame(
-            dayjs.utc(previousMessage.created_at).hour(0).minute(0).second(0),
-            'day'
-          )
-      : true;
+
     // TODO: AVATAR PLACEMENT DUE TO TIME IS BUGGED??
     const differenceBetweenLastMessage = previousMessage
       ? dayjs
@@ -283,9 +279,7 @@ const ChatWindowItem = React.memo(
           isLastMessageSenderEqualToCurrentMessageSender
         }
         sendDate={message.created_at}
-        differenceBetweenLastMessage={
-          isStartOfGroup ? Infinity : differenceBetweenLastMessage
-        }
+        differenceBetweenLastMessage={differenceBetweenLastMessage}
         key={message.client_message_id}
         author={author}
         communicator={isSentByMe ? 'sender' : 'receiver'}
@@ -295,9 +289,7 @@ const ChatWindowItem = React.memo(
           isLastMessageSenderEqualToCurrentMessageSender={
             isLastMessageSenderEqualToCurrentMessageSender
           }
-          differenceBetweenLastMessage={
-            isStartOfGroup ? Infinity : differenceBetweenLastMessage
-          }
+          differenceBetweenLastMessage={differenceBetweenLastMessage}
           sendDate={message.created_at}
           author={author}
           content={message.content}

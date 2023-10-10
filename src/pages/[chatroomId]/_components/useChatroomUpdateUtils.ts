@@ -13,7 +13,6 @@ const useChatroomUpdateUtils = () => {
     chatroomId: string;
     message: RouterOutput['messaging']['getMessages']['messages'][number];
   }) => {
-    console.log('MESSY', message);
     trpcUtils.messaging.getMessagesCount.setData({ chatroomId }, (old) => {
       if (!old) {
         return old;
@@ -73,7 +72,6 @@ const useChatroomUpdateUtils = () => {
 
           draft.unshift({
             messages: [message],
-            next_cursor: null as unknown as number,
           });
         }
 

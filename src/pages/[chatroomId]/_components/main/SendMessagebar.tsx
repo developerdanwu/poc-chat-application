@@ -1,4 +1,4 @@
-import React, { type RefObject, useRef } from 'react';
+import React, { useRef } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { api } from '@/lib/api';
 import dayjs from 'dayjs';
@@ -6,10 +6,7 @@ import { type InfiniteData } from '@tanstack/react-query';
 import { type RouterOutput } from '@/server/api/root';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
-import {
-  type ChatWindowRef,
-  useChatroomState,
-} from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow';
+import { useChatroomState } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow';
 import BaseRichTextEditor from '@/components/modules/rich-text/BaseRichTextEditor';
 import { safeJSONParse } from '@/lib/utils';
 
@@ -21,14 +18,9 @@ import isHotkey from 'is-hotkey';
 import EditorMenuBar from '@/components/modules/rich-text/EditorMenuBar';
 import useChatroomUpdateUtils from '@/pages/[chatroomId]/_components/useChatroomUpdateUtils';
 import { v4 as uuid } from 'uuid';
+import EditorFooterMenu from '@/components/modules/rich-text/EditorFooterMenu';
 
-const SendMessagebar = ({
-  chatroomId,
-  chatWindowRef,
-}: {
-  chatroomId: string;
-  chatWindowRef: RefObject<ChatWindowRef>;
-}) => {
+const SendMessagebar = ({ chatroomId }: { chatroomId: string }) => {
   const chatroomUpdateUtils = useChatroomUpdateUtils();
   const chatroomState = useChatroomState((state) => ({
     setSentNewMessage: state.setSentNewMessage,
@@ -119,6 +111,7 @@ const SendMessagebar = ({
                 <div className="flex h-auto  min-h-fit w-full flex-col space-y-2 rounded-md border border-slate-300 p-3">
                   <BaseRichTextEditor
                     header={<EditorMenuBar />}
+                    footer={<EditorFooterMenu />}
                     slotProps={{
                       root: {
                         initialValue: safeJSONParse(value) || [

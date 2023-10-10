@@ -48,6 +48,7 @@
     "cmdk": "^0.2.0",
     "dayjs": "^1.11.7",
     "downshift": "^7.6.0",
+    "emoji-picker-react": "^4.5.2",
     "immer": "^9.0.21",
     "is-hotkey": "^0.2.0",
     "kysely": "^0.25.0",
