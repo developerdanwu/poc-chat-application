@@ -7,6 +7,9 @@ html, body {
     overflow: hidden;
 }
 
+#chat-window > * {
+    z-index: 0;
+}
 
 .ProseMirror:focus {
     outline: none;

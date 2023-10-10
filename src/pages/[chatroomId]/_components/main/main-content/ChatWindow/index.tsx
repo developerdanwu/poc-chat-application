@@ -152,6 +152,7 @@ const ChatWindow = forwardRef<
   return (
     // TODO: fix not reliable scroll to top and fetch?
     <GroupedVirtuoso
+      id="chat-window"
       key={chatroomId}
       ref={(ref) => {
         if (ref) {

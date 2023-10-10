@@ -45,13 +45,10 @@ const HoveringEmojiPicker = ({
   open: boolean;
   setShow: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
-  const ref = useRef<HTMLDivElement | null>();
+  const ref = useRef<HTMLDivElement | null>(null);
   const editor = useSlate();
   const inFocus = useFocused();
-  // useClickAway(ref, () => {
-  //   console.log('CLICK AWAY');
-  //   setShow(false);
-  // });
+
   useLayoutEffect(() => {
     const el = ref.current;
 
@@ -85,18 +82,16 @@ const HoveringEmojiPicker = ({
         setShow(open);
       }}
     >
+      <Dialog.Overlay className="DialogOverlay" />
       <Dialog.Portal>
-        <Dialog.Overlay className="DialogOverlay" />
         <Dialog.Content className="emoji-picker absolute top-0" ref={ref}>
           <Popover.Root open={true}>
             <Popover.Trigger></Popover.Trigger>
-            <Popover.Portal>
-              <Popover.Content>
-                <div>
-                  <EmojiPicker />
-                </div>
-              </Popover.Content>
-            </Popover.Portal>
+            <Popover.Content>
+              <div className="z-50">
+                <EmojiPicker />
+              </div>
+            </Popover.Content>
           </Popover.Root>
         </Dialog.Content>
       </Dialog.Portal>
