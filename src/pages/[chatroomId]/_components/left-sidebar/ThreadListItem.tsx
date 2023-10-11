@@ -1,20 +1,36 @@
 import React from 'react';
-import { cn } from '@/lib/utils';
+import { cn, useApiTransformUtils } from '@/lib/utils';
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from '@/components/elements/avatar';
+import { type RouterOutput } from '@/server/api/root';
+import { notEmpty } from '@/lib/ts-utils';
 
 const ThreadListItem = ({
-  name,
+  authors,
   selected,
   helperText,
 }: {
+  authors: RouterOutput['chatroom']['getChatrooms'][number]['authors'];
   helperText?: string;
   selected?: boolean;
-  name: string;
 }) => {
+  const { getUserPrescence, getFullName } = useApiTransformUtils();
+  const name = authors
+    ?.map((author) =>
+      getFullName({
+        firstName: author?.first_name,
+        lastName: author?.last_name,
+        fallback: 'Untitled',
+      })
+    )
+    .filter(notEmpty)
+    .join(', ');
+  const onlineUserPrescence = authors.some((author) =>
+    getUserPrescence(author.user_id)
+  );
   return (
     <div
       className={cn(
@@ -24,11 +40,17 @@ const ThreadListItem = ({
         }
       )}
     >
-      <div className="flex items-center overflow-hidden">
-        <Avatar size="sm">
-          <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-          <AvatarFallback>CN</AvatarFallback>
-        </Avatar>
+      <div className="flex items-center overflow-visible">
+        <div className="relative">
+          <Avatar size="sm">
+            <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+            <AvatarFallback>CN</AvatarFallback>
+          </Avatar>
+          {onlineUserPrescence ? (
+            <div className="absolute bottom-0 -right-1 h-2 w-2 rounded-full bg-green-500" />
+          ) : null}
+        </div>
+
         <p
           className={cn(
             'select-none overflow-hidden overflow-ellipsis whitespace-nowrap pl-3 text-xs font-normal leading-4 text-slate-400',

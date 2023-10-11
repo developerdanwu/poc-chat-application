@@ -1,9 +1,7 @@
 import { type NextPageWithLayout } from '@/pages/_app';
-import React, { useRef } from 'react';
+import React from 'react';
 import { useRouter } from 'next/router';
-import ChatWindow, {
-  type ChatWindowRef,
-} from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow';
+import ChatWindow from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow';
 import SendMessagebar from '@/pages/[chatroomId]/_components/main/SendMessagebar';
 import { ChatNameBar } from '@/pages/[chatroomId]/_components/main/top-controls/actions';
 import MainChatLayout from '@/pages/[chatroomId]/_components/MainChatLayout';
@@ -14,7 +12,6 @@ const ChatroomId: NextPageWithLayout = () => {
     typeof router.query.chatroomId === 'string'
       ? router.query.chatroomId
       : undefined;
-  const chatWindowRef = useRef<ChatWindowRef>(null);
 
   if (!chatroomId) {
     return null;
@@ -24,7 +21,7 @@ const ChatroomId: NextPageWithLayout = () => {
     <div className="flex h-full w-full flex-col">
       <ChatNameBar chatroomId={chatroomId} />
       <ChatWindow chatroomId={chatroomId} />
-      <SendMessagebar chatroomId={chatroomId} chatWindowRef={chatWindowRef} />
+      <SendMessagebar chatroomId={chatroomId} />
     </div>
   );
 };

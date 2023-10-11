@@ -9,13 +9,12 @@ export default async function handler(
   if (req.method === 'GET') {
     try {
       const auth = getAuth(req);
-
-      // if (!auth.userId) {
-      //   return res.status(401).send('Not Authorized');
-      // }
+      if (!auth.userId) {
+        return res.status(401).send('Not Authorized');
+      }
 
       const token = await ablyRest.auth.createTokenRequest({
-        clientId: '1',
+        clientId: auth.userId,
       });
 
       return res.status(200).send(token);

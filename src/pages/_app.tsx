@@ -11,7 +11,7 @@ import {
   SignedIn,
   SignedOut,
 } from '@clerk/nextjs';
-import { type ReactElement, type ReactNode } from 'react';
+import { type ReactElement, type ReactNode, useEffect, useState } from 'react';
 import { type NextPage } from 'next';
 import { configureAbly } from '@ably-labs/react-hooks';
 import { useSyncOnlinePresence } from '@/lib/ably';
@@ -27,10 +27,29 @@ type AppPropsWithLayout = AppProps & {
   Component: NextPageWithLayout;
 };
 
-configureAbly({
-  authUrl: 'http://localhost:3000/api/ably-auth',
-  authMethod: 'GET',
-});
+const AblyConfigWrapper = ({ children }: { children: React.ReactNode }) => {
+  const [configured, setConfigured] = useState(false);
+  const hasWindow = typeof window !== undefined;
+  useEffect(() => {
+    if (hasWindow && !configured) {
+      configureAbly({
+        authUrl: '/api/ably-auth',
+        authMethod: 'GET',
+      });
+      setConfigured(true);
+    }
+  }, [hasWindow, configured]);
+
+  if (!configured) {
+    return null;
+  }
+  return <>{children}</>;
+};
+
+const GlobalConfigWrapper = ({ children }: { children: React.ReactNode }) => {
+  useSyncOnlinePresence();
+  return <>{children}</>;
+};
 
 dayjs.extend(advancedFormat);
 dayjs.extend(utc);
@@ -40,12 +59,18 @@ const MyApp = ({
   pageProps: { ...pageProps },
 }: AppPropsWithLayout) => {
   const getLayout = Component.getLayout ?? ((page) => page);
-  useSyncOnlinePresence();
-
   return (
     <>
       <ClerkProvider {...pageProps}>
-        <SignedIn>{getLayout(<Component {...pageProps} />)}</SignedIn>
+        <SignedIn>
+          {getLayout(
+            <AblyConfigWrapper>
+              <GlobalConfigWrapper>
+                <Component {...pageProps} />
+              </GlobalConfigWrapper>
+            </AblyConfigWrapper>
+          )}
+        </SignedIn>
         <SignedOut>
           <RedirectToSignIn />
         </SignedOut>

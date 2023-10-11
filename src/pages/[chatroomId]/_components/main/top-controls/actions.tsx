@@ -7,7 +7,7 @@ import { useApiTransformUtils } from '@/lib/utils';
 import { notEmpty } from '@/lib/ts-utils';
 import { type RouterOutput } from '@/server/api/root';
 import { useRouter } from 'next/router';
-import { forwardRef } from 'react';
+import React, { forwardRef } from 'react';
 
 const BranchSwitcher = forwardRef(function BranchSwitcher() {
   return null;

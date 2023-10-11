@@ -13,8 +13,6 @@ import {
   CollapsibleTrigger,
 } from '@/components/elements/collapsible';
 import ThreadListItem from '@/pages/[chatroomId]/_components/left-sidebar/ThreadListItem';
-import { notEmpty } from '@/lib/ts-utils';
-import { AiModelsSection } from '@/pages/[chatroomId]/_components/left-sidebar/sections';
 
 const ChatSidebar = () => {
   const router = useRouter();
@@ -55,7 +53,7 @@ const ChatSidebar = () => {
       </div>
 
       <div className="flex w-full flex-col space-y-3 overflow-auto pt-4">
-        <AiModelsSection />
+        {/*<AiModelsSection />*/}
         <Collapsible defaultOpen={true}>
           <div className="flex items-center space-x-2 pl-3">
             <CollapsibleTrigger asChild>
@@ -71,21 +69,15 @@ const ChatSidebar = () => {
           </div>
           <CollapsibleContent className="px-3">
             {chatrooms.data?.map((chatroom) => {
+              const filteredAuthors = filterAuthedUserFromChatroomAuthors(
+                chatroom.authors
+              );
               return (
                 <Link key={chatroom.id} href={`/${chatroom.id}`}>
                   <ThreadListItem
+                    authors={filteredAuthors}
                     selected={chatroomId === chatroom.id}
                     // TODO: setup page to let user fill in important details
-                    name={filterAuthedUserFromChatroomAuthors(chatroom.authors)
-                      ?.map((author) =>
-                        getFullName({
-                          firstName: author?.first_name,
-                          lastName: author?.last_name,
-                          fallback: 'Untitled',
-                        })
-                      )
-                      .filter(notEmpty)
-                      .join(', ')}
                   />
                 </Link>
               );

@@ -34,6 +34,8 @@ export const useApiTransformUtils = () => {
     authors: T[]
   ) => authors?.filter((author) => author.user_id !== user?.user?.id);
 
+  console.log('HERRO??', Object.values(onlineUsers));
+
   const getUserPrescence = (userId: string) => {
     return Object.values(onlineUsers).find((u) => u.clientId === userId);
   };
