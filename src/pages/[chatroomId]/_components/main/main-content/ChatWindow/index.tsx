@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useState } from 'react';
+import React, { forwardRef, Fragment, useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import dayjs from 'dayjs';
 import { cn, useApiTransformUtils } from '@/lib/utils';
@@ -9,7 +9,11 @@ import {
   useChatroomMessages,
   useMessageUpdate,
 } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/hooks';
-import { GroupedVirtuoso, type GroupedVirtuosoHandle } from 'react-virtuoso';
+import {
+  GroupedVirtuoso,
+  type GroupedVirtuosoHandle,
+  type TopItemListProps,
+} from 'react-virtuoso';
 import StartOfDirectMessage from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/StartOfDirectMessage';
 import {
   ChatReplyItem,
@@ -203,7 +207,7 @@ const ChatWindow = forwardRef<
       style={{ height: '100%', position: 'relative', flex: '1 1 0' }}
       groupContent={(index, context) => {
         return (
-          <div className="relative flex w-full justify-center bg-transparent before:absolute  before:top-1/2 before:left-1/2 before:h-[1px] before:w-full before:-translate-x-1/2 before:-translate-y-1/2  before:bg-slate-300">
+          <div className="relative flex w-full justify-center bg-transparent ">
             <div
               className={cn(
                 'left-[50%] z-50 my-2 w-max self-center rounded-full border border-slate-300 bg-white px-4 text-slate-700'
@@ -219,6 +223,18 @@ const ChatWindow = forwardRef<
         );
       }}
       itemContent={(_index, _groupIndex) => {
+        const originalIndex = _index - firstItemIndex;
+        const accumulatedIndex = groupedMessagesCount?.reduce(
+          (prevVal, nextVal, index) => {
+            if (index <= _groupIndex) {
+              return (prevVal += nextVal);
+            }
+            return prevVal;
+          },
+          0
+        );
+        const isStartOfGroup = accumulatedIndex - 1 === originalIndex;
+        const isStartOfList = originalIndex === 0;
         const message = messages?.[_index - firstItemIndex];
         if (!message) {
           return null;
@@ -226,6 +242,8 @@ const ChatWindow = forwardRef<
         if (message) {
           return (
             <ChatWindowItem
+              isStartOfList={isStartOfList}
+              isStartOfGroup={isStartOfGroup}
               authorsHashmap={authorsHashmap}
               message={message}
               user={user}
@@ -241,10 +259,14 @@ ChatWindow.displayName = 'ChatWindow';
 
 const ChatWindowItem = React.memo(
   ({
+    isStartOfList,
     authorsHashmap,
     message,
     user,
+    isStartOfGroup,
   }: {
+    isStartOfList: boolean;
+    isStartOfGroup: boolean;
     authorsHashmap: Record<
       string,
       RouterOutput['chatroom']['getChatroom']['authors'][number]
@@ -276,6 +298,8 @@ const ChatWindowItem = React.memo(
       previousMessageAuthor?.author_id === author.author_id;
     return (
       <ChatReplyItemWrapper
+        isStartOfList={isStartOfList}
+        isStartOfGroup={isStartOfGroup}
         isLastMessageSenderEqualToCurrentMessageSender={
           isLastMessageSenderEqualToCurrentMessageSender
         }
@@ -301,5 +325,16 @@ const ChatWindowItem = React.memo(
 );
 
 ChatWindowItem.displayName = 'ChatWindowItem';
+
+const GroupHeaderContainer = ({ children, ...rest }: TopItemListProps) => {
+  return (
+    <>
+      <div className="absolute top-1/2 left-1/2 h-[1px] w-full -translate-y-1/2 -translate-x-1/2 bg-black"></div>
+      <div {...rest} style={{ position: 'sticky', top: 0, zIndex: 1 }}>
+        {children}
+      </div>
+    </>
+  );
+};
 
 export default ChatWindow;

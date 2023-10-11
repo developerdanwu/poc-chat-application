@@ -62,7 +62,6 @@ const HoveringEmojiPicker = ({
       return;
     }
 
-    console.log('ELEMENT', el);
     ReactEditor.focus(editor);
     const domSelection = window.getSelection();
     if (domSelection && domSelection.rangeCount > 0) {

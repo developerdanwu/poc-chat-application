@@ -61,6 +61,8 @@ const ChatReplyAvatar = ({
   );
 };
 export const ChatReplyItemWrapper = ({
+  isStartOfList,
+  isStartOfGroup,
   isLastMessageSenderEqualToCurrentMessageSender,
   sendDate,
   differenceBetweenLastMessage,
@@ -68,6 +70,8 @@ export const ChatReplyItemWrapper = ({
   communicator,
   author,
 }: {
+  isStartOfList: boolean;
+  isStartOfGroup: boolean;
   isLastMessageSenderEqualToCurrentMessageSender: boolean;
   differenceBetweenLastMessage: number | undefined;
   sendDate: Date;
@@ -79,7 +83,13 @@ export const ChatReplyItemWrapper = ({
     <div
       data-communicator={communicator}
       className={cn(
-        'group relative flex space-x-3 py-2 px-6 hover:bg-slate-50'
+        'group relative flex space-x-3 py-2 px-6 hover:bg-slate-50',
+        {
+          'before:absolute before:-bottom-5 before:left-1/2 before:h-[1px] before:w-full before:-translate-x-1/2 before:bg-slate-300':
+            isStartOfGroup,
+          'before:absolute before:-top-5 before:left-1/2 before:h-[1px] before:w-full before:-translate-x-1/2 before:bg-slate-300':
+            isStartOfList,
+        }
       )}
     >
       <ChatReplyAvatar
