@@ -9,6 +9,7 @@ import { LucideAnnoyed } from 'lucide-react';
 import * as Dialog from '@radix-ui/react-dialog';
 import EmojiPicker from 'emoji-picker-react';
 import * as Popover from '@radix-ui/react-popover';
+import { Transforms } from 'slate';
 
 const EditorFooterMenu = () => {
   const editor = useSlate();
@@ -61,19 +62,20 @@ const HoveringEmojiPicker = ({
       return;
     }
 
+    console.log('ELEMENT', el);
     ReactEditor.focus(editor);
     const domSelection = window.getSelection();
     if (domSelection && domSelection.rangeCount > 0) {
       const domRange = domSelection.getRangeAt(0);
       const rect = domRange.getBoundingClientRect();
-      console.log('WRECKED', rect);
       el.style.opacity = '1';
       el.style.top = `${rect.top + window.pageYOffset - el.offsetHeight}px`;
       el.style.left = `${
         rect.left + window.pageXOffset - el.offsetWidth / 2 + rect.width / 2
       }px`;
     }
-  }, [ref.current]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inFocus]);
 
   return (
     <Dialog.Root
@@ -86,10 +88,18 @@ const HoveringEmojiPicker = ({
       <Dialog.Portal>
         <Dialog.Content className="emoji-picker absolute top-0" ref={ref}>
           <Popover.Root open={true}>
-            <Popover.Trigger></Popover.Trigger>
+            <Popover.Trigger />
             <Popover.Content>
-              <div className="z-50">
-                <EmojiPicker />
+              <div>
+                <EmojiPicker
+                  onEmojiClick={(emoji, event) => {
+                    ReactEditor.focus(editor);
+                    Transforms.insertText(editor, emoji.emoji, {
+                      at: editor.selection,
+                    });
+                    setShow(false);
+                  }}
+                />
               </div>
             </Popover.Content>
           </Popover.Root>
