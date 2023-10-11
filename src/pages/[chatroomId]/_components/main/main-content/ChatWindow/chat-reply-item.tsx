@@ -61,6 +61,7 @@ const ChatReplyAvatar = ({
   );
 };
 export const ChatReplyItemWrapper = ({
+  isEndOfList,
   isStartOfList,
   isStartOfGroup,
   isLastMessageSenderEqualToCurrentMessageSender,
@@ -70,6 +71,7 @@ export const ChatReplyItemWrapper = ({
   communicator,
   author,
 }: {
+  isEndOfList: boolean;
   isStartOfList: boolean;
   isStartOfGroup: boolean;
   isLastMessageSenderEqualToCurrentMessageSender: boolean;
@@ -86,7 +88,7 @@ export const ChatReplyItemWrapper = ({
         'group relative flex space-x-3 py-2 px-6 hover:bg-slate-50',
         {
           'before:absolute before:-bottom-5 before:left-1/2 before:h-[1px] before:w-full before:-translate-x-1/2 before:bg-slate-300':
-            isStartOfGroup,
+            isStartOfGroup && !isEndOfList,
           'before:absolute before:-top-5 before:left-1/2 before:h-[1px] before:w-full before:-translate-x-1/2 before:bg-slate-300':
             isStartOfList,
         }

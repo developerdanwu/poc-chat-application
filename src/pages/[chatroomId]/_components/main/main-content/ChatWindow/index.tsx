@@ -239,9 +239,11 @@ const ChatWindow = forwardRef<
         if (!message) {
           return null;
         }
+        const isEndOfList = originalIndex === messages.length - 1;
         if (message) {
           return (
             <ChatWindowItem
+              isEndOfList={isEndOfList}
               isStartOfList={isStartOfList}
               isStartOfGroup={isStartOfGroup}
               authorsHashmap={authorsHashmap}
@@ -259,12 +261,14 @@ ChatWindow.displayName = 'ChatWindow';
 
 const ChatWindowItem = React.memo(
   ({
+    isEndOfList,
     isStartOfList,
     authorsHashmap,
     message,
     user,
     isStartOfGroup,
   }: {
+    isEndOfList: boolean;
     isStartOfList: boolean;
     isStartOfGroup: boolean;
     authorsHashmap: Record<
@@ -298,6 +302,7 @@ const ChatWindowItem = React.memo(
       previousMessageAuthor?.author_id === author.author_id;
     return (
       <ChatReplyItemWrapper
+        isEndOfList={isEndOfList}
         isStartOfList={isStartOfList}
         isStartOfGroup={isStartOfGroup}
         isLastMessageSenderEqualToCurrentMessageSender={
