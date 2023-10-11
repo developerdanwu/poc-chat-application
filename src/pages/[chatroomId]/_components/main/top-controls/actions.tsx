@@ -3,7 +3,7 @@ import { PlusIcon, XIcon } from 'lucide-react';
 import { IconButton } from '@/components/elements/IconButton';
 import { Separator } from '@/components/elements/separator';
 import { api } from '@/lib/api';
-import { useApiTransformUtils } from '@/lib/utils';
+import { cn, useApiTransformUtils } from '@/lib/utils';
 import { notEmpty } from '@/lib/ts-utils';
 import { type RouterOutput } from '@/server/api/root';
 import { useRouter } from 'next/router';
@@ -97,12 +97,9 @@ export const ChatNameBar = ({ chatroomId }: { chatroomId: string }) => {
   const filteredChatroomUsers = filterAuthedUserFromChatroomAuthors(
     chatroomDetail.data?.authors ?? []
   );
-  const onlineUserPrescence =
-    filteredChatroomUsers.length === 1
-      ? filteredChatroomUsers[0]
-        ? getUserPrescence(filteredChatroomUsers[0].user_id)
-        : undefined
-      : undefined;
+  const isUserOnline = filteredChatroomUsers.some((author) =>
+    getUserPrescence(author.user_id)
+  );
 
   if (!chatroomDetail.data) {
     return null;
@@ -122,9 +119,13 @@ export const ChatNameBar = ({ chatroomId }: { chatroomId: string }) => {
           .filter(notEmpty)
           .join(',')}
       </p>
-      {onlineUserPrescence ? (
-        <div className="h-3 w-3 rounded-full bg-green-600" />
-      ) : null}
+
+      <div
+        className={cn('h-3 w-3 rounded-full', {
+          'bg-green-500': isUserOnline,
+          'border-2 border-slate-900': !isUserOnline,
+        })}
+      />
     </div>
   );
 };

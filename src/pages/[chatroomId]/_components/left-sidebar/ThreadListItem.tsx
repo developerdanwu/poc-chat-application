@@ -28,7 +28,7 @@ const ThreadListItem = ({
     )
     .filter(notEmpty)
     .join(', ');
-  const onlineUserPrescence = authors.some((author) =>
+  const isUserOnline = authors.some((author) =>
     getUserPrescence(author.user_id)
   );
   return (
@@ -46,9 +46,13 @@ const ThreadListItem = ({
             <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
             <AvatarFallback>CN</AvatarFallback>
           </Avatar>
-          {onlineUserPrescence ? (
-            <div className="absolute bottom-0 -right-1 h-2 w-2 rounded-full bg-green-500" />
-          ) : null}
+
+          <div
+            className={cn('absolute bottom-0 -right-1 h-2 w-2 rounded-full ', {
+              'bg-green-500': isUserOnline,
+              'border border-white': !isUserOnline,
+            })}
+          />
         </div>
 
         <p
@@ -62,7 +66,6 @@ const ThreadListItem = ({
           {name}
         </p>
       </div>
-
       <p
         className={cn(
           'text-warm-gray-400 select-none text-xs font-normal leading-4',
