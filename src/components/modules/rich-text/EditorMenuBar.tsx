@@ -25,7 +25,8 @@ const CodeBlockButton = () => {
       type="button"
       variant="ghost"
       state={isCodeBlockActive ? 'active' : 'default'}
-      onClick={() => {
+      onClick={(e) => {
+        e.preventDefault();
         toggleBlock(editor, 'codeBlock');
       }}
     >
@@ -46,7 +47,10 @@ const EditorMenuBar = () => {
         variant="ghost"
         state={isMarkActive(editor, 'bold') ? 'active' : 'default'}
         disabled={isCodeBlockActive}
-        onClick={() => toggleMark(editor, 'bold')}
+        onMouseDown={(e) => {
+          e.preventDefault();
+          toggleMark(editor, 'bold');
+        }}
       >
         <RiBold size="18px" />
       </IconButton>
@@ -56,7 +60,10 @@ const EditorMenuBar = () => {
         variant="ghost"
         state={isMarkActive(editor, 'italic') ? 'active' : 'default'}
         disabled={isCodeBlockActive}
-        onClick={() => toggleMark(editor, 'italic')}
+        onMouseDown={(e) => {
+          e.preventDefault();
+          toggleMark(editor, 'italic');
+        }}
       >
         <RiItalic size="18px" />
       </IconButton>
@@ -66,7 +73,10 @@ const EditorMenuBar = () => {
         variant="ghost"
         state={isMarkActive(editor, 'strike') ? 'active' : 'default'}
         disabled={isCodeBlockActive}
-        onClick={() => toggleMark(editor, 'strike')}
+        onMouseDown={(e) => {
+          e.preventDefault();
+          toggleMark(editor, 'strike');
+        }}
       >
         <RiStrikethrough size="18px" />
       </IconButton>
@@ -77,7 +87,10 @@ const EditorMenuBar = () => {
         variant="ghost"
         state={isMarkActive(editor, 'code') ? 'active' : 'default'}
         disabled={isCodeBlockActive}
-        onClick={() => toggleMark(editor, 'code')}
+        onMouseDown={(e) => {
+          e.preventDefault();
+          toggleMark(editor, 'code');
+        }}
       >
         <RiCodeLine size="18px" />
       </IconButton>
