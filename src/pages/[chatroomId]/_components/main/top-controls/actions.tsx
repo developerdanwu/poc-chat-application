@@ -8,6 +8,12 @@ import { notEmpty } from '@/lib/ts-utils';
 import { type RouterOutput } from '@/server/api/root';
 import { useRouter } from 'next/router';
 import React, { forwardRef } from 'react';
+import {
+  Avatar,
+  AvatarBadge,
+  AvatarFallback,
+  AvatarImage,
+} from '@/components/elements/avatar';
 
 const BranchSwitcher = forwardRef(function BranchSwitcher() {
   return null;
@@ -106,26 +112,52 @@ export const ChatNameBar = ({ chatroomId }: { chatroomId: string }) => {
   }
 
   return (
-    <div className="flex w-full flex-[0_0_48px] items-center justify-start border-b border-slate-300">
-      <p className=" px-6 text-lg font-semibold text-slate-900">
-        {filteredChatroomUsers
-          ?.map((author) =>
-            getFullName({
-              firstName: author.first_name,
-              lastName: author.last_name,
-              fallback: 'Untitled',
-            })
-          )
-          .filter(notEmpty)
-          .join(',')}
-      </p>
-
-      <div
-        className={cn('h-3 w-3 rounded-full', {
-          'bg-green-500': isUserOnline,
-          'border-2 border-slate-900': !isUserOnline,
-        })}
-      />
+    <div className="flex w-full flex-[0_0_48px] items-center justify-start border-b border-slate-300 px-6">
+      {filteredChatroomUsers && filteredChatroomUsers.length === 1 ? (
+        filteredChatroomUsers.map((author) => {
+          const fullName = getFullName({
+            firstName: author.first_name,
+            lastName: author.last_name,
+            fallback: 'Untitled',
+          });
+          return (
+            <div
+              key={author.author_id}
+              className="relative flex items-center space-x-2"
+            >
+              <Avatar>
+                <AvatarImage
+                  src="https://github.com/shadcn.png"
+                  alt="@shadcn"
+                />
+                <AvatarFallback>CN</AvatarFallback>
+                <AvatarBadge position="bottomRight">
+                  <div
+                    className={cn('h-3 w-3 rounded-full ', {
+                      'bg-green-500': isUserOnline,
+                      'border-2 border-slate-900 bg-white': !isUserOnline,
+                    })}
+                  />
+                </AvatarBadge>
+              </Avatar>
+              <p className="text-lg font-semibold text-slate-900">{fullName}</p>
+            </div>
+          );
+        })
+      ) : (
+        <p className=" px-6 text-lg font-semibold text-slate-900">
+          {filteredChatroomUsers
+            ?.map((author) =>
+              getFullName({
+                firstName: author.first_name,
+                lastName: author.last_name,
+                fallback: 'Untitled',
+              })
+            )
+            .filter(notEmpty)
+            .join(',')}
+        </p>
+      )}
     </div>
   );
 };

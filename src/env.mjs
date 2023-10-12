@@ -25,7 +25,8 @@ const server = z.object({
  * built with invalid env vars. To expose them to the client, prefix them with `NEXT_PUBLIC_`.
  */
 const client = z.object({
-    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string()
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string(),
+    NEXT_PUBLIC_LIVEBLOCKS_API_KEY: z.string(),
     // NEXT_PUBLIC_CLIENTVAR: z.string().min(1),
 });
 
@@ -50,6 +51,7 @@ const processEnv = {
     SLACK_BOT_TOKEN: process.env.SLACK_BOT_TOKEN,
     SLACK_SIGNING_SECRET: process.env.SLACK_SIGNING_SECRET,
     SLACK_APP_TOKEN: process.env.SLACK_APP_TOKEN,
+    NEXT_PUBLIC_LIVEBLOCKS_API_KEY: process.env.NEXT_PUBLIC_LIVEBLOCKS_API_KEY
 };
 
 // Don't touch the part below

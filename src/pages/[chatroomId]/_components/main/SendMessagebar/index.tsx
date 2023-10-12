@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Controller, FormProvider, useForm } from 'react-hook-form';
+import { FormProvider, useForm } from 'react-hook-form';
 import { api } from '@/lib/api';
 import dayjs from 'dayjs';
 import { type InfiniteData } from '@tanstack/react-query';
@@ -7,25 +7,31 @@ import { type RouterOutput } from '@/server/api/root';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
 import { useChatroomState } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow';
-import BaseRichTextEditor from '@/components/modules/rich-text/BaseRichTextEditor';
-import { safeJSONParse } from '@/lib/utils';
-
-import {
-  resetEditor,
-  slateJSONToPlainText,
-} from '@/components/modules/rich-text/utils';
-import isHotkey from 'is-hotkey';
-import EditorMenuBar from '@/components/modules/rich-text/EditorMenuBar';
 import useChatroomUpdateUtils from '@/pages/[chatroomId]/_components/useChatroomUpdateUtils';
 import { v4 as uuid } from 'uuid';
-import EditorFooterMenu from '@/components/modules/rich-text/EditorFooterMenu';
+import { RoomProvider } from '../../../../../../liveblocks.config';
+import SendMessageTextEditor from '@/pages/[chatroomId]/_components/main/SendMessagebar/SendMessageTextEditor';
+import { useApiTransformUtils } from '@/lib/utils';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/elements/popover';
+import PeekMessage from '@/pages/[chatroomId]/_components/main/SendMessagebar/PeekMessage';
 
 const SendMessagebar = ({ chatroomId }: { chatroomId: string }) => {
   const chatroomUpdateUtils = useChatroomUpdateUtils();
   const chatroomState = useChatroomState((state) => ({
     setSentNewMessage: state.setSentNewMessage,
   }));
+  const chatroomDetail = api.chatroom.getChatroom.useQuery({
+    chatroomId: chatroomId,
+  });
   const trpcUtils = api.useContext();
+  const { filterAuthedUserFromChatroomAuthors } = useApiTransformUtils();
+  const filteredChatroomUsers = filterAuthedUserFromChatroomAuthors(
+    chatroomDetail.data?.authors ?? []
+  );
   const ownAuthor = api.chatroom.getOwnAuthor.useQuery();
   const chatFormRef = useRef<HTMLFormElement>(null);
   const chatForm = useForm({
@@ -88,12 +94,16 @@ const SendMessagebar = ({ chatroomId }: { chatroomId: string }) => {
     },
   });
 
+  if (!ownAuthor.data) {
+    return null;
+  }
+
   return (
     <FormProvider {...chatForm}>
       <form
         ref={chatFormRef}
         id="message-text-input-form"
-        className="h-auto min-h-fit overflow-hidden "
+        className="h-auto min-h-fit overflow-hidden"
         onSubmit={chatForm.handleSubmit((data) => {
           sendMessage.mutate({
             ...data,
@@ -103,53 +113,31 @@ const SendMessagebar = ({ chatroomId }: { chatroomId: string }) => {
           });
         })}
       >
-        <div className="flex h-full min-h-fit px-6 pb-4">
-          <Controller
-            control={chatForm.control}
-            render={({ field: { value, onChange } }) => {
-              return (
-                <div className="flex h-auto  min-h-fit w-full flex-col space-y-2 rounded-md border border-slate-300 p-3">
-                  <BaseRichTextEditor
-                    header={<EditorMenuBar />}
-                    footer={<EditorFooterMenu />}
-                    slotProps={{
-                      root: {
-                        initialValue: safeJSONParse(value) || [
-                          {
-                            type: 'paragraph',
-                            children: [{ text: '' }],
-                          },
-                        ],
-                        onChange: (value) => {
-                          chatForm.setValue(
-                            'text',
-                            slateJSONToPlainText(value)
-                          );
-                          onChange(value);
-                        },
-                      },
-                      editable: {
-                        onKeyDown: (event, editor) => {
-                          if (isHotkey('enter', event as any)) {
-                            // TODO: check if form valid before reset
-                            resetEditor(editor);
-                            event.preventDefault();
-                            chatFormRef.current?.dispatchEvent(
-                              new Event('submit', {
-                                cancelable: true,
-                                bubbles: true,
-                              })
-                            );
-                          }
-                        },
-                      },
-                    }}
-                  />
-                </div>
-              );
-            }}
-            name="content"
-          />
+        <div className="flex flex-col  px-6 pb-6">
+          <RoomProvider
+            id={`${chatroomId}-${ownAuthor.data.user_id}`}
+            initialPresence={{}}
+          >
+            <SendMessageTextEditor chatFormRef={chatFormRef} />
+          </RoomProvider>
+          <Popover>
+            <PopoverTrigger className="w-min">
+              <p className="w-max self-start text-left">Dan is typing...</p>
+            </PopoverTrigger>
+            <PopoverContent align="start">
+              {filteredChatroomUsers?.map((author) => {
+                return (
+                  <RoomProvider
+                    key={author.user_id}
+                    id={`${chatroomId}-${author.user_id}`}
+                    initialPresence={{}}
+                  >
+                    <PeekMessage />
+                  </RoomProvider>
+                );
+              })}
+            </PopoverContent>
+          </Popover>
         </div>
       </form>
     </FormProvider>

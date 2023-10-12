@@ -153,7 +153,7 @@ const AuthorsAutocomplete = ({
           {value.map((item, index) => {
             return (
               <div
-                key={`selected-item-${index}`}
+                key={`selected-item-${item.author_id}`}
                 className="flex items-center space-x-1 rounded-full border border-slate-300 bg-slate-100"
                 {...getSelectedItemProps({
                   selectedItem: item,

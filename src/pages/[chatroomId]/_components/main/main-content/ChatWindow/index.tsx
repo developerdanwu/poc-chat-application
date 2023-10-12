@@ -237,7 +237,7 @@ const ChatWindow = forwardRef<
         const isStartOfList = originalIndex === 0;
         const message = messages?.[_index - firstItemIndex];
         if (!message) {
-          return null;
+          return <div>UNSUPPORTED MESSAGE</div>;
         }
         const isEndOfList = originalIndex === messages.length - 1;
         if (message) {

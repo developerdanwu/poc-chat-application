@@ -97,7 +97,8 @@ declare module 'slate' {
 export const RichTextEditable = ({
   onKeyDown,
   readOnly,
-}: Pick<EditableProps, 'readOnly'> & {
+  placeholder,
+}: Pick<EditableProps, 'readOnly' | 'placeholder'> & {
   onKeyDown?: (
     event: React.KeyboardEvent<HTMLDivElement>,
     editor: Editor
@@ -114,7 +115,7 @@ export const RichTextEditable = ({
       autoFocus
       spellCheck
       readOnly={readOnly}
-      placeholder="Enter some rich text…"
+      placeholder={placeholder}
       className="min-h-fit w-full overflow-auto focus:outline-0"
       onKeyDown={(event) => {
         onKeyDown?.(event, editor);
@@ -134,7 +135,10 @@ const BaseRichTextEditor = ({
   header,
   footer,
   slotProps,
+  editor: editorProp,
 }: {
+  editor?: Editor;
+  editorHOC?: (editor: Editor) => Editor;
   header?: React.ReactNode;
   footer?: React.ReactNode;
   slotProps: {
@@ -142,7 +146,7 @@ const BaseRichTextEditor = ({
       initialValue: Descendant[];
       onChange?: ((value: Descendant[], editor: Editor) => void) | undefined;
     };
-    editable?: Pick<EditableProps, 'readOnly'> & {
+    editable?: Pick<EditableProps, 'readOnly' | 'placeholder'> & {
       onKeyDown?: (
         event: React.KeyboardEvent<HTMLDivElement>,
         editor: Editor
@@ -151,10 +155,11 @@ const BaseRichTextEditor = ({
   };
 }) => {
   const [editor] = useState(() => withHistory(withReact(createEditor())));
+  const resultEditor = editorProp ? editorProp : editor;
 
   return (
     <Slate
-      editor={editor}
+      editor={resultEditor}
       initialValue={slotProps.root.initialValue}
       onChange={(value) => {
         slotProps.root?.onChange?.(value, editor);

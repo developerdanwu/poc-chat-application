@@ -11,7 +11,7 @@ const avatarVariants = cva(
   {
     variants: {
       variant: {
-        default: 'relative flex shrink-0 overflow-hidden rounded-full',
+        default: 'relative flex shrink-0 aspect-square rounded-full',
       },
       size: {
         default: 'h-8 w-8',
@@ -45,7 +45,7 @@ const AvatarImage = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <AvatarPrimitive.Image
     ref={ref}
-    className={cn('aspect-square h-full w-full', className)}
+    className={cn('aspect-square h-full w-full rounded-full', className)}
     {...props}
   />
 ));
@@ -67,7 +67,7 @@ const AvatarFallback = React.forwardRef<
 AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName;
 
 const avatarBadgeVariants = cva(
-  'absolute w-4 h-4 rounded-full bg-background flex items-stretch justify-stretch [&>*]:grow [&>*]:rounded-full',
+  'absolute rounded-full flex items-stretch justify-stretch [&>*]:grow [&>*]:rounded-full',
   {
     variants: {
       position: {

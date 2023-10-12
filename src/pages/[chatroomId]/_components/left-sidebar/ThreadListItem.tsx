@@ -2,6 +2,7 @@ import React from 'react';
 import { cn, useApiTransformUtils } from '@/lib/utils';
 import {
   Avatar,
+  AvatarBadge,
   AvatarFallback,
   AvatarImage,
 } from '@/components/elements/avatar';
@@ -41,19 +42,18 @@ const ThreadListItem = ({
       )}
     >
       <div className="flex items-center overflow-visible">
-        <div className="relative">
-          <Avatar size="sm">
-            <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-            <AvatarFallback>CN</AvatarFallback>
-          </Avatar>
-
-          <div
-            className={cn('absolute bottom-0 -right-1 h-2 w-2 rounded-full ', {
-              'bg-green-500': isUserOnline,
-              'border border-white': !isUserOnline,
-            })}
-          />
-        </div>
+        <Avatar size="sm">
+          <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+          <AvatarFallback>CN</AvatarFallback>
+          <AvatarBadge position="bottomRight">
+            <div
+              className={cn('h-2 w-2 rounded-full ', {
+                'bg-green-500': isUserOnline,
+                'border border-white': !isUserOnline,
+              })}
+            />
+          </AvatarBadge>
+        </Avatar>
 
         <p
           className={cn(

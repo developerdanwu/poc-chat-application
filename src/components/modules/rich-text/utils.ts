@@ -6,6 +6,7 @@ import {
   type Text,
   Transforms,
 } from 'slate';
+import { ReactEditor } from 'slate-react';
 
 export const isMarkActive = (
   editor: Editor,
@@ -72,14 +73,14 @@ export const toggleBlock = (editor: Editor, format: SlateElement['type']) => {
           editor,
           { type: 'codeBlock', language: 'typescript', children: [] },
           {
-            match: (n) => SlateElement.isElement(n) && n.type === 'paragraph',
+            match: (n) => SlateElement.isElement(n),
             split: true,
           }
         );
         Transforms.setNodes(
           editor,
           { type: 'codeLine' },
-          { match: (n) => SlateElement.isElement(n) && n.type === 'paragraph' }
+          { match: (n) => SlateElement.isElement(n) }
         );
       }
       break;
@@ -110,9 +111,5 @@ export const resetEditor = (editor: Editor) => {
   Transforms.removeNodes(editor, {
     at: [0],
   });
-
-  // Insert array of children nodes
-  Transforms.insertNodes(editor, [
-    { type: 'paragraph', children: [{ text: '' }] },
-  ]);
+  ReactEditor.focus(editor);
 };

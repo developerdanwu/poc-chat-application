@@ -313,6 +313,37 @@
   resolved "https://registry.yarnpkg.com/@juggle/resize-observer/-/resize-observer-3.4.0.tgz#08d6c5e20cf7e4cc02fd181c4b0c225cd31dbb60"
   integrity sha512-dfLbk+PwWvFzSxwk3n5ySL0hfBog779o8h68wK/7/APo/7cgyWp5jcXockbxdk5kFRkbeXWm4Fbi9FrdN381sA==
 
+"@liveblocks/client@1.4.5", "@liveblocks/client@^1.4.5":
+  version "1.4.5"
+  resolved "https://registry.yarnpkg.com/@liveblocks/client/-/client-1.4.5.tgz#a75f72eadd86ad54240314ca918af036c1881f32"
+  integrity sha512-JB5jnS1YrytCMZBh6oUaTgES0U8UQUB93yQXzVEOw9VMJTa2ikFVWsKMiBZN5hkwWBuZDmmoBd6Dv0GWpGVJTQ==
+  dependencies:
+    "@liveblocks/core" "1.4.5"
+
+"@liveblocks/core@1.4.5":
+  version "1.4.5"
+  resolved "https://registry.yarnpkg.com/@liveblocks/core/-/core-1.4.5.tgz#4b24cefce8ed886cb914cc8d48c590d948ed6b15"
+  integrity sha512-3vHDk5tt50XNOiabSFsCm/R21/mM1uwTGjovG1gveSTyHMzapbBtIsi3Cv1TRVLHGHw7AQb6RnWcSpSTtCiU/g==
+
+"@liveblocks/react@^1.4.5":
+  version "1.4.5"
+  resolved "https://registry.yarnpkg.com/@liveblocks/react/-/react-1.4.5.tgz#28f6426b835b05d51231d404f9ddf115e725b1f0"
+  integrity sha512-LzSWRhtypLiYk1YFWo/cvogJuo7r+0z+c4FX7dtaDCxSb3Z1c4obqnVwn0Whqf/YA933WqvvTmiA83xeR//Eyg==
+  dependencies:
+    "@liveblocks/client" "1.4.5"
+    "@liveblocks/core" "1.4.5"
+    nanoid "^3"
+    use-sync-external-store "^1.2.0"
+
+"@liveblocks/yjs@^1.4.5":
+  version "1.4.5"
+  resolved "https://registry.yarnpkg.com/@liveblocks/yjs/-/yjs-1.4.5.tgz#3327657d141c6a9fafb4436a2c45e4de706f5054"
+  integrity sha512-8kGNqW0qbGSBoBvJkTZIggcBLYRHntvbThhFuMqIZaH2BlKwQDPICSvK1t0pEDietuhox45mjgQrbd5bhUGYqA==
+  dependencies:
+    "@liveblocks/client" "1.4.5"
+    "@liveblocks/core" "1.4.5"
+    js-base64 "^3.7.5"
+
 "@mapbox/hast-util-table-cell-style@^0.2.0":
   version "0.2.0"
   resolved "https://registry.npmjs.org/@mapbox/hast-util-table-cell-style/-/hast-util-table-cell-style-0.2.0.tgz"
@@ -2275,6 +2306,13 @@
     is-stream "^1.1.0"
     p-queue "^6.6.1"
     p-retry "^4.0.0"
+
+"@slate-yjs/core@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@slate-yjs/core/-/core-1.0.2.tgz#1369fad59bef3a70ee9c14f3dd9c0bd01a542996"
+  integrity sha512-X0hLFJbQu9c1ItWBaNuEn0pqcXYK76KCp8C4Gvy/VaTQVMo1VgAb2WiiJ0Je/AyuIYEPPSTNVOcyrGHwgA7e6Q==
+  dependencies:
+    y-protocols "^1.0.5"
 
 "@stablelib/base64@^1.0.0":
   version "1.0.1"
@@ -5522,6 +5560,11 @@ isexe@^2.0.0:
   resolved "https://registry.npmjs.org/isexe/-/isexe-2.0.0.tgz"
   integrity sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==
 
+isomorphic.js@^0.2.4:
+  version "0.2.5"
+  resolved "https://registry.yarnpkg.com/isomorphic.js/-/isomorphic.js-0.2.5.tgz#13eecf36f2dba53e85d355e11bf9d4208c6f7f88"
+  integrity sha512-PIeMbHqMt4DnUP3MA/Flc0HElYjMXArsw1qwJZcm9sqR8mq3l8NYizFMty0pWwE/tzIGH3EKK5+jes5mAr85yw==
+
 iterate-iterator@^1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/iterate-iterator/-/iterate-iterator-1.0.2.tgz#551b804c9eaa15b847ea6a7cdc2f5bf1ec150f91"
@@ -5534,6 +5577,11 @@ iterate-value@^1.0.2:
   dependencies:
     es-get-iterator "^1.0.2"
     iterate-iterator "^1.0.1"
+
+js-base64@^3.7.5:
+  version "3.7.5"
+  resolved "https://registry.yarnpkg.com/js-base64/-/js-base64-3.7.5.tgz#21e24cf6b886f76d6f5f165bfcd69cc55b9e3fca"
+  integrity sha512-3MEt5DTINKqfScXKfJFrRbxkrnk2AxPWGBL/ycjz4dK8iqiSJ06UxD8jh8xuh6p10TX4t2+7FsBYVxxQbMg+qA==
 
 js-cookie@^2.2.1:
   version "2.2.1"
@@ -5720,6 +5768,13 @@ levn@^0.4.1:
   dependencies:
     prelude-ls "^1.2.1"
     type-check "~0.4.0"
+
+lib0@^0.2.74, lib0@^0.2.85:
+  version "0.2.86"
+  resolved "https://registry.yarnpkg.com/lib0/-/lib0-0.2.86.tgz#86ccc3366ca3b6f8b5d8713c03f2a67ed7bc5f3e"
+  integrity sha512-kxigQTM4Q7NwJkEgdqQvU21qiR37twcqqLmh+/SbiGbRLfPlLVbHyY9sWp7PwXh0Xus9ELDSjsUOwcrdt5yZ4w==
+  dependencies:
+    isomorphic.js "^0.2.4"
 
 lilconfig@^2.0.5, lilconfig@^2.0.6:
   version "2.1.0"
@@ -6092,6 +6147,11 @@ nano-css@^5.3.1:
     sourcemap-codec "^1.4.8"
     stacktrace-js "^2.0.2"
     stylis "^4.0.6"
+
+nanoid@^3:
+  version "3.3.6"
+  resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-3.3.6.tgz#443380c856d6e9f9824267d960b4236ad583ea4c"
+  integrity sha512-BGcqMMJuToF7i1rt+2PWSNVnWIkGCU78jBG3RxO/bZlnZPK2Cmi2QaffxGO/2RvWi9sL+FAiRiXMgsyxQ1DIDA==
 
 nanoid@^3.3.4:
   version "3.3.4"
@@ -8667,6 +8727,13 @@ xtend@^4.0.0, xtend@^4.0.2:
   resolved "https://registry.npmjs.org/xtend/-/xtend-4.0.2.tgz"
   integrity sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==
 
+y-protocols@^1.0.5:
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/y-protocols/-/y-protocols-1.0.6.tgz#66dad8a95752623443e8e28c0e923682d2c0d495"
+  integrity sha512-vHRF2L6iT3rwj1jub/K5tYcTT/mEYDUppgNPXwp8fmLpui9f7Yeq3OEtTLVF012j39QnV+KEQpNqoN7CWU7Y9Q==
+  dependencies:
+    lib0 "^0.2.85"
+
 yallist@^4.0.0:
   version "4.0.0"
   resolved "https://registry.npmjs.org/yallist/-/yallist-4.0.0.tgz"
@@ -8681,6 +8748,13 @@ yaml@^2.2.1:
   version "2.3.0"
   resolved "https://registry.npmjs.org/yaml/-/yaml-2.3.0.tgz"
   integrity sha512-8/1wgzdKc7bc9E6my5wZjmdavHLvO/QOmLG1FBugblEvY4IXrLjlViIOmL24HthU042lWTDRO90Fz1Yp66UnMw==
+
+yjs@^13.6.8:
+  version "13.6.8"
+  resolved "https://registry.yarnpkg.com/yjs/-/yjs-13.6.8.tgz#0d6cebf4d7e69b08ede5ecf6368ddbd9c7603c2e"
+  integrity sha512-ZPq0hpJQb6f59B++Ngg4cKexDJTvfOgeiv0sBc4sUm8CaBWH7OQC4kcCgrqbjJ/B2+6vO49exvTmYfdlPtcjbg==
+  dependencies:
+    lib0 "^0.2.74"
 
 yn@3.1.1:
   version "3.1.1"
