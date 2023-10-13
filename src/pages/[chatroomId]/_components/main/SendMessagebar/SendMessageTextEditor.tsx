@@ -87,6 +87,7 @@ const SendMessageTextEditor = ({
                         });
                       }, 2000);
 
+                      // @ts-expect-error error with timeout type
                       setTimer(newTimer);
                       broadcast({
                         type: 'typing_message',

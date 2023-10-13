@@ -11,7 +11,6 @@ import useChatroomUpdateUtils from '@/pages/[chatroomId]/_components/useChatroom
 import { v4 as uuid } from 'uuid';
 import { RoomProvider } from '../../../../../../liveblocks.config';
 import SendMessageTextEditor from '@/pages/[chatroomId]/_components/main/SendMessagebar/SendMessageTextEditor';
-import { useApiTransformUtils } from '@/lib/utils';
 import { useAblyStore } from '@/lib/ably';
 
 const getAuthorsTypingTranslation = (
@@ -52,10 +51,7 @@ const SendMessagebar = ({ chatroomId }: { chatroomId: string }) => {
     chatroomId: chatroomId,
   });
   const trpcUtils = api.useContext();
-  const { filterAuthedUserFromChatroomAuthors } = useApiTransformUtils();
-  const filteredChatroomUsers = filterAuthedUserFromChatroomAuthors(
-    chatroomDetail.data?.authors ?? []
-  );
+
   const authorsHashmap = chatroomDetail.data?.authors.reduce<
     Record<string, RouterOutput['chatroom']['getChatroom']['authors'][number]>
   >((prevVal, author) => {

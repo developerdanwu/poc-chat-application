@@ -24,31 +24,39 @@ export const useAblyStore = create<{
     chatroomId: string;
     authorId: number;
   }) => void;
-}>((setState) => ({
+}>((setState, getState) => ({
   typing: {},
   removeTypingFromQueue: ({ chatroomId, authorId }) => {
-    setState((prev) => ({
-      typing: produce(prev.typing, (draft) => {
-        const filteredChatroomAuthors = draft[chatroomId]?.filter(
-          (id) => id !== authorId
-        );
-        console.log('FILT??', authorId, filteredChatroomAuthors);
-        if (filteredChatroomAuthors) {
-          draft[chatroomId] = filteredChatroomAuthors;
-        }
-      }),
-    }));
+    const typingState = getState().typing;
+    const typingChatroom = typingState[chatroomId];
+    if (typingChatroom?.includes(authorId)) {
+      setState((prev) => ({
+        typing: produce(prev.typing, (draft) => {
+          const filteredChatroomAuthors = draft[chatroomId]?.filter(
+            (id) => id !== authorId
+          );
+          if (filteredChatroomAuthors) {
+            draft[chatroomId] = filteredChatroomAuthors;
+          }
+        }),
+      }));
+    }
   },
   addTypingToQueue: ({ chatroomId, authorId }) => {
-    setState((prev) => ({
-      typing: produce(prev.typing, (draft) => {
-        if (!draft[chatroomId]) {
-          draft[chatroomId] = [authorId];
-        }
+    const typingState = getState().typing;
+    const typingChatroom = typingState[chatroomId];
 
-        draft[chatroomId]?.push(authorId);
-      }),
-    }));
+    if (!typingChatroom?.includes(authorId)) {
+      setState((prev) => ({
+        typing: produce(prev.typing, (draft) => {
+          if (!draft[chatroomId]) {
+            draft[chatroomId] = [authorId];
+          }
+
+          draft[chatroomId]?.push(authorId);
+        }),
+      }));
+    }
   },
   onlinePresence: {},
   addOnlinePresence: (presenceMessage) => {
