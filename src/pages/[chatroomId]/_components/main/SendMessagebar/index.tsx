@@ -21,19 +21,24 @@ const getAuthorsTypingTranslation = (
     RouterOutput['chatroom']['getChatroom']['authors'][number]
   >
 ) => {
+  const UNKNOWN_AUTHOR = 'Unknown';
   console.log('HASHMAP', authorsHashmap, typingAuthors);
   if (typingAuthors.length === 0) {
     return '';
   }
   if (typingAuthors.length === 1) {
-    return `${authorsHashmap[typingAuthors[0]]?.first_name} is typing...`;
+    const authorId = typingAuthors[0] as number;
+    return `${
+      authorsHashmap[authorId]?.first_name ?? UNKNOWN_AUTHOR
+    } is typing...`;
   }
   if (typingAuthors.length === 2) {
-    return `${authorsHashmap[typingAuthors[0]]?.first_name} and ${
-      authorsHashmap[typingAuthors[1]]?.first_name
-    } are typing...`;
+    const authorOneId = typingAuthors[0] as number;
+    const authorTwoId = typingAuthors[1] as number;
+    return `${authorsHashmap[authorOneId]?.first_name} and ${authorsHashmap[authorTwoId]?.first_name} are typing...`;
   }
-  return `${authorsHashmap[typingAuthors[0]]?.first_name} and ${
+  const authorId = typingAuthors[0] as number;
+  return `${authorsHashmap[authorId]?.first_name} and ${
     typingAuthors.length - 1
   } others are typing...`;
 };
