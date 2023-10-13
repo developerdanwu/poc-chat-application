@@ -24,6 +24,7 @@ const config = {
                 large: ['18px', {lineHeight: '28px', letterSpacing: '0%', fontWeight: '600'}],
                 small: ['14px', {lineHeight: '14px', letterSpacing: '0%', fontWeight: '500'}],
                 subtle: ['14px', {lineHeight: '20px', letterSpacing: '0%', fontWeight: '400'}],
+                detail: ['12px', {lineHeight: '20px', letterSpacing: '0%', fontWeight: '400'}],
             },
             colors: {
                 border: 'hsl(var(--border))',

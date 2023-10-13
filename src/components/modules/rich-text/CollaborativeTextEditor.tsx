@@ -8,7 +8,7 @@ import type * as Y from 'yjs';
 const emptyNode = {
   type: 'paragraph',
   children: [{ text: '' }],
-};
+} as const;
 
 const CollaborativeTextEditor = ({
   sharedType,
@@ -37,7 +37,9 @@ const CollaborativeTextEditor = ({
 
   useEffect(() => {
     YjsEditor.connect(editor);
-    return () => YjsEditor.disconnect(editor);
+    return () => {
+      YjsEditor.disconnect(editor);
+    };
   }, [editor]);
 
   return <>{children(editor)}</>;

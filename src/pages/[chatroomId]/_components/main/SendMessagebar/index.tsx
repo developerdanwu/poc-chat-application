@@ -12,12 +12,31 @@ import { v4 as uuid } from 'uuid';
 import { RoomProvider } from '../../../../../../liveblocks.config';
 import SendMessageTextEditor from '@/pages/[chatroomId]/_components/main/SendMessagebar/SendMessageTextEditor';
 import { useApiTransformUtils } from '@/lib/utils';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/elements/popover';
-import PeekMessage from '@/pages/[chatroomId]/_components/main/SendMessagebar/PeekMessage';
+import { useAblyStore } from '@/lib/ably';
+
+const getAuthorsTypingTranslation = (
+  typingAuthors: number[],
+  authorsHashmap: Record<
+    string,
+    RouterOutput['chatroom']['getChatroom']['authors'][number]
+  >
+) => {
+  console.log('HASHMAP', authorsHashmap, typingAuthors);
+  if (typingAuthors.length === 0) {
+    return '';
+  }
+  if (typingAuthors.length === 1) {
+    return `${authorsHashmap[typingAuthors[0]]?.first_name} is typing...`;
+  }
+  if (typingAuthors.length === 2) {
+    return `${authorsHashmap[typingAuthors[0]]?.first_name} and ${
+      authorsHashmap[typingAuthors[1]]?.first_name
+    } are typing...`;
+  }
+  return `${authorsHashmap[typingAuthors[0]]?.first_name} and ${
+    typingAuthors.length - 1
+  } others are typing...`;
+};
 
 const SendMessagebar = ({ chatroomId }: { chatroomId: string }) => {
   const chatroomUpdateUtils = useChatroomUpdateUtils();
@@ -32,8 +51,21 @@ const SendMessagebar = ({ chatroomId }: { chatroomId: string }) => {
   const filteredChatroomUsers = filterAuthedUserFromChatroomAuthors(
     chatroomDetail.data?.authors ?? []
   );
+  const authorsHashmap = chatroomDetail.data?.authors.reduce<
+    Record<string, RouterOutput['chatroom']['getChatroom']['authors'][number]>
+  >((prevVal, author) => {
+    prevVal[author.author_id] = author;
+    return prevVal;
+  }, {});
   const ownAuthor = api.chatroom.getOwnAuthor.useQuery();
   const chatFormRef = useRef<HTMLFormElement>(null);
+  const ablyStore = useAblyStore((state) => ({
+    typing: state.typing,
+  }));
+  const authorsInConversation = ablyStore.typing[chatroomId];
+  const uniqueSortedAuthorsInConversation = [
+    ...new Set(authorsInConversation),
+  ].sort((a, b) => a - b);
   const chatForm = useForm({
     resolver: zodResolver(
       z.object({
@@ -94,53 +126,52 @@ const SendMessagebar = ({ chatroomId }: { chatroomId: string }) => {
     },
   });
 
-  if (!ownAuthor.data) {
+  if (!ownAuthor.data || !authorsHashmap) {
     return null;
   }
 
   return (
-    <FormProvider {...chatForm}>
-      <form
-        ref={chatFormRef}
-        id="message-text-input-form"
-        className="h-auto min-h-fit overflow-hidden"
-        onSubmit={chatForm.handleSubmit((data) => {
-          sendMessage.mutate({
-            ...data,
-            content: JSON.stringify(data.content),
-            chatroomId,
-            messageChecksum: uuid(),
-          });
-        })}
-      >
-        <div className="flex flex-col  px-6 pb-6">
-          <RoomProvider
-            id={`${chatroomId}-${ownAuthor.data.user_id}`}
-            initialPresence={{}}
-          >
-            <SendMessageTextEditor chatFormRef={chatFormRef} />
-          </RoomProvider>
-          <Popover>
-            <PopoverTrigger className="w-min">
-              <p className="w-max self-start text-left">Dan is typing...</p>
-            </PopoverTrigger>
-            <PopoverContent align="start">
-              {filteredChatroomUsers?.map((author) => {
-                return (
-                  <RoomProvider
-                    key={author.user_id}
-                    id={`${chatroomId}-${author.user_id}`}
-                    initialPresence={{}}
-                  >
-                    <PeekMessage />
-                  </RoomProvider>
-                );
-              })}
-            </PopoverContent>
-          </Popover>
-        </div>
-      </form>
-    </FormProvider>
+    <RoomProvider id={chatroomId} initialPresence={{}}>
+      <FormProvider {...chatForm}>
+        <form
+          ref={chatFormRef}
+          id="message-text-input-form"
+          className="h-auto min-h-fit overflow-hidden"
+          onSubmit={chatForm.handleSubmit((data) => {
+            sendMessage.mutate({
+              ...data,
+              content: JSON.stringify(data.content),
+              chatroomId,
+              messageChecksum: uuid(),
+            });
+          })}
+        >
+          <div className="flex flex-col px-6 ">
+            <SendMessageTextEditor
+              chatroomId={chatroomId}
+              chatFormRef={chatFormRef}
+            />
+            <p className="h-6 text-detail text-slate-500">
+              {getAuthorsTypingTranslation(
+                uniqueSortedAuthorsInConversation,
+                authorsHashmap
+              )}
+            </p>
+
+            {/*<Popover>*/}
+            {/*  <PopoverTrigger className="w-min">*/}
+            {/*    <p className="w-max self-start text-left">Dan is typing...</p>*/}
+            {/*  </PopoverTrigger>*/}
+            {/*  <PopoverContent align="start">*/}
+            {/*    {filteredChatroomUsers?.map((author) => {*/}
+            {/*      return <PeekMessage key={author.author_id} />;*/}
+            {/*    })}*/}
+            {/*  </PopoverContent>*/}
+            {/*</Popover>*/}
+          </div>
+        </form>
+      </FormProvider>
+    </RoomProvider>
   );
 };
 

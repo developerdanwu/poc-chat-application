@@ -18,7 +18,38 @@ export const useAblyStore = create<{
   addOnlinePresence: (presenceMessage: PresenceMessage) => void;
   removeOnlinePresence: (clientId: string) => void;
   setOnlinePresence: (presenceMessages: PresenceMessage[]) => void;
+  typing: Record<string, number[]>;
+  addTypingToQueue: (data: { chatroomId: string; authorId: number }) => void;
+  removeTypingFromQueue: (data: {
+    chatroomId: string;
+    authorId: number;
+  }) => void;
 }>((setState) => ({
+  typing: {},
+  removeTypingFromQueue: ({ chatroomId, authorId }) => {
+    setState((prev) => ({
+      typing: produce(prev.typing, (draft) => {
+        const filteredChatroomAuthors = draft[chatroomId]?.filter(
+          (id) => id !== authorId
+        );
+        console.log('FILT??', authorId, filteredChatroomAuthors);
+        if (filteredChatroomAuthors) {
+          draft[chatroomId] = filteredChatroomAuthors;
+        }
+      }),
+    }));
+  },
+  addTypingToQueue: ({ chatroomId, authorId }) => {
+    setState((prev) => ({
+      typing: produce(prev.typing, (draft) => {
+        if (!draft[chatroomId]) {
+          draft[chatroomId] = [authorId];
+        }
+
+        draft[chatroomId]?.push(authorId);
+      }),
+    }));
+  },
   onlinePresence: {},
   addOnlinePresence: (presenceMessage) => {
     setState((prev) => ({

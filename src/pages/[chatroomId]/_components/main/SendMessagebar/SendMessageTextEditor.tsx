@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
-import CollaborativeTextEditor from '@/components/modules/rich-text/CollaborativeTextEditor';
 import BaseRichTextEditor from '@/components/modules/rich-text/BaseRichTextEditor';
 import EditorMenuBar from '@/components/modules/rich-text/EditorMenuBar';
 import EditorFooterMenu from '@/components/modules/rich-text/EditorFooterMenu';
@@ -10,43 +9,52 @@ import {
   slateJSONToPlainText,
 } from '@/components/modules/rich-text/utils';
 import isHotkey from 'is-hotkey';
-import { useRoom } from '../../../../../../liveblocks.config';
-import * as Y from 'yjs';
-import LiveblocksProvider from '@liveblocks/yjs';
+import {
+  useBroadcastEvent,
+  useEventListener,
+} from '../../../../../../liveblocks.config';
+import { api } from '@/lib/api';
+import { useAblyStore } from '@/lib/ably';
 
 const SendMessageTextEditor = ({
+  chatroomId,
   chatFormRef,
 }: {
+  chatroomId: string;
   chatFormRef: React.RefObject<HTMLFormElement>;
 }) => {
-  const room = useRoom();
-  const [connected, setConnected] = useState(false);
-  const [sharedType, setSharedType] = useState<Y.XmlText>();
-  const [provider, setProvider] =
-    useState<LiveblocksProvider<any, any, any, any>>();
-  // Set up Liveblocks Yjs provider
-  useEffect(() => {
-    const yDoc = new Y.Doc();
-    const yProvider = new LiveblocksProvider(room, yDoc);
-    const sharedDoc = yDoc.get('slate', Y.XmlText) as Y.XmlText;
-    yProvider.on('sync', setConnected);
-
-    setSharedType(sharedDoc);
-    setProvider(yProvider);
-
-    return () => {
-      yDoc?.destroy();
-      yProvider?.off('sync', setConnected);
-      yProvider?.destroy();
-    };
-  }, [room]);
-
+  const broadcast = useBroadcastEvent();
+  const [timer, setTimer] = useState<number | undefined>(undefined);
   const chatForm = useFormContext();
+  const ownAuthor = api.chatroom.getOwnAuthor.useQuery();
+  const ablyStore = useAblyStore((state) => ({
+    addTypingToQueue: state.addTypingToQueue,
+    removeTypingFromQueue: state.removeTypingFromQueue,
+    typing: state.typing,
+  }));
 
-  if (!connected || !sharedType || !provider) {
-    return <div>Loading…</div>;
-  }
+  useEventListener(({ event }) => {
+    switch (event.type) {
+      case 'typing_message': {
+        ablyStore.addTypingToQueue({
+          authorId: event.data.author_id,
+          chatroomId: event.data.chatroom_id,
+        });
+        break;
+      }
+      case 'stopped_typing': {
+        ablyStore.removeTypingFromQueue({
+          authorId: event.data.author_id,
+          chatroomId: event.data.chatroom_id,
+        });
+        break;
+      }
+      default:
+        break;
+    }
+  });
 
+  console.log(ablyStore.typing);
   return (
     <div className="flex h-full min-h-fit">
       <Controller
@@ -54,48 +62,61 @@ const SendMessageTextEditor = ({
         render={({ field: { value, onChange } }) => {
           return (
             <div className="flex h-auto  min-h-fit w-full flex-col space-y-2 rounded-md border border-slate-300 p-3">
-              <CollaborativeTextEditor sharedType={sharedType}>
-                {(editor) => (
-                  <BaseRichTextEditor
-                    editor={editor}
-                    header={<EditorMenuBar />}
-                    footer={<EditorFooterMenu />}
-                    slotProps={{
-                      root: {
-                        initialValue: safeJSONParse(value) || [
-                          {
-                            type: 'paragraph',
-                            children: [{ text: '' }],
+              <BaseRichTextEditor
+                header={<EditorMenuBar />}
+                footer={<EditorFooterMenu />}
+                slotProps={{
+                  root: {
+                    initialValue: safeJSONParse(value) || [
+                      {
+                        type: 'paragraph',
+                        children: [{ text: '' }],
+                      },
+                    ],
+                    onChange: (value) => {
+                      chatForm.setValue('text', slateJSONToPlainText(value));
+                      clearTimeout(timer);
+
+                      const newTimer = setTimeout(() => {
+                        broadcast({
+                          type: 'stopped_typing',
+                          data: {
+                            chatroom_id: chatroomId,
+                            author_id: ownAuthor.data!.author_id,
                           },
-                        ],
-                        onChange: (value) => {
-                          chatForm.setValue(
-                            'text',
-                            slateJSONToPlainText(value)
-                          );
-                          onChange(value);
+                        });
+                      }, 2000);
+
+                      setTimer(newTimer);
+                      broadcast({
+                        type: 'typing_message',
+                        data: {
+                          chatroom_id: chatroomId,
+                          content: JSON.stringify(value),
+                          author_id: ownAuthor.data!.author_id,
                         },
-                      },
-                      editable: {
-                        placeholder: 'Type your message here...',
-                        onKeyDown: (event, editor) => {
-                          if (isHotkey('enter', event as any)) {
-                            // TODO: check if form valid before reset
-                            resetEditor(editor);
-                            event.preventDefault();
-                            chatFormRef.current?.dispatchEvent(
-                              new Event('submit', {
-                                cancelable: true,
-                                bubbles: true,
-                              })
-                            );
-                          }
-                        },
-                      },
-                    }}
-                  />
-                )}
-              </CollaborativeTextEditor>
+                      });
+                      onChange(value);
+                    },
+                  },
+                  editable: {
+                    placeholder: 'Type your message here...',
+                    onKeyDown: (event, editor) => {
+                      if (isHotkey('enter', event as any)) {
+                        // TODO: check if form valid before reset
+                        resetEditor(editor);
+                        event.preventDefault();
+                        chatFormRef.current?.dispatchEvent(
+                          new Event('submit', {
+                            cancelable: true,
+                            bubbles: true,
+                          })
+                        );
+                      }
+                    },
+                  },
+                }}
+              />
             </div>
           );
         }}

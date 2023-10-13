@@ -33,10 +33,15 @@ type UserMeta = {
 
 // Optionally, the type of custom events broadcast and listened to in this
 // room. Use a union for multiple events. Must be JSON-serializable.
-type RoomEvent = {
-  // type: "NOTIFICATION",
-  // ...
-};
+type RoomEvent =
+  | {
+      type: 'typing_message';
+      data: { content: string; author_id: number; chatroom_id: string };
+    }
+  | {
+      type: 'stopped_typing';
+      data: { author_id: number; chatroom_id: string };
+    };
 
 export const {
   suspense: {

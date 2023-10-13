@@ -99,7 +99,10 @@ export const slateJSONToPlainText = (nodes: Descendant[]) => {
     .join('\n');
 };
 
-export const resetEditor = (editor: Editor) => {
+export const resetEditor = (
+  editor: Editor,
+  options?: { insertEmptyNode: boolean }
+) => {
   Transforms.delete(editor, {
     at: {
       anchor: Editor.start(editor, []),
@@ -111,5 +114,12 @@ export const resetEditor = (editor: Editor) => {
   Transforms.removeNodes(editor, {
     at: [0],
   });
+  if (options?.insertEmptyNode) {
+    Transforms.insertNodes(editor, {
+      type: 'paragraph',
+      children: [{ text: '' }],
+    });
+  }
+
   ReactEditor.focus(editor);
 };
