@@ -1,25 +1,22 @@
 import React from 'react';
-import { cn } from '@/lib/utils';
-import ChatSidebar from '@/pages/[chatroomId]/_components/left-sidebar/ChatSidebar';
 import { type NextPageWithLayout } from '@/pages/_app';
+import { api } from '@/lib/api';
+import { useRouter } from 'next/router';
 
 const Home: NextPageWithLayout = () => {
-  return null;
-};
+  const chatrooms = api.chatroom.getChatrooms.useQuery();
+  const router = useRouter();
 
-Home.getLayout = function getLayout(page) {
-  return (
-    <div
-      className={cn(
-        'flex h-screen w-screen flex-row items-center justify-center'
-      )}
-    >
-      <div className={cn('flex h-full w-full flex-row')}>
-        <ChatSidebar />
-        {page}
-      </div>
-    </div>
-  );
+  if (chatrooms.data && chatrooms.data.length > 0) {
+    const chatroom = chatrooms.data[0];
+    if (chatroom) {
+      router.push(`/${chatroom.id}`);
+    }
+  } else {
+    router.push('/new-message');
+  }
+
+  return <div className="h-screen w-[256px] bg-slate-900" />;
 };
 
 export default Home;
