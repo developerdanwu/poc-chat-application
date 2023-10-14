@@ -94,7 +94,7 @@ const ChatScroller = React.forwardRef<
       ref={ref}
       style={{
         ...style,
-        top: props.context?.topHeight,
+        y: props.context?.topHeight,
       }}
       {...props}
     />
