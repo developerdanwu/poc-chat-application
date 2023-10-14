@@ -30,7 +30,7 @@ const CodeBlockButton = () => {
         toggleBlock(editor, 'codeBlock');
       }}
     >
-      <RiCodeBoxLine size="18px" />
+      <RiCodeBoxLine size="16px" />
     </IconButton>
   );
 };
@@ -52,7 +52,7 @@ const EditorMenuBar = () => {
           toggleMark(editor, 'bold');
         }}
       >
-        <RiBold size="18px" />
+        <RiBold size="16px" />
       </IconButton>
       <IconButton
         size="sm"
@@ -65,7 +65,7 @@ const EditorMenuBar = () => {
           toggleMark(editor, 'italic');
         }}
       >
-        <RiItalic size="18px" />
+        <RiItalic size="16px" />
       </IconButton>
       <IconButton
         size="sm"
@@ -78,7 +78,7 @@ const EditorMenuBar = () => {
           toggleMark(editor, 'strike');
         }}
       >
-        <RiStrikethrough size="18px" />
+        <RiStrikethrough size="16px" />
       </IconButton>
       <Separator orientation="vertical" />
       <IconButton
@@ -92,7 +92,7 @@ const EditorMenuBar = () => {
           toggleMark(editor, 'code');
         }}
       >
-        <RiCodeLine size="18px" />
+        <RiCodeLine size="16px" />
       </IconButton>
       <CodeBlockButton />
     </div>

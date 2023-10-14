@@ -33,6 +33,8 @@ const SendMessageTextEditor = ({
     typing: state.typing,
   }));
 
+  console.log('WATCHING', chatForm.watch());
+
   useEventListener(({ event }) => {
     switch (event.type) {
       case 'typing_message': {
@@ -54,7 +56,6 @@ const SendMessageTextEditor = ({
     }
   });
 
-  console.log(ablyStore.typing);
   return (
     <div className="flex h-full min-h-fit">
       <Controller
@@ -105,7 +106,9 @@ const SendMessageTextEditor = ({
                     onKeyDown: (event, editor) => {
                       if (isHotkey('enter', event as any)) {
                         // TODO: check if form valid before reset
-                        resetEditor(editor);
+                        resetEditor(editor, {
+                          insertEmptyNode: true,
+                        });
                         event.preventDefault();
                         chatFormRef.current?.dispatchEvent(
                           new Event('submit', {

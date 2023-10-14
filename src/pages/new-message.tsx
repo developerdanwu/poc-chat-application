@@ -157,7 +157,9 @@ const NewMessage: NextPageWithLayout = () => {
                         editable: {
                           onKeyDown: (event, editor) => {
                             if (isHotkey('enter', event as any)) {
-                              resetEditor(editor);
+                              resetEditor(editor, {
+                                insertEmptyNode: true,
+                              });
                               event.preventDefault();
                               chatFormRef.current?.dispatchEvent(
                                 new Event('submit', {

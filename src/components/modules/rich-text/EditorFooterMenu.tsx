@@ -10,17 +10,22 @@ import * as Dialog from '@radix-ui/react-dialog';
 import EmojiPicker from 'emoji-picker-react';
 import * as Popover from '@radix-ui/react-popover';
 import { Transforms } from 'slate';
+import { MdSend } from 'react-icons/md';
+import { useFormContext, useFormState } from 'react-hook-form';
 
 const EditorFooterMenu = () => {
   const editor = useSlate();
   const ref = useRef<HTMLDivElement | null>(null);
   const isCodeBlockActive = isBlockActive(editor, 'codeBlock');
   const [show, setShow] = React.useState(false);
-
+  const form = useFormContext();
+  const { isValid } = useFormState({
+    control: form.control,
+  });
   return (
     <div>
       <HoveringEmojiPicker setShow={setShow} open={show} />
-      <div className="flex h-5 w-full items-center space-x-2">
+      <div className="flex h-5 w-full items-center justify-between">
         <IconButton
           type="button"
           size="sm"
@@ -32,7 +37,15 @@ const EditorFooterMenu = () => {
             setShow(true);
           }}
         >
-          <LucideAnnoyed size="18px" />
+          <LucideAnnoyed size="16px" />
+        </IconButton>
+        <IconButton
+          disabled={!isValid}
+          size="sm"
+          type="button"
+          variant="default"
+        >
+          <MdSend size="16px" />
         </IconButton>
       </div>
     </div>

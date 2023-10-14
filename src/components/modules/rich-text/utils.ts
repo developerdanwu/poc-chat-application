@@ -96,7 +96,9 @@ export const slateJSONToPlainText = (nodes: Descendant[]) => {
     .map((n) => {
       return Node.string(n);
     })
-    .join('\n');
+    .join(' ')
+    .replace(/[\r\n]/gm, '')
+    .trim();
 };
 
 export const resetEditor = (

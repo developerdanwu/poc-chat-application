@@ -9,7 +9,7 @@ import z from 'zod';
 import { useChatroomState } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow';
 import useChatroomUpdateUtils from '@/pages/[chatroomId]/_components/useChatroomUpdateUtils';
 import { v4 as uuid } from 'uuid';
-import { RoomProvider } from '../../../../../../liveblocks.config';
+import { useBroadcastEvent } from '../../../../../../liveblocks.config';
 import SendMessageTextEditor from '@/pages/[chatroomId]/_components/main/SendMessagebar/SendMessageTextEditor';
 import { useAblyStore } from '@/lib/ably';
 
@@ -51,6 +51,7 @@ const SendMessagebar = ({ chatroomId }: { chatroomId: string }) => {
     chatroomId: chatroomId,
   });
   const trpcUtils = api.useContext();
+  const broadcast = useBroadcastEvent();
 
   const authorsHashmap = chatroomDetail.data?.authors.reduce<
     Record<string, RouterOutput['chatroom']['getChatroom']['authors'][number]>
@@ -110,6 +111,14 @@ const SendMessagebar = ({ chatroomId }: { chatroomId: string }) => {
 
       chatForm.reset();
       chatroomState.setSentNewMessage(variables.chatroomId, true);
+      broadcast({
+        type: 'stopped_typing',
+        data: {
+          chatroom_id: chatroomId,
+          author_id: ownAuthor.data!.author_id,
+        },
+      });
+
       return {
         oldData,
       };
@@ -132,47 +141,45 @@ const SendMessagebar = ({ chatroomId }: { chatroomId: string }) => {
   }
 
   return (
-    <RoomProvider id={chatroomId} initialPresence={{}}>
-      <FormProvider {...chatForm}>
-        <form
-          ref={chatFormRef}
-          id="message-text-input-form"
-          className="h-auto min-h-fit overflow-hidden"
-          onSubmit={chatForm.handleSubmit((data) => {
-            sendMessage.mutate({
-              ...data,
-              content: JSON.stringify(data.content),
-              chatroomId,
-              messageChecksum: uuid(),
-            });
-          })}
-        >
-          <div className="flex flex-col px-6 ">
-            <SendMessageTextEditor
-              chatroomId={chatroomId}
-              chatFormRef={chatFormRef}
-            />
-            <p className="h-6 text-detail text-slate-500">
-              {getAuthorsTypingTranslation(
-                uniqueSortedAuthorsInConversation,
-                authorsHashmap
-              )}
-            </p>
+    <FormProvider {...chatForm}>
+      <form
+        ref={chatFormRef}
+        id="message-text-input-form"
+        className="h-auto min-h-fit overflow-hidden"
+        onSubmit={chatForm.handleSubmit((data) => {
+          sendMessage.mutate({
+            ...data,
+            content: JSON.stringify(data.content),
+            chatroomId,
+            messageChecksum: uuid(),
+          });
+        })}
+      >
+        <div className="flex flex-col px-6 ">
+          <SendMessageTextEditor
+            chatroomId={chatroomId}
+            chatFormRef={chatFormRef}
+          />
+          <p className="h-6 text-detail text-slate-500">
+            {getAuthorsTypingTranslation(
+              uniqueSortedAuthorsInConversation,
+              authorsHashmap
+            )}
+          </p>
 
-            {/*<Popover>*/}
-            {/*  <PopoverTrigger className="w-min">*/}
-            {/*    <p className="w-max self-start text-left">Dan is typing...</p>*/}
-            {/*  </PopoverTrigger>*/}
-            {/*  <PopoverContent align="start">*/}
-            {/*    {filteredChatroomUsers?.map((author) => {*/}
-            {/*      return <PeekMessage key={author.author_id} />;*/}
-            {/*    })}*/}
-            {/*  </PopoverContent>*/}
-            {/*</Popover>*/}
-          </div>
-        </form>
-      </FormProvider>
-    </RoomProvider>
+          {/*<Popover>*/}
+          {/*  <PopoverTrigger className="w-min">*/}
+          {/*    <p className="w-max self-start text-left">Dan is typing...</p>*/}
+          {/*  </PopoverTrigger>*/}
+          {/*  <PopoverContent align="start">*/}
+          {/*    {filteredChatroomUsers?.map((author) => {*/}
+          {/*      return <PeekMessage key={author.author_id} />;*/}
+          {/*    })}*/}
+          {/*  </PopoverContent>*/}
+          {/*</Popover>*/}
+        </div>
+      </form>
+    </FormProvider>
   );
 };
 
