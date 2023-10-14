@@ -31,16 +31,20 @@ const SendMessageTextEditor = ({
     addTypingToQueue: state.addTypingToQueue,
     removeTypingFromQueue: state.removeTypingFromQueue,
     typing: state.typing,
+    setChatroomEditorContent: state.setChatroomEditorContent,
+    chatroomContent: state.chatroomEditorContent,
   }));
-
-  console.log('WATCHING', chatForm.watch());
-
   useEventListener(({ event }) => {
     switch (event.type) {
       case 'typing_message': {
         ablyStore.addTypingToQueue({
           authorId: event.data.author_id,
           chatroomId: event.data.chatroom_id,
+        });
+        ablyStore.setChatroomEditorContent({
+          chatroomId: event.data.chatroom_id,
+          content: event.data.content,
+          authorId: event.data.author_id,
         });
         break;
       }

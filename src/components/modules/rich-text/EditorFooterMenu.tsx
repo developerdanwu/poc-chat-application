@@ -1,8 +1,5 @@
 import React, { useLayoutEffect, useRef } from 'react';
-import {
-  isBlockActive,
-  isMarkActive,
-} from '@/components/modules/rich-text/utils';
+import { isBlockActive } from '@/components/modules/rich-text/utils';
 import { IconButton } from '@/components/elements/IconButton';
 import { ReactEditor, useFocused, useSlate } from 'slate-react';
 import { LucideAnnoyed } from 'lucide-react';
@@ -15,7 +12,6 @@ import { useFormContext, useFormState } from 'react-hook-form';
 
 const EditorFooterMenu = () => {
   const editor = useSlate();
-  const ref = useRef<HTMLDivElement | null>(null);
   const isCodeBlockActive = isBlockActive(editor, 'codeBlock');
   const [show, setShow] = React.useState(false);
   const form = useFormContext();
@@ -30,7 +26,6 @@ const EditorFooterMenu = () => {
           type="button"
           size="sm"
           variant="ghost"
-          state={isMarkActive(editor, 'bold') ? 'active' : 'default'}
           disabled={isCodeBlockActive}
           onClick={() => {
             ReactEditor.focus(editor);
