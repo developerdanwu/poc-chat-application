@@ -153,7 +153,6 @@ const SendMessageTextEditor = ({
                     placeholder: 'Type your message here...',
                     onKeyDown: (event, editor) => {
                       if (isHotkey('enter', event as any)) {
-                        // TODO: check if form valid before reset
                         if (isValid) {
                           resetEditor(editor, {
                             insertEmptyNode: true,
