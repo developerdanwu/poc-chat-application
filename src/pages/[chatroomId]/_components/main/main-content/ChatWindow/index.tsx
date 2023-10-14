@@ -195,7 +195,7 @@ const ChatWindow = forwardRef<
   // TODO: fix not reliable scroll to top and fetch?
 
   return (
-    <div className="h-full w-full" ref={virtualListWrapperRef}>
+    <div className="h-0 w-full flex-[1_1_0px]" ref={virtualListWrapperRef}>
       <GroupedVirtuoso
         totalListHeightChanged={(height) => {
           listHeight.current = height;
@@ -262,7 +262,7 @@ const ChatWindow = forwardRef<
           Header: ChatHeader,
           Scroller: ChatScroller,
         }}
-        style={{ height: '100%', position: 'relative', flex: '1 1 0' }}
+        style={{ height: '100%', position: 'relative' }}
         groupContent={(index, context) => {
           return (
             <div className="relative flex w-full justify-center bg-transparent ">

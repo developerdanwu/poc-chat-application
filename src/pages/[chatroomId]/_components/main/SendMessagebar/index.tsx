@@ -144,7 +144,7 @@ const SendMessagebar = ({ chatroomId }: { chatroomId: string }) => {
       <form
         ref={chatFormRef}
         id="message-text-input-form"
-        className="h-auto min-h-fit overflow-hidden"
+        className="h-auto min-h-fit flex-shrink-0 overflow-hidden"
         onSubmit={chatForm.handleSubmit((data) => {
           sendMessage.mutate({
             ...data,
