@@ -23,7 +23,6 @@ export const HoveringPeekMessage = ({
   const inFocus = useFocused();
   const ref = useRef<HTMLDivElement | null>(null);
   const editor = useSlate();
-  const [open, setOpen] = React.useState(false);
   const sendMessagebar = useSendMessagebar((state) => ({
     setPeekMessageOpen: state.setPeekMessageOpen,
     peekMessageOpen: state.peekMessageOpen,
