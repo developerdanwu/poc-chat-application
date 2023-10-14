@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useState } from 'react';
+import React, { forwardRef, useEffect, useRef, useState } from 'react';
 import { api } from '@/lib/api';
 import dayjs from 'dayjs';
 import { cn, useApiTransformUtils } from '@/lib/utils';
@@ -9,17 +9,35 @@ import {
   useChatroomMessages,
   useMessageUpdate,
 } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/hooks';
-import { GroupedVirtuoso, type GroupedVirtuosoHandle } from 'react-virtuoso';
+import {
+  GroupedVirtuoso,
+  type GroupedVirtuosoHandle,
+  type ScrollerProps,
+} from 'react-virtuoso';
 import StartOfDirectMessage from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/StartOfDirectMessage';
 import {
   ChatReplyItem,
   ChatReplyItemWrapper,
 } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/chat-reply-item';
 import { create } from 'zustand';
+import { motion, type MotionValue, useMotionValue } from 'framer-motion';
 
 export type ChatWindowRef = {
   scrollToBottom: () => void;
   scrollAreaRef: HTMLDivElement;
+};
+
+type ChatWindowVirtualListContext = {
+  context?: {
+    hasNextPage?: boolean;
+    filteredChatroomUsers: {
+      author_id: number;
+      first_name: string;
+      last_name: string;
+    }[];
+    groupedMessagesKeys: string[];
+    topHeight: MotionValue<number>;
+  };
 };
 
 export const useChatroomState = create<{
@@ -55,18 +73,7 @@ export const ChatWindowLoading = () => {
   );
 };
 
-const ChatHeader = ({
-  context,
-}: {
-  context?: {
-    hasNextPage?: boolean;
-    filteredChatroomUsers: {
-      author_id: number;
-      first_name: string;
-      last_name: string;
-    }[];
-  };
-}) => {
+const ChatHeader = ({ context }: ChatWindowVirtualListContext) => {
   if (!context?.filteredChatroomUsers || context?.hasNextPage) {
     return (
       <div className="flex justify-center py-2">
@@ -77,6 +84,24 @@ const ChatHeader = ({
 
   return <StartOfDirectMessage authors={context.filteredChatroomUsers} />;
 };
+
+const ChatScroller = React.forwardRef<
+  HTMLDivElement,
+  ScrollerProps & ChatWindowVirtualListContext
+>(({ style, ...props }, ref) => {
+  return (
+    <motion.div
+      ref={ref}
+      style={{
+        ...style,
+        top: props.context?.topHeight,
+      }}
+      {...props}
+    />
+  );
+});
+
+ChatScroller.displayName = 'ChatScroller';
 
 const ChatWindow = forwardRef<
   ChatWindowRef,
@@ -95,7 +120,8 @@ const ChatWindow = forwardRef<
   // TODO fix this first item index so it calculates more reliably
   const [firstItemIndex, setFirstItemIndex] = useState(10000000);
   const { filterAuthedUserFromChatroomAuthors } = useApiTransformUtils();
-
+  const virtualListWrapperRef = useRef<HTMLDivElement>(null);
+  const listHeight = useRef<number>(0);
   const chatroomState = useChatroomState((state) => ({
     chatroomWindowRefMap: state.chatroomWindowRefMap,
     sentNewMessage: state.sentNewMessage,
@@ -104,11 +130,29 @@ const ChatWindow = forwardRef<
     setReceivedNewMessage: state.setReceivedNewMessage,
   }));
   const user = useUser();
+  const topHeight = useMotionValue(0);
+
   useEffect(() => {
     return () => {
       chatroomState.chatroomWindowRefMap.delete(chatroomId);
     };
   }, [chatroomId, chatroomState.chatroomWindowRefMap]);
+
+  useEffect(() => {
+    const handler = () => {
+      if (virtualListWrapperRef.current) {
+        const calculatedTop =
+          virtualListWrapperRef.current.getBoundingClientRect().height -
+          listHeight.current;
+        topHeight.set(calculatedTop > 0 ? calculatedTop : 0);
+      }
+    };
+    window.addEventListener('resize', handler);
+    return () => {
+      window.removeEventListener('resize', handler);
+    };
+  }, []);
+
   const authorsHashmap = api.chatroom.getChatroom.useQuery(
     {
       chatroomId: chatroomId,
@@ -148,114 +192,127 @@ const ChatWindow = forwardRef<
   ) {
     return <ChatWindowLoading />;
   }
+  // TODO: fix not reliable scroll to top and fetch?
 
   return (
-    // TODO: fix not reliable scroll to top and fetch?
-    <GroupedVirtuoso
-      id="chat-window"
-      key={chatroomId}
-      ref={(ref) => {
-        if (ref) {
-          chatroomState.chatroomWindowRefMap.set(chatroomId, ref);
-        }
-      }}
-      overscan={50}
-      followOutput={(isAtBottom) => {
-        // send message && close to bottom scroll smooth
-        if (chatroomState.sentNewMessage[chatroomId] && isAtBottom) {
-          chatroomState.setSentNewMessage(chatroomId, false);
-          return 'smooth';
-        }
-        // sent new message scroll to bottom auto
-        if (chatroomState.sentNewMessage[chatroomId]) {
-          chatroomState.setSentNewMessage(chatroomId, false);
-          return 'auto';
-        }
-        // TODO: receive new message && at bottom then scroll to bottom
-        if (isAtBottom && chatroomState.receivedNewMessage[chatroomId]) {
-          chatroomState.setReceivedNewMessage(chatroomId, false);
-          return 'smooth';
-        }
+    <div className="h-full w-full" ref={virtualListWrapperRef}>
+      <GroupedVirtuoso
+        totalListHeightChanged={(height) => {
+          listHeight.current = height;
+          if (virtualListWrapperRef.current) {
+            const calculatedTop =
+              virtualListWrapperRef.current.getBoundingClientRect().height -
+              height;
+            topHeight.set(calculatedTop > 0 ? calculatedTop : 0);
+          }
+        }}
+        id="chat-window"
+        key={chatroomId}
+        ref={(ref) => {
+          if (ref) {
+            chatroomState.chatroomWindowRefMap.set(chatroomId, ref);
+          }
+        }}
+        overscan={50}
+        followOutput={(isAtBottom) => {
+          // send message && close to bottom scroll smooth
+          if (chatroomState.sentNewMessage[chatroomId] && isAtBottom) {
+            chatroomState.setSentNewMessage(chatroomId, false);
+            return 'smooth';
+          }
+          // sent new message scroll to bottom auto
+          if (chatroomState.sentNewMessage[chatroomId]) {
+            chatroomState.setSentNewMessage(chatroomId, false);
+            return 'auto';
+          }
+          // TODO: receive new message && at bottom then scroll to bottom
+          if (isAtBottom && chatroomState.receivedNewMessage[chatroomId]) {
+            chatroomState.setReceivedNewMessage(chatroomId, false);
+            return 'smooth';
+          }
 
-        return false;
-      }}
-      firstItemIndex={firstItemIndex}
-      initialTopMostItemIndex={
-        messagesCountQuery.data?.messages_count > 0
-          ? messagesCountQuery.data?.messages_count - 1
-          : 0
-      }
-      initialScrollTop={
-        messagesCountQuery.data?.messages_count > 0
-          ? messagesCountQuery.data?.messages_count - 1
-          : 0
-      }
-      groupCounts={groupedMessagesCount}
-      context={{
-        groupedMessagesKeys,
-        filteredChatroomUsers,
-        hasNextPage: messagesQuery.hasNextPage,
-      }}
-      startReached={() => {
-        if (messagesQuery.hasNextPage) {
-          messagesQuery.fetchNextPage();
-          setFirstItemIndex((prevState) => prevState - 20);
+          return false;
+        }}
+        firstItemIndex={firstItemIndex}
+        initialTopMostItemIndex={
+          messagesCountQuery.data?.messages_count > 0
+            ? messagesCountQuery.data?.messages_count - 1
+            : 0
         }
-      }}
-      // cannot pass data prop to grouped virtual list lib bug! https://github.com/petyosi/react-virtuoso/issues/608
-      components={{
-        Header: ChatHeader,
-      }}
-      style={{ height: '100%', position: 'relative', flex: '1 1 0' }}
-      groupContent={(index, context) => {
-        return (
-          <div className="relative flex w-full justify-center bg-transparent ">
-            <div
-              className={cn(
-                'left-[50%] z-50 my-2 w-max self-center rounded-full border border-slate-300 bg-white px-4 text-slate-700'
-              )}
-            >
-              <p className="text-body">
-                {dayjs(context.groupedMessagesKeys[index]).format(
-                  'dddd, MMMM Do'
-                )}
-              </p>
-            </div>
-          </div>
-        );
-      }}
-      itemContent={(_index, _groupIndex) => {
-        const originalIndex = _index - firstItemIndex;
-        const accumulatedIndex = groupedMessagesCount?.reduce(
-          (prevVal, nextVal, index) => {
-            if (index <= _groupIndex) {
-              return (prevVal += nextVal);
-            }
-            return prevVal;
-          },
-          0
-        );
-        const isStartOfGroup = accumulatedIndex - 1 === originalIndex;
-        const isStartOfList = originalIndex === 0;
-        const message = messages?.[_index - firstItemIndex];
-        if (!message) {
-          return <div>UNSUPPORTED MESSAGE</div>;
+        initialScrollTop={
+          messagesCountQuery.data?.messages_count > 0
+            ? messagesCountQuery.data?.messages_count - 1
+            : 0
         }
-        const isEndOfList = originalIndex === messages.length - 1;
-        if (message) {
+        groupCounts={groupedMessagesCount}
+        context={{
+          topHeight,
+          groupedMessagesKeys,
+          filteredChatroomUsers,
+          hasNextPage: messagesQuery.hasNextPage,
+        }}
+        startReached={() => {
+          if (messagesQuery.hasNextPage) {
+            messagesQuery.fetchNextPage();
+            setFirstItemIndex((prevState) => prevState - 20);
+          }
+        }}
+        // cannot pass data prop to grouped virtual list lib bug! https://github.com/petyosi/react-virtuoso/issues/608
+        components={{
+          Header: ChatHeader,
+          Scroller: ChatScroller,
+        }}
+        style={{ height: '100%', position: 'relative', flex: '1 1 0' }}
+        groupContent={(index, context) => {
           return (
-            <ChatWindowItem
-              isEndOfList={isEndOfList}
-              isStartOfList={isStartOfList}
-              isStartOfGroup={isStartOfGroup}
-              authorsHashmap={authorsHashmap}
-              message={message}
-              user={user}
-            />
+            <div className="relative flex w-full justify-center bg-transparent ">
+              <div
+                className={cn(
+                  'left-[50%] z-50 my-2 w-max self-center rounded-full border border-slate-300 bg-white px-4 text-slate-700'
+                )}
+              >
+                <p className="text-body">
+                  {dayjs(context.groupedMessagesKeys[index]).format(
+                    'dddd, MMMM Do'
+                  )}
+                </p>
+              </div>
+            </div>
           );
-        }
-      }}
-    />
+        }}
+        itemContent={(_index, _groupIndex) => {
+          const originalIndex = _index - firstItemIndex;
+          const accumulatedIndex = groupedMessagesCount?.reduce(
+            (prevVal, nextVal, index) => {
+              if (index <= _groupIndex) {
+                return (prevVal += nextVal);
+              }
+              return prevVal;
+            },
+            0
+          );
+          const isStartOfGroup = accumulatedIndex - 1 === originalIndex;
+          const isStartOfList = originalIndex === 0;
+          const message = messages?.[_index - firstItemIndex];
+          if (!message) {
+            return <div>UNSUPPORTED MESSAGE</div>;
+          }
+          const isEndOfList = originalIndex === messages.length - 1;
+          if (message) {
+            return (
+              <ChatWindowItem
+                isEndOfList={isEndOfList}
+                isStartOfList={isStartOfList}
+                isStartOfGroup={isStartOfGroup}
+                authorsHashmap={authorsHashmap}
+                message={message}
+                user={user}
+              />
+            );
+          }
+        }}
+      />
+    </div>
   );
 });
 
