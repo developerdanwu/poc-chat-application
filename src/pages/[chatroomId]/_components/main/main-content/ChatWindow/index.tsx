@@ -1,4 +1,4 @@
-import React, { forwardRef, Fragment, useEffect, useState } from 'react';
+import React, { forwardRef, useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import dayjs from 'dayjs';
 import { cn, useApiTransformUtils } from '@/lib/utils';
@@ -9,11 +9,7 @@ import {
   useChatroomMessages,
   useMessageUpdate,
 } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/hooks';
-import {
-  GroupedVirtuoso,
-  type GroupedVirtuosoHandle,
-  type TopItemListProps,
-} from 'react-virtuoso';
+import { GroupedVirtuoso, type GroupedVirtuosoHandle } from 'react-virtuoso';
 import StartOfDirectMessage from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/StartOfDirectMessage';
 import {
   ChatReplyItem,
@@ -165,7 +161,6 @@ const ChatWindow = forwardRef<
       }}
       overscan={50}
       followOutput={(isAtBottom) => {
-        // TODO: virtualisation is a bit bugged lol sometimes works sometimes no
         // send message && close to bottom scroll smooth
         if (chatroomState.sentNewMessage[chatroomId] && isAtBottom) {
           chatroomState.setSentNewMessage(chatroomId, false);
@@ -337,16 +332,5 @@ const ChatWindowItem = React.memo(
 );
 
 ChatWindowItem.displayName = 'ChatWindowItem';
-
-const GroupHeaderContainer = ({ children, ...rest }: TopItemListProps) => {
-  return (
-    <>
-      <div className="absolute top-1/2 left-1/2 h-[1px] w-full -translate-y-1/2 -translate-x-1/2 bg-black"></div>
-      <div {...rest} style={{ position: 'sticky', top: 0, zIndex: 1 }}>
-        {children}
-      </div>
-    </>
-  );
-};
 
 export default ChatWindow;
