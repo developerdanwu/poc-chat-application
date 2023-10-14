@@ -177,7 +177,6 @@ const ChatWindow = forwardRef<
           return 'auto';
         }
         // TODO: receive new message && at bottom then scroll to bottom
-        console.log('INNER STATE', chatroomState.receivedNewMessage);
         if (isAtBottom && chatroomState.receivedNewMessage[chatroomId]) {
           chatroomState.setReceivedNewMessage(chatroomId, false);
           return 'smooth';
@@ -186,8 +185,16 @@ const ChatWindow = forwardRef<
         return false;
       }}
       firstItemIndex={firstItemIndex}
-      initialTopMostItemIndex={messagesCountQuery.data?.messages_count - 1}
-      initialScrollTop={messagesCountQuery.data?.messages_count - 1}
+      initialTopMostItemIndex={
+        messagesCountQuery.data?.messages_count > 0
+          ? messagesCountQuery.data?.messages_count - 1
+          : 0
+      }
+      initialScrollTop={
+        messagesCountQuery.data?.messages_count > 0
+          ? messagesCountQuery.data?.messages_count - 1
+          : 0
+      }
       groupCounts={groupedMessagesCount}
       context={{
         groupedMessagesKeys,

@@ -21,7 +21,6 @@ const getAuthorsTypingTranslation = (
   >
 ) => {
   const UNKNOWN_AUTHOR = 'Unknown';
-  console.log('HASHMAP', authorsHashmap, typingAuthors);
   if (typingAuthors.length === 0) {
     return '';
   }
