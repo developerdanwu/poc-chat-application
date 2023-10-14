@@ -119,6 +119,7 @@ const ChatWindow = forwardRef<
   } = useChatroomMessages({ chatroomId });
   // TODO fix this first item index so it calculates more reliably
   const [firstItemIndex, setFirstItemIndex] = useState(10000000);
+  const isScrolling = useRef<boolean>(false);
   const { filterAuthedUserFromChatroomAuthors } = useApiTransformUtils();
   const virtualListWrapperRef = useRef<HTMLDivElement>(null);
   const listHeight = useRef<number>(0);
@@ -197,6 +198,9 @@ const ChatWindow = forwardRef<
   return (
     <div className="h-0 w-full flex-[1_1_0px]" ref={virtualListWrapperRef}>
       <GroupedVirtuoso
+        isScrolling={(value) => {
+          isScrolling.current = value;
+        }}
         totalListHeightChanged={(height) => {
           listHeight.current = height;
           if (virtualListWrapperRef.current) {
@@ -218,16 +222,25 @@ const ChatWindow = forwardRef<
           // send message && close to bottom scroll smooth
           if (chatroomState.sentNewMessage[chatroomId] && isAtBottom) {
             chatroomState.setSentNewMessage(chatroomId, false);
+            if (isScrolling.current) {
+              return false;
+            }
             return 'smooth';
           }
           // sent new message scroll to bottom auto
           if (chatroomState.sentNewMessage[chatroomId]) {
             chatroomState.setSentNewMessage(chatroomId, false);
+            if (isScrolling.current) {
+              return false;
+            }
             return 'auto';
           }
           // TODO: receive new message && at bottom then scroll to bottom
           if (isAtBottom && chatroomState.receivedNewMessage[chatroomId]) {
             chatroomState.setReceivedNewMessage(chatroomId, false);
+            if (isScrolling.current) {
+              return false;
+            }
             return 'smooth';
           }
 
