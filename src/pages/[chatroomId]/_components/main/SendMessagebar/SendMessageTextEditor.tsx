@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
-import { Controller, useFormContext } from 'react-hook-form';
+import { Controller, useFormContext, useFormState } from 'react-hook-form';
 import BaseRichTextEditor from '@/components/modules/rich-text/BaseRichTextEditor';
-import EditorMenuBar from '@/components/modules/rich-text/EditorMenuBar';
-import EditorFooterMenu from '@/components/modules/rich-text/EditorFooterMenu';
-import { safeJSONParse } from '@/lib/utils';
+import {
+  HoveringEmojiPicker,
+  HoveringPeekMessage,
+} from '@/components/modules/rich-text/EditorFooterMenu';
+import { safeJSONParse, useApiTransformUtils } from '@/lib/utils';
 import {
   resetEditor,
   slateJSONToPlainText,
+  toggleMark,
 } from '@/components/modules/rich-text/utils';
 import isHotkey from 'is-hotkey';
 import {
@@ -15,6 +18,17 @@ import {
 } from '../../../../../../liveblocks.config';
 import { api } from '@/lib/api';
 import { useAblyStore } from '@/lib/ably';
+import { IconButton } from '@/components/elements/IconButton';
+import { MdSend } from 'react-icons/md';
+import EditorMenuBar from '@/components/modules/rich-text/EditorMenuBar';
+import { useSendMessagebar } from '@/pages/[chatroomId]/_components/main/SendMessagebar/SendMessagebarProvider';
+
+const MARKS_HOTKEYS = {
+  'mod+b': 'bold',
+  'mod+i': 'italic',
+  'mod+u': 'underline',
+  'mod+`': 'code',
+} as const;
 
 const SendMessageTextEditor = ({
   chatroomId,
@@ -26,6 +40,20 @@ const SendMessageTextEditor = ({
   const broadcast = useBroadcastEvent();
   const [timer, setTimer] = useState<number | undefined>(undefined);
   const chatForm = useFormContext();
+  const { isValid } = useFormState({
+    control: chatForm.control,
+  });
+  const chatroomDetail = api.chatroom.getChatroom.useQuery({
+    chatroomId,
+  });
+  const { filterAuthedUserFromChatroomAuthors } = useApiTransformUtils();
+  const filteredAuthors = filterAuthedUserFromChatroomAuthors(
+    chatroomDetail.data?.authors || []
+  );
+  const sendMessagebar = useSendMessagebar((state) => ({
+    setPeekMessageOpen: state.setPeekMessageOpen,
+    peekMessageOpen: state.peekMessageOpen,
+  }));
   const ownAuthor = api.chatroom.getOwnAuthor.useQuery();
   const ablyStore = useAblyStore((state) => ({
     addTypingToQueue: state.addTypingToQueue,
@@ -34,6 +62,7 @@ const SendMessageTextEditor = ({
     setChatroomEditorContent: state.setChatroomEditorContent,
     chatroomContent: state.chatroomEditorContent,
   }));
+
   useEventListener(({ event }) => {
     switch (event.type) {
       case 'typing_message': {
@@ -69,7 +98,22 @@ const SendMessageTextEditor = ({
             <div className="flex h-auto  min-h-fit w-full flex-col space-y-2 rounded-md border border-slate-300 p-3">
               <BaseRichTextEditor
                 header={<EditorMenuBar />}
-                footer={<EditorFooterMenu />}
+                footer={
+                  <>
+                    <div className="flex h-5 w-full items-center justify-between">
+                      <HoveringPeekMessage authors={filteredAuthors} />
+                      <HoveringEmojiPicker />
+                      <IconButton
+                        disabled={!isValid}
+                        size="sm"
+                        type="button"
+                        variant="default"
+                      >
+                        <MdSend size="16px" />
+                      </IconButton>
+                    </div>
+                  </>
+                }
                 slotProps={{
                   root: {
                     initialValue: safeJSONParse(value) || [
@@ -119,6 +163,24 @@ const SendMessageTextEditor = ({
                             cancelable: true,
                             bubbles: true,
                           })
+                        );
+                      }
+
+                      // marks
+                      for (const hotkey in MARKS_HOTKEYS) {
+                        if (isHotkey(hotkey, event as any)) {
+                          event.preventDefault();
+                          const mark =
+                            MARKS_HOTKEYS[hotkey as keyof typeof MARKS_HOTKEYS];
+                          toggleMark(editor, mark);
+                        }
+                      }
+
+                      // peek message
+                      if (isHotkey('mod+alt+e', event as any)) {
+                        event.preventDefault();
+                        sendMessagebar.setPeekMessageOpen(
+                          !sendMessagebar.peekMessageOpen
                         );
                       }
                     },

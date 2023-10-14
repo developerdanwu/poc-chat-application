@@ -1,62 +1,108 @@
-import React, { useLayoutEffect, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useRef } from 'react';
 import { isBlockActive } from '@/components/modules/rich-text/utils';
 import { IconButton } from '@/components/elements/IconButton';
 import { ReactEditor, useFocused, useSlate } from 'slate-react';
 import { LucideAnnoyed } from 'lucide-react';
 import * as Dialog from '@radix-ui/react-dialog';
 import EmojiPicker from 'emoji-picker-react';
-import * as Popover from '@radix-ui/react-popover';
 import { Transforms } from 'slate';
-import { MdSend } from 'react-icons/md';
-import { useFormContext, useFormState } from 'react-hook-form';
+import * as Popover from '@radix-ui/react-popover';
+import { type RouterOutput } from '@/server/api/root';
+import {
+  Popover as PopoverRoot,
+  PopoverContent,
+} from '@/components/elements/popover';
+import BaseRichTextEditor from '@/components/modules/rich-text/BaseRichTextEditor';
+import { useSendMessagebar } from '@/pages/[chatroomId]/_components/main/SendMessagebar/SendMessagebarProvider';
 
-const EditorFooterMenu = () => {
+export const HoveringPeekMessage = ({
+  authors,
+}: {
+  authors: RouterOutput['chatroom']['getChatroom']['authors'];
+}) => {
+  const inFocus = useFocused();
+  const ref = useRef<HTMLDivElement | null>(null);
   const editor = useSlate();
-  const isCodeBlockActive = isBlockActive(editor, 'codeBlock');
-  const [show, setShow] = React.useState(false);
-  const form = useFormContext();
-  const { isValid } = useFormState({
-    control: form.control,
+  const [open, setOpen] = React.useState(false);
+  const sendMessagebar = useSendMessagebar((state) => ({
+    setPeekMessageOpen: state.setPeekMessageOpen,
+    peekMessageOpen: state.peekMessageOpen,
+  }));
+  useEffect(() => {
+    const el = ref.current;
+    const { selection } = editor;
+
+    if (!el) {
+      return;
+    }
+
+    if (!selection || !inFocus || !sendMessagebar.peekMessageOpen) {
+      el.removeAttribute('style');
+      return;
+    }
+
+    const domSelection = window.getSelection();
+    const domRange = domSelection.getRangeAt(0);
+    const rect = domRange.getBoundingClientRect();
+    el.style.opacity = '1';
+    el.style.top = `${rect.top + window.pageYOffset - el.offsetHeight - 8}px`;
+    el.style.left = `${
+      rect.left + window.pageXOffset - el.offsetWidth / 2 + rect.width / 2
+    }px`;
   });
+
   return (
-    <div>
-      <HoveringEmojiPicker setShow={setShow} open={show} />
-      <div className="flex h-5 w-full items-center justify-between">
-        <IconButton
-          type="button"
-          size="sm"
-          variant="ghost"
-          disabled={isCodeBlockActive}
-          onClick={() => {
-            ReactEditor.focus(editor);
-            setShow(true);
+    <>
+      <PopoverRoot open={true}>
+        <PopoverContent
+          onFocus={(e) => {
+            e.preventDefault();
           }}
+          className="absolute opacity-0"
+          align="start"
+          ref={ref}
         >
-          <LucideAnnoyed size="16px" />
-        </IconButton>
-        <IconButton
-          disabled={!isValid}
-          size="sm"
-          type="button"
-          variant="default"
-        >
-          <MdSend size="16px" />
-        </IconButton>
-      </div>
-    </div>
+          <div>
+            <div className="text-xl text-black">PENISSSS</div>
+            {authors.map((author) => {
+              return (
+                <BaseRichTextEditor
+                  key={author.author_id}
+                  slotProps={{
+                    root: {
+                      initialValue: [
+                        {
+                          type: 'paragraph',
+                          children: [{ text: '' }],
+                        },
+                      ],
+                    },
+                    editable: {
+                      readOnly: true,
+                    },
+                  }}
+                />
+              );
+            })}
+          </div>
+        </PopoverContent>
+      </PopoverRoot>
+      {/*<PopoverRoot open={true}>*/}
+      {/*  <PopoverTrigger />*/}
+      {/*  <PopoverContent align="start">*/}
+      {/*    */}
+      {/*  </PopoverContent>*/}
+      {/*</PopoverRoot>*/}
+    </>
   );
 };
 
-const HoveringEmojiPicker = ({
-  open,
-  setShow,
-}: {
-  open: boolean;
-  setShow: React.Dispatch<React.SetStateAction<boolean>>;
-}) => {
+export const HoveringEmojiPicker = () => {
   const ref = useRef<HTMLDivElement | null>(null);
   const editor = useSlate();
   const inFocus = useFocused();
+  const isCodeBlockActive = isBlockActive(editor, 'codeBlock');
+  const [open, setOpen] = React.useState(false);
 
   useLayoutEffect(() => {
     const el = ref.current;
@@ -85,35 +131,47 @@ const HoveringEmojiPicker = ({
   }, [inFocus]);
 
   return (
-    <Dialog.Root
-      open={open}
-      onOpenChange={(open) => {
-        setShow(open);
-      }}
-    >
-      <Dialog.Overlay className="DialogOverlay" />
-      <Dialog.Portal>
-        <Dialog.Content className="emoji-picker absolute top-0" ref={ref}>
-          <Popover.Root open={true}>
-            <Popover.Trigger />
-            <Popover.Content>
-              <div>
-                <EmojiPicker
-                  onEmojiClick={(emoji, event) => {
-                    ReactEditor.focus(editor);
-                    Transforms.insertText(editor, emoji.emoji, {
-                      at: editor.selection,
-                    });
-                    setShow(false);
-                  }}
-                />
-              </div>
-            </Popover.Content>
-          </Popover.Root>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+    <>
+      <IconButton
+        type="button"
+        size="sm"
+        variant="ghost"
+        disabled={isCodeBlockActive}
+        onClick={() => {
+          ReactEditor.focus(editor);
+          setOpen(true);
+        }}
+      >
+        <LucideAnnoyed size="16px" />
+      </IconButton>
+      <Dialog.Root
+        open={open}
+        onOpenChange={(open) => {
+          setOpen(open);
+        }}
+      >
+        <Dialog.Overlay className="DialogOverlay" />
+        <Dialog.Portal>
+          <Dialog.Content className="emoji-picker absolute top-0" ref={ref}>
+            <Popover.Root open={true}>
+              <Popover.Trigger />
+              <Popover.Content>
+                <div>
+                  <EmojiPicker
+                    onEmojiClick={(emoji) => {
+                      ReactEditor.focus(editor);
+                      Transforms.insertText(editor, emoji.emoji, {
+                        at: editor.selection,
+                      });
+                      setOpen(false);
+                    }}
+                  />
+                </div>
+              </Popover.Content>
+            </Popover.Root>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+    </>
   );
 };
-
-export default EditorFooterMenu;

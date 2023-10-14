@@ -6,6 +6,7 @@ import SendMessagebar from '@/pages/[chatroomId]/_components/main/SendMessagebar
 import { ChatNameBar } from '@/pages/[chatroomId]/_components/main/top-controls/actions';
 import MainChatLayout from '@/pages/[chatroomId]/_components/MainChatLayout';
 import { RoomProvider } from '../../../liveblocks.config';
+import SendMessagebarProvider from '@/pages/[chatroomId]/_components/main/SendMessagebar/SendMessagebarProvider';
 
 const ChatroomId: NextPageWithLayout = () => {
   const router = useRouter();
@@ -23,7 +24,9 @@ const ChatroomId: NextPageWithLayout = () => {
       <div className="flex h-full w-full flex-col">
         <ChatNameBar chatroomId={chatroomId} />
         <ChatWindow chatroomId={chatroomId} />
-        <SendMessagebar chatroomId={chatroomId} />
+        <SendMessagebarProvider>
+          <SendMessagebar chatroomId={chatroomId} />
+        </SendMessagebarProvider>
       </div>
     </RoomProvider>
   );

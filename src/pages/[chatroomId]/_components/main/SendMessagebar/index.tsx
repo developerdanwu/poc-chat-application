@@ -166,17 +166,6 @@ const SendMessagebar = ({ chatroomId }: { chatroomId: string }) => {
               authorsHashmap
             )}
           </p>
-
-          {/*<Popover>*/}
-          {/*  <PopoverTrigger className="w-min">*/}
-          {/*    <p className="w-max self-start text-left">Dan is typing...</p>*/}
-          {/*  </PopoverTrigger>*/}
-          {/*  <PopoverContent align="start">*/}
-          {/*    {filteredChatroomUsers?.map((author) => {*/}
-          {/*      return <PeekMessage key={author.author_id} />;*/}
-          {/*    })}*/}
-          {/*  </PopoverContent>*/}
-          {/*</Popover>*/}
         </div>
       </form>
     </FormProvider>

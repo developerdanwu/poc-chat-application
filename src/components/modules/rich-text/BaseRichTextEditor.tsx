@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Editable, Slate, useSlate, withReact } from 'slate-react';
-import isHotkey from 'is-hotkey';
 import SlateElement from './Element';
 import {
   createEditor,
@@ -11,7 +10,7 @@ import {
   type NodeEntry,
 } from 'slate';
 import { withHistory } from 'slate-history';
-import { toChildren, toggleMark } from '@/components/modules/rich-text/utils';
+import { toChildren } from '@/components/modules/rich-text/utils';
 import Leaf from '@/components/modules/rich-text/Leaf';
 import {
   SetNodeToDecorations,
@@ -30,12 +29,6 @@ const useDecorate = (editor: Editor) => {
   };
 };
 
-const HOTKEYS = {
-  'mod+b': 'bold',
-  'mod+i': 'italic',
-  'mod+u': 'underline',
-  'mod+`': 'code',
-} as const;
 const initialValue: Element[] = [
   {
     type: 'paragraph',
@@ -119,13 +112,6 @@ export const RichTextEditable = ({
       className="min-h-fit w-full overflow-auto focus:outline-0"
       onKeyDown={(event) => {
         onKeyDown?.(event, editor);
-        for (const hotkey in HOTKEYS) {
-          if (isHotkey(hotkey, event as any)) {
-            event.preventDefault();
-            const mark = HOTKEYS[hotkey as keyof typeof HOTKEYS];
-            toggleMark(editor, mark);
-          }
-        }
       }}
     />
   );
