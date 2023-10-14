@@ -154,9 +154,12 @@ const SendMessageTextEditor = ({
                     onKeyDown: (event, editor) => {
                       if (isHotkey('enter', event as any)) {
                         // TODO: check if form valid before reset
-                        resetEditor(editor, {
-                          insertEmptyNode: true,
-                        });
+                        if (isValid) {
+                          resetEditor(editor, {
+                            insertEmptyNode: true,
+                          });
+                        }
+
                         event.preventDefault();
                         chatFormRef.current?.dispatchEvent(
                           new Event('submit', {

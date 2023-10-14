@@ -102,7 +102,7 @@ const NewMessage: NextPageWithLayout = () => {
             chatroomId={guessChatroomFromAuthors.data.id}
           />
         ) : (
-          <div className="flex w-full flex-[1_0_0] flex-col">
+          <div className="flex w-full flex-[1_1_0px] flex-col">
             <div className="flex-[1_1_0]" />
             <ScrollArea
               slotProps={{
@@ -120,7 +120,7 @@ const NewMessage: NextPageWithLayout = () => {
         <form
           ref={chatFormRef}
           id="message-text-input-form"
-          className="h-auto min-h-fit w-full overflow-hidden"
+          className="h-auto min-h-fit flex-shrink-0 overflow-hidden"
           onSubmit={newMessageForm.handleSubmit((data) => {
             startNewChat.mutate({
               message_checksum: uuid(),
@@ -130,12 +130,12 @@ const NewMessage: NextPageWithLayout = () => {
             });
           })}
         >
-          <div className="flex h-full min-h-fit px-6 pb-4">
+          <div className="flex h-full px-6">
             <Controller
               control={newMessageForm.control}
               render={({ field: { value, onChange } }) => {
                 return (
-                  <div className="flex h-auto  min-h-fit w-full flex-col space-y-2 rounded-md border border-slate-300 p-3">
+                  <div className="flex h-auto min-h-fit w-full flex-col space-y-2 rounded-md border border-slate-300 p-3">
                     <BaseRichTextEditor
                       header={<EditorMenuBar />}
                       slotProps={{

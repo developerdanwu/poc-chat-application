@@ -52,7 +52,7 @@ export const HoveringPeekMessage = ({
 
   return (
     <>
-      <PopoverRoot open={true}>
+      <PopoverRoot open={false}>
         <PopoverContent
           onFocus={(e) => {
             e.preventDefault();
@@ -62,7 +62,6 @@ export const HoveringPeekMessage = ({
           ref={ref}
         >
           <div>
-            <div className="text-xl text-black">PENISSSS</div>
             {authors.map((author) => {
               return (
                 <BaseRichTextEditor
