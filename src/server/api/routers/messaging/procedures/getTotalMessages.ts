@@ -20,7 +20,9 @@ const getMessagesCount = protectedProcedure
           .as('message');
       })
       .select((eb) => [
-        cast(eb.fn.count('client_message_id'), 'int4').as('messages_count'),
+        cast(eb.fn.count('client_message_id').distinct(), 'int4').as(
+          'messages_count'
+        ),
       ])
       .executeTakeFirstOrThrow();
 

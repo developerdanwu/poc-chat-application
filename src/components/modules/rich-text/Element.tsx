@@ -27,7 +27,11 @@ const Element = ({ attributes, children, element }: RenderElementProps) => {
 
   const Tag = editor.isInline(element) ? 'span' : 'div';
 
-  return <Tag {...attributes}>{children}</Tag>;
+  return (
+    <Tag {...attributes} className="text-sm">
+      {children}
+    </Tag>
+  );
 };
 
 export default Element;

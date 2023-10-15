@@ -95,7 +95,7 @@ const SendMessageTextEditor = ({
   });
 
   return (
-    <div className="flex h-full min-h-fit">
+    <div className="z-50 flex h-full min-h-fit">
       <Controller
         control={chatForm.control}
         render={({ field: { value, onChange } }) => {
