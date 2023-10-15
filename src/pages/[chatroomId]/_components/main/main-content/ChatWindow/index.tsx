@@ -73,6 +73,7 @@ const ChatHeader = ({
 }: {
   context?: ChatWindowVirtualListContext;
 }) => {
+  console.log('HEADERRR', context?.filteredChatroomUsers, context?.hasNextPage);
   if (!context?.filteredChatroomUsers || context?.hasNextPage) {
     return (
       <div className="flex justify-center py-2">
@@ -135,6 +136,7 @@ const ChatWindow = function <T>({
   const isScrolling = useRef<boolean>(false);
   const { filterAuthedUserFromChatroomAuthors } = useApiTransformUtils();
   const virtualListWrapperRef = useRef<HTMLDivElement>(null);
+  const virtualListRef = useRef<GroupedVirtuosoHandle>(null);
   const listHeight = useRef<number>(0);
   const chatroomState = useChatroomState((state) => ({
     chatroomWindowRefMap: state.chatroomWindowRefMap,
@@ -144,13 +146,7 @@ const ChatWindow = function <T>({
     setReceivedNewMessage: state.setReceivedNewMessage,
   }));
   const user = useUser();
-  const topHeight = useMotionValue(0);
-
-  useEffect(() => {
-    return () => {
-      chatroomState.chatroomWindowRefMap.delete(chatroomId!);
-    };
-  }, [chatroomId, chatroomState.chatroomWindowRefMap]);
+  const topHeight = useMotionValue(-1000);
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
@@ -213,6 +209,12 @@ const ChatWindow = function <T>({
     return 0;
   };
 
+  useEffect(() => {
+    if (virtualListRef.current && chatroomId) {
+      virtualListRef.current?.autoscrollToBottom();
+    }
+  }, [chatroomId]);
+
   // TODO: fix not reliable scroll to top and fetch?
   return (
     <div className="h-0 w-full flex-[1_1_0px]" ref={virtualListWrapperRef}>
@@ -230,11 +232,7 @@ const ChatWindow = function <T>({
           }
         }}
         id="chat-window"
-        ref={(ref) => {
-          if (ref && chatroomId) {
-            chatroomState.chatroomWindowRefMap.set(chatroomId, ref);
-          }
-        }}
+        ref={virtualListRef}
         overscan={50}
         followOutput={(isAtBottom) => {
           // send message && close to bottom scroll smooth
@@ -278,8 +276,9 @@ const ChatWindow = function <T>({
           hasNextPage: messagesQuery.hasNextPage,
           ...slotProps?.Virtuoso?.context,
         }}
-        startReached={() => {
-          if (messagesQuery.hasNextPage) {
+        atTopThreshold={50}
+        atTopStateChange={(atTop) => {
+          if (messagesQuery.hasNextPage && atTop) {
             messagesQuery.fetchNextPage();
             setFirstItemIndex((prevState) => prevState - 20);
           }

@@ -25,7 +25,10 @@ const Leaf = ({ attributes, children, leaf }: RenderLeafProps) => {
   }
 
   return (
-    <span {...attributes} className={cn(Object.keys(rest).join(' '))}>
+    <span
+      {...attributes}
+      className={cn(Object.keys(rest).join(' '), 'text-sm')}
+    >
       {children}
     </span>
   );
