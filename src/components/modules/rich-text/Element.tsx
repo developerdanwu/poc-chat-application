@@ -1,14 +1,18 @@
 import React from 'react';
 import { type RenderElementProps, useSlate } from 'slate-react';
+import { cn } from '@/lib/utils';
 
 const Element = ({ attributes, children, element }: RenderElementProps) => {
   const editor = useSlate();
-
+  const defaultClasses = 'text-small';
   if (element.type === 'codeBlock') {
     return (
       <div
         {...attributes}
-        className="rounded-md bg-slate-900 p-3 font-mono text-sm text-white"
+        className={cn(
+          defaultClasses,
+          'rounded-md bg-slate-900 p-3 font-mono text-white'
+        )}
         style={{ position: 'relative' }}
         spellCheck={false}
       >
@@ -19,7 +23,10 @@ const Element = ({ attributes, children, element }: RenderElementProps) => {
 
   if (element.type === 'codeLine') {
     return (
-      <div {...attributes} style={{ position: 'relative' }}>
+      <div
+        {...attributes}
+        className={cn(defaultClasses, 'relative text-white')}
+      >
         {children}
       </div>
     );
@@ -28,7 +35,7 @@ const Element = ({ attributes, children, element }: RenderElementProps) => {
   const Tag = editor.isInline(element) ? 'span' : 'div';
 
   return (
-    <Tag {...attributes} className="text-sm">
+    <Tag {...attributes} className={defaultClasses}>
       {children}
     </Tag>
   );

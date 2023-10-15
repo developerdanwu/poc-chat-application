@@ -1,5 +1,6 @@
 import { type RenderLeafProps } from 'slate-react';
 import React from 'react';
+import { cn } from '@/lib/utils';
 
 const Leaf = ({ attributes, children, leaf }: RenderLeafProps) => {
   const { text, bold, code, italic, underline, ...rest } = leaf;
@@ -24,7 +25,7 @@ const Leaf = ({ attributes, children, leaf }: RenderLeafProps) => {
   }
 
   return (
-    <span {...attributes} className={Object.keys(rest).join(' ')}>
+    <span {...attributes} className={cn(Object.keys(rest).join(' '))}>
       {children}
     </span>
   );
