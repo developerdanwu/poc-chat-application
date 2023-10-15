@@ -9,6 +9,7 @@ import { safeJSONParse, useApiTransformUtils } from '@/lib/utils';
 import {
   resetEditor,
   slateJSONToPlainText,
+  toggleBlock,
   toggleMark,
 } from '@/components/modules/rich-text/utils';
 import isHotkey from 'is-hotkey';
@@ -28,6 +29,10 @@ const MARKS_HOTKEYS = {
   'mod+i': 'italic',
   'mod+u': 'underline',
   'mod+`': 'code',
+} as const;
+
+const BLOCKS_HOTKEYS = {
+  'mod+alt+shift+e': 'codeBlock',
 } as const;
 
 const SendMessageTextEditor = ({
@@ -175,6 +180,18 @@ const SendMessageTextEditor = ({
                           const mark =
                             MARKS_HOTKEYS[hotkey as keyof typeof MARKS_HOTKEYS];
                           toggleMark(editor, mark);
+                        }
+                      }
+
+                      // blocks
+                      for (const hotkey in BLOCKS_HOTKEYS) {
+                        if (isHotkey(hotkey, event as any)) {
+                          event.preventDefault();
+                          const block =
+                            BLOCKS_HOTKEYS[
+                              hotkey as keyof typeof BLOCKS_HOTKEYS
+                            ];
+                          toggleBlock(editor, block);
                         }
                       }
 
