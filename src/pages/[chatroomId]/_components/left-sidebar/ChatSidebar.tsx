@@ -68,7 +68,7 @@ const ChatSidebar = () => {
             <div className="text-body text-slate-400">Direct messages</div>
           </div>
           <CollapsibleContent className="px-3">
-            {chatrooms.data?.map((chatroom) => {
+            {chatrooms.data?.chatrooms.map((chatroom) => {
               const filteredAuthors = filterAuthedUserFromChatroomAuthors(
                 chatroom.authors
               );

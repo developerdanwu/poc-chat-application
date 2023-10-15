@@ -28,7 +28,7 @@ const MARKS_HOTKEYS = {
   'mod+b': 'bold',
   'mod+i': 'italic',
   'mod+u': 'underline',
-  'mod+`': 'code',
+  'mod+alt+shift+x': 'code',
 } as const;
 
 const BLOCKS_HOTKEYS = {

@@ -1,12 +1,7 @@
 import { protectedProcedure } from '@/server/api/trpc';
 import { z } from 'zod';
-import { sql } from 'kysely';
 import { TRPCError } from '@trpc/server';
-import {
-  ChatroomStatus,
-  ChatroomType,
-  Role,
-} from '@prisma-generated/generated/types';
+import { jsonArrayFrom } from 'kysely/helpers/postgres';
 
 const getChatrooms = protectedProcedure
   .input(
@@ -19,67 +14,59 @@ const getChatrooms = protectedProcedure
   .query(async ({ ctx, input }) => {
     try {
       const chatrooms = await ctx.db
-        .selectFrom('chatroom')
-        .select([
-          'chatroom.id as id',
-          sql<
-            {
-              author_id: number;
-              first_name: string;
-              last_name: string;
-              user_id: string;
-            }[]
-          >`JSON_AGG(JSON_BUILD_OBJECT('author_id', author.author_id, 'first_name', author.first_name, 'last_name', author.last_name, 'user_id', author.user_id))`.as(
-            'authors'
-          ),
-          'chatroom.created_at as created_at',
-          'chatroom.updated_at as updated_at',
-        ])
-        .innerJoin(
-          ctx.db
-            .selectFrom('_authors_on_chatrooms as ac')
-            .select([sql`DISTINCT ac.chatroom_id`.as('chatroom_id')])
-            .leftJoin('author', 'author.author_id', 'ac.author_id')
-            .where(({ cmpr, or, and }) =>
-              or([
-                and([
-                  cmpr('author.role', '=', Role.USER),
-                  cmpr('author.user_id', '!=', ctx.auth.userId),
-                  cmpr(
-                    'author.first_name',
-                    'like',
-                    `%${input?.searchKeyword ?? ''}%`
-                  ),
-                ]),
-                and([
-                  cmpr('author.role', '=', Role.USER),
-                  cmpr('author.user_id', '!=', ctx.auth.userId),
-                  cmpr(
-                    'author.last_name',
-                    'like',
-                    `%${input?.searchKeyword ?? ''}%`
-                  ),
-                ]),
+        .selectFrom('author')
+        .select((eb) => [
+          'author.author_id',
+          'author.user_id',
+          'author.first_name',
+          'author.last_name',
+          jsonArrayFrom(
+            eb
+              .selectFrom('chatroom')
+              .innerJoin(
+                '_authors_on_chatrooms',
+                '_authors_on_chatrooms.chatroom_id',
+                'chatroom.id'
+              )
+              .select((eb) => [
+                'chatroom.id',
+                'chatroom.status',
+                'chatroom.type',
+                'chatroom.created_at',
+                'chatroom.updated_at',
+                jsonArrayFrom(
+                  eb
+                    .selectFrom('author as au')
+                    .innerJoin(
+                      '_authors_on_chatrooms',
+                      '_authors_on_chatrooms.author_id',
+                      'au.author_id'
+                    )
+                    .select([
+                      'au.first_name',
+                      'au.last_name',
+                      'au.user_id',
+                      'au.author_id',
+                      'au.role',
+                      'au.created_at',
+                      'au.updated_at',
+                    ])
+                    .whereRef(
+                      '_authors_on_chatrooms.chatroom_id',
+                      '=',
+                      'chatroom.id'
+                    )
+                ).as('authors'),
               ])
-            )
-            .as('matched_chatrooms'),
-          'matched_chatrooms.chatroom_id',
-          'chatroom.id'
-        )
-        .innerJoin(
-          '_authors_on_chatrooms as ac',
-          'ac.chatroom_id',
-          'chatroom.id'
-        )
-        .innerJoin('author', 'author.author_id', 'ac.author_id')
-        .where(({ cmpr, and }) =>
-          and([
-            cmpr('chatroom.type', '=', ChatroomType.HUMAN_CHATROOM),
-            cmpr('chatroom.status', '=', ChatroomStatus.ACTIVE),
-          ])
-        )
-        .groupBy(['chatroom.id', 'chatroom.created_at', 'chatroom.updated_at'])
-        .execute();
+              .whereRef(
+                '_authors_on_chatrooms.author_id',
+                '=',
+                'author.author_id'
+              )
+          ).as('chatrooms'),
+        ])
+        .where((eb) => eb('author.user_id', '=', ctx.auth.userId))
+        .executeTakeFirst();
 
       return chatrooms;
     } catch (e) {

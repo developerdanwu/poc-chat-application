@@ -34,6 +34,7 @@ const getMessages = protectedProcedure
             .as('message');
         })
         .select([
+          'status',
           'message_checksum',
           'client_message_id',
           'text',

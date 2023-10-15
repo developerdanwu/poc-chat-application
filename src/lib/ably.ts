@@ -11,7 +11,7 @@ export const MESSAGE_STREAM_NAMES = {
 
 export const ablyChannelKeyStore = {
   chatroom: (chatroomId: string) => `chatroom-${chatroomId}`,
-  online: 'online',
+  global: 'global',
 };
 export const useAblyStore = create<{
   onlinePresence: Record<string, PresenceMessage>;
@@ -110,7 +110,7 @@ export const useSyncOnlinePresence = () => {
 
   // should only use usePresence hook once and sync with global store because each call counts as 1 call to ably === $$$
   const [onlineUsers] = usePresence<any>({
-    channelName: ablyChannelKeyStore.online,
+    channelName: ablyChannelKeyStore.global,
   });
 
   // HACK: sync presence state with global store

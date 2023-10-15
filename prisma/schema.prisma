@@ -75,7 +75,7 @@ model Author {
   email       String?              @unique
   authorId    Int                  @id @default(autoincrement()) @map("author_id")
   role        Role                 @map("role")
-  userId      String?              @unique @map("user_id")
+  userId      String               @unique @map("user_id")
   createdAt   DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt   DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
   humanUserId Int?                 @map("human_user_id")

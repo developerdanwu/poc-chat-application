@@ -1,4 +1,4 @@
-import type { ColumnType, GeneratedAlways } from 'kysely';
+import type { ColumnType } from 'kysely';
 export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
   : ColumnType<T, T | undefined, T>;
@@ -72,7 +72,7 @@ export type Author = {
   email: string | null;
   author_id: Generated<number>;
   role: Role;
-  user_id: string | null;
+  user_id: string;
   created_at: Generated<Timestamp>;
   updated_at: Timestamp;
   human_user_id: number | null;
@@ -120,10 +120,10 @@ export type SlackMessage = {
   updated_at: Timestamp;
 };
 export type DB = {
+  _authors_on_chatrooms: AuthorsOnChatrooms;
   ai_settings: AiSettings;
   attachment: Attachment;
   author: Author;
-  _authors_on_chatrooms: AuthorsOnChatrooms;
   chatroom: Chatroom;
   message: Message;
   open_ai_settings: OpenAiSettings;
