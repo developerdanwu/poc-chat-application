@@ -13,6 +13,7 @@ import { useBroadcastEvent } from '../../../../../../liveblocks.config';
 import SendMessageTextEditor from '@/pages/[chatroomId]/_components/main/SendMessagebar/SendMessageTextEditor';
 import { useAblyStore } from '@/lib/ably';
 import { MessageStatus } from '@prisma-generated/generated/types';
+import { EMPTY_RICH_TEXT } from '@/components/modules/rich-text/constants';
 
 export const getAuthorsTypingTranslation = (
   typingAuthors: number[],
@@ -57,7 +58,6 @@ const SendMessagebar = ({ chatroomId }: { chatroomId: string }) => {
   );
   const trpcUtils = api.useContext();
   const broadcast = useBroadcastEvent();
-
   const authorsHashmap = chatroomDetail.data?.authors.reduce<
     Record<string, RouterOutput['chatroom']['getChatroom']['authors'][number]>
   >((prevVal, author) => {
@@ -82,12 +82,7 @@ const SendMessagebar = ({ chatroomId }: { chatroomId: string }) => {
     ),
     defaultValues: {
       text: '',
-      content: JSON.stringify([
-        {
-          type: 'paragraph',
-          children: [{ text: '' }],
-        },
-      ]),
+      content: JSON.stringify(EMPTY_RICH_TEXT),
     },
   });
 

@@ -55,9 +55,14 @@ const NewMessage: NextPageWithLayout = () => {
   const chatWindowRef = useRef<ChatWindowRef>(null);
   const chatFormRef = useRef<HTMLFormElement>(null);
   const guessChatroomFromAuthors =
-    api.chatroom.guessChatroomFromAuthors.useQuery({
-      authors: watchedAuthors,
-    });
+    api.chatroom.guessChatroomFromAuthors.useQuery(
+      {
+        authors: watchedAuthors,
+      },
+      {
+        keepPreviousData: true,
+      }
+    );
   const ablyStore = useAblyStore((state) => ({
     typing: state.typing,
   }));
