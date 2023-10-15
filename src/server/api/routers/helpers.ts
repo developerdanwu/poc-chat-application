@@ -6,36 +6,53 @@ import {
 } from '@prisma-generated/generated/types';
 import { jsonArrayFrom } from 'kysely/helpers/postgres';
 
-export const TABLE_ALIAS = {
+const TABLE_ALIAS = {
   chatroom: 'c',
   author: 'au',
   authors_on_chatrooms: 'ac',
 } as const;
 
+const SELECT_FIELDS = {
+  author: [
+    `${TABLE_ALIAS.author}.author_id`,
+    `${TABLE_ALIAS.author}.user_id`,
+    `${TABLE_ALIAS.author}.first_name`,
+    `${TABLE_ALIAS.author}.last_name`,
+    `${TABLE_ALIAS.author}.role`,
+    `${TABLE_ALIAS.author}.email`,
+    `${TABLE_ALIAS.author}.created_at`,
+    `${TABLE_ALIAS.author}.updated_at`,
+  ],
+  chatroom: [
+    `${TABLE_ALIAS.chatroom}.id`,
+    `${TABLE_ALIAS.chatroom}.status`,
+    `${TABLE_ALIAS.chatroom}.type`,
+    `${TABLE_ALIAS.chatroom}.created_at`,
+    `${TABLE_ALIAS.chatroom}.updated_at`,
+  ],
+} as const;
+
+export const dbConfig = {
+  tableAlias: TABLE_ALIAS,
+  selectFields: SELECT_FIELDS,
+} as const;
+
 export const withAuthors = (
-  eb: ExpressionBuilder<DB & { [TABLE_ALIAS.chatroom]: Chatroom }, 'c'>
+  eb: ExpressionBuilder<DB & { [dbConfig.tableAlias.chatroom]: Chatroom }, 'c'>
 ) => {
   return jsonArrayFrom(
     eb
-      .selectFrom(`author as ${TABLE_ALIAS.author}`)
+      .selectFrom(`author as ${dbConfig.tableAlias.author}`)
       .innerJoin(
-        `_authors_on_chatrooms as ${TABLE_ALIAS.authors_on_chatrooms}`,
-        `${TABLE_ALIAS.authors_on_chatrooms}.author_id`,
-        `${TABLE_ALIAS.author}.author_id`
+        `_authors_on_chatrooms as ${dbConfig.tableAlias.authors_on_chatrooms}`,
+        `${dbConfig.tableAlias.authors_on_chatrooms}.author_id`,
+        `${dbConfig.tableAlias.author}.author_id`
       )
-      .select([
-        `${TABLE_ALIAS.author}.first_name`,
-        `${TABLE_ALIAS.author}.last_name`,
-        `${TABLE_ALIAS.author}.user_id`,
-        `${TABLE_ALIAS.author}.author_id`,
-        `${TABLE_ALIAS.author}.role`,
-        `${TABLE_ALIAS.author}.created_at`,
-        `${TABLE_ALIAS.author}.updated_at`,
-      ])
+      .select([...dbConfig.selectFields.author])
       .whereRef(
-        `${TABLE_ALIAS.authors_on_chatrooms}.chatroom_id`,
+        `${dbConfig.tableAlias.authors_on_chatrooms}.chatroom_id`,
         '=',
-        `${TABLE_ALIAS.chatroom}.id`
+        `${dbConfig.tableAlias.chatroom}.id`
       )
   ).as('authors');
 };
@@ -45,24 +62,17 @@ export const withChatrooms = (
 ) => {
   return jsonArrayFrom(
     eb
-      .selectFrom(`chatroom as ${TABLE_ALIAS.chatroom}`)
+      .selectFrom(`chatroom as ${dbConfig.tableAlias.chatroom}`)
       .innerJoin(
-        `_authors_on_chatrooms as ${TABLE_ALIAS.authors_on_chatrooms}`,
-        `${TABLE_ALIAS.authors_on_chatrooms}.chatroom_id`,
-        `${TABLE_ALIAS.chatroom}.id`
+        `_authors_on_chatrooms as ${dbConfig.tableAlias.authors_on_chatrooms}`,
+        `${dbConfig.tableAlias.authors_on_chatrooms}.chatroom_id`,
+        `${dbConfig.tableAlias.chatroom}.id`
       )
-      .select((eb) => [
-        `${TABLE_ALIAS.chatroom}.id`,
-        `${TABLE_ALIAS.chatroom}.status`,
-        `${TABLE_ALIAS.chatroom}.type`,
-        `${TABLE_ALIAS.chatroom}.created_at`,
-        `${TABLE_ALIAS.chatroom}.updated_at`,
-        withAuthors(eb),
-      ])
+      .select((eb) => [...dbConfig.selectFields.chatroom, withAuthors(eb)])
       .whereRef(
-        `${TABLE_ALIAS.authors_on_chatrooms}.author_id`,
+        `${dbConfig.tableAlias.authors_on_chatrooms}.author_id`,
         '=',
-        `${TABLE_ALIAS.author}.author_id`
+        `${dbConfig.tableAlias.author}.author_id`
       )
   ).as('chatrooms');
 };

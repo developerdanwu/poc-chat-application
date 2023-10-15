@@ -4,7 +4,7 @@ import { TRPCError } from '@trpc/server';
 import { type Kysely } from 'kysely';
 import { type DB } from '@prisma-generated/generated/types';
 import { type SignedInAuthObject } from '@clerk/backend';
-import { TABLE_ALIAS, withAuthors } from '@/server/api/routers/helpers';
+import { dbConfig, withAuthors } from '@/server/api/routers/helpers';
 
 const chatroomInputSchema = z.object({
   chatroomId: z.string().min(1),
@@ -21,13 +21,8 @@ export const getChatroomMethod = async ({
   ctx: { db: Kysely<DB>; auth: SignedInAuthObject };
 }) => {
   const chatroom = await ctx.db
-    .selectFrom(`chatroom as ${TABLE_ALIAS.chatroom}`)
-    .select((eb) => [
-      'id',
-      withAuthors(eb),
-      `${TABLE_ALIAS.chatroom}.type`,
-      `${TABLE_ALIAS.chatroom}.subtype`,
-    ])
+    .selectFrom(`chatroom as ${dbConfig.tableAlias.chatroom}`)
+    .select((eb) => [...dbConfig.selectFields.chatroom, 'id', withAuthors(eb)])
     .where((eb) => eb('id', '=', input.chatroomId))
     .execute();
 
