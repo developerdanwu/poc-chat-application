@@ -1,9 +1,11 @@
 import { protectedProcedure } from '@/server/api/trpc';
-import { type Kysely, sql } from 'kysely';
+import { type Kysely } from 'kysely';
 import { z } from 'zod';
 import { type DB } from '@prisma-generated/generated/types';
 import { type SignedInAuthObject } from '@clerk/backend';
 import { jsonArrayFrom } from 'kysely/helpers/postgres';
+import { dbConfig, withAuthors } from '@/server/api/routers/helpers';
+import { TRPCError } from '@trpc/server';
 
 export const authorsInputSchema = z.array(
   z.object({
@@ -24,79 +26,63 @@ export const guessChatroomFromAuthorsMethod = async ({
   };
   ctx: { db: Kysely<DB>; auth: SignedInAuthObject };
 }) => {
-  const chatroom = await ctx.db
-    .selectFrom((eb) =>
-      eb
-        .selectFrom('author')
-        .select(['chatroom.id'])
-        .where(({ cmpr }) => cmpr('author.user_id', '=', ctx.auth.userId))
-        .innerJoin(
-          '_authors_on_chatrooms',
-          '_authors_on_chatrooms.author_id',
-          'author.author_id'
-        )
-        .innerJoin(
-          'chatroom',
-          'author.author_id',
-          '_authors_on_chatrooms.author_id'
-        )
-        .groupBy('chatroom.id')
-        .as('c')
+  const test = await ctx.db
+    .selectFrom(`author as ${dbConfig.tableAlias.author}`)
+    .where((eb) =>
+      eb(`${dbConfig.tableAlias.author}.user_id`, '=', ctx.auth.userId)
     )
+    .groupBy(`${dbConfig.tableAlias.author}.author_id`)
     .select((eb) => [
-      'id',
-      sql<number>`count(distinct _authors_on_chatrooms.author_id)`.as(
-        'no_of_users'
-      ),
+      ...dbConfig.selectFields.author,
       jsonArrayFrom(
         eb
-          .selectFrom('author')
-          .select([
-            'author.author_id',
-            'author.first_name',
-            'author.last_name',
-            'author.user_id',
-          ])
+          .selectFrom(`chatroom as ${dbConfig.tableAlias.chatroom}`)
           .innerJoin(
-            '_authors_on_chatrooms',
-            '_authors_on_chatrooms.author_id',
-            'author.author_id'
+            `_authors_on_chatrooms as ${dbConfig.tableAlias._authors_on_chatrooms}`,
+            `${dbConfig.tableAlias._authors_on_chatrooms}.chatroom_id`,
+            `${dbConfig.tableAlias.chatroom}.id`
           )
-          .innerJoin(
-            'chatroom',
-            'chatroom.id',
-            '_authors_on_chatrooms.chatroom_id'
-          )
-          .where(sql`c.id = chatroom.id`)
-      ).as('authors'),
-    ])
-    .innerJoin(
-      '_authors_on_chatrooms',
-      '_authors_on_chatrooms.chatroom_id',
-      'c.id'
-    )
-    .innerJoin('author', 'author.author_id', '_authors_on_chatrooms.author_id')
-    .groupBy(['id'])
-    .having((eb) =>
-      eb.and([
-        eb.cmpr(
-          sql`count(distinct _authors_on_chatrooms.author_id)`,
-          '=',
-          input.authors.length + 1
-        ),
-        // TODO: fix interpolation to prevent sql injection
-        ...input.authors.map((author) =>
-          eb.cmpr(
-            sql`count(case when "author"."author_id" = ${author.author_id} then 1 end)`,
+          .select((eb) => [...dbConfig.selectFields.chatroom, withAuthors(eb)])
+          .whereRef(
+            `${dbConfig.tableAlias._authors_on_chatrooms}.author_id`,
             '=',
-            1
+            `${dbConfig.tableAlias.author}.author_id`
           )
-        ),
-      ])
-    )
-    .executeTakeFirst();
+      ).as('chatrooms'),
+    ])
+    .execute();
 
-  return chatroom || null;
+  if (test.length === 0) {
+    throw new TRPCError({
+      code: 'NOT_FOUND',
+      message: 'No author and chatroom not found',
+    });
+  }
+  if (test.length > 1) {
+    throw new TRPCError({
+      code: 'INTERNAL_SERVER_ERROR',
+      message: 'More than one author found',
+    });
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const resultChatroom = test[0]!;
+  const targetAuthorIds = input.authors.map((author) => author.author_id);
+
+  const guessedChatroom = resultChatroom.chatrooms.filter((c) => {
+    const authorIds = c.authors.map((a) => a.author_id);
+    return (
+      targetAuthorIds.every((el) => {
+        return authorIds.includes(el);
+      }) && authorIds.length === targetAuthorIds.length + 1
+    );
+  });
+
+  if (guessedChatroom.length === 0) {
+    return null;
+  }
+
+  return guessedChatroom[0] || null;
 };
 
 const guessChatroomFromAuthors = protectedProcedure
