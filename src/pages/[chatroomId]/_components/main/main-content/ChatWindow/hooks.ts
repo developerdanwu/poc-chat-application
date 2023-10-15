@@ -8,13 +8,18 @@ import { useChannel } from '@ably-labs/react-hooks';
 import { ablyChannelKeyStore } from '@/lib/ably';
 import { useChatroomState } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/index';
 
-export const useChatroomMessages = ({ chatroomId }: { chatroomId: string }) => {
+export const useChatroomMessages = ({
+  chatroomId,
+}: {
+  chatroomId?: string;
+}) => {
   const messagesQuery = api.messaging.getMessages.useInfiniteQuery(
     {
       chatroomId: chatroomId,
     },
     {
-      suspense: true,
+      enabled: !!chatroomId,
+      // suspense: true,
       getNextPageParam: (lastPage) => {
         if (lastPage.messages.length < MESSAGES_PER_PAGE) {
           return undefined;
@@ -30,9 +35,14 @@ export const useChatroomMessages = ({ chatroomId }: { chatroomId: string }) => {
     }
   );
 
-  const messagesCountQuery = api.messaging.getMessagesCount.useQuery({
-    chatroomId,
-  });
+  const messagesCountQuery = api.messaging.getMessagesCount.useQuery(
+    {
+      chatroomId,
+    },
+    {
+      enabled: !!chatroomId,
+    }
+  );
 
   const messages = useMemo(
     () =>

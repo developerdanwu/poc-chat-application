@@ -8,9 +8,8 @@ import { api } from '@/lib/api';
 import { useRouter } from 'next/router';
 import ChatWindow, {
   type ChatWindowRef,
+  type ChatWindowVirtualListContext,
 } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow';
-import ScrollArea from '@/components/elements/ScrollArea';
-import StartOfDirectMessage from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/StartOfDirectMessage';
 import { Role } from '@prisma-generated/generated/types';
 import MainChatLayout from '@/pages/[chatroomId]/_components/MainChatLayout';
 import { v4 as uuid } from 'uuid';
@@ -20,6 +19,34 @@ import SendMessagebarProvider from '@/pages/[chatroomId]/_components/main/SendMe
 import { getAuthorsTypingTranslation } from '@/pages/[chatroomId]/_components/main/SendMessagebar';
 import { useAblyStore } from '@/lib/ably';
 import { type RouterOutput } from '@/server/api/root';
+import RadialProgress from '@/components/elements/RadialProgress';
+import StartOfDirectMessage from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/StartOfDirectMessage';
+
+const ChatHeader = ({
+  context,
+}: {
+  context?: ChatWindowVirtualListContext & {
+    watchedAuthors: NewMessageSchema['authors'];
+  };
+}) => {
+  if (!context?.watchedAuthors || context?.watchedAuthors.length === 0) {
+    return null;
+  }
+
+  if (context.watchedAuthors.length > 0) {
+    return <StartOfDirectMessage authors={context?.watchedAuthors} />;
+  }
+
+  if (!context?.filteredChatroomUsers || context?.hasNextPage) {
+    return (
+      <div className="flex justify-center py-2">
+        <RadialProgress />
+      </div>
+    );
+  }
+
+  return <StartOfDirectMessage authors={context.filteredChatroomUsers} />;
+};
 
 const newMessageSchema = z.object({
   authors: z
@@ -115,27 +142,21 @@ const NewMessage: NextPageWithLayout = () => {
             />
           </div>
         </div>
-        {guessChatroomFromAuthors.data?.id ? (
-          <ChatWindow
-            ref={chatWindowRef}
-            chatroomId={guessChatroomFromAuthors.data.id}
-          />
-        ) : (
-          <div className="flex w-full flex-[1_1_0px] flex-col">
-            <div className="flex-[1_1_0px]" />
-            <ScrollArea
-              slotProps={{
-                root: {
-                  className: 'h-auto w-full rounded-xl bg-base-100',
-                },
-              }}
-            >
-              {watchedAuthors?.length > 0 ? (
-                <StartOfDirectMessage authors={watchedAuthors} />
-              ) : null}
-            </ScrollArea>
-          </div>
-        )}
+
+        <ChatWindow
+          chatroomId={guessChatroomFromAuthors.data?.id}
+          slotProps={{
+            Virtuoso: {
+              context: {
+                watchedAuthors,
+              },
+              components: {
+                Header: ChatHeader,
+              },
+            },
+          }}
+        />
+
         <RoomProvider
           id={guessChatroomFromAuthors.data?.id || 'new-message'}
           initialPresence={{}}

@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { api } from '@/lib/api';
 import dayjs from 'dayjs';
 import { cn, useApiTransformUtils } from '@/lib/utils';
@@ -27,17 +27,12 @@ export type ChatWindowRef = {
   scrollAreaRef: HTMLDivElement;
 };
 
-type ChatWindowVirtualListContext = {
-  context?: {
-    hasNextPage?: boolean;
-    filteredChatroomUsers: {
-      author_id: number;
-      first_name: string;
-      last_name: string;
-    }[];
-    groupedMessagesKeys: string[];
-    topHeight: MotionValue<number>;
-  };
+export type ChatWindowVirtualListContext = {
+  chatroomId?: string;
+  hasNextPage?: boolean;
+  filteredChatroomUsers?: RouterOutput['chatroom']['getChatroom']['authors'];
+  groupedMessagesKeys: string[];
+  topHeight: MotionValue<number>;
 };
 
 export const useChatroomState = create<{
@@ -73,7 +68,11 @@ export const ChatWindowLoading = () => {
   );
 };
 
-const ChatHeader = ({ context }: ChatWindowVirtualListContext) => {
+const ChatHeader = ({
+  context,
+}: {
+  context?: ChatWindowVirtualListContext;
+}) => {
   if (!context?.filteredChatroomUsers || context?.hasNextPage) {
     return (
       <div className="flex justify-center py-2">
@@ -87,7 +86,9 @@ const ChatHeader = ({ context }: ChatWindowVirtualListContext) => {
 
 const ChatScroller = React.forwardRef<
   HTMLDivElement,
-  ScrollerProps & ChatWindowVirtualListContext
+  ScrollerProps & {
+    context?: ChatWindowVirtualListContext;
+  }
 >(({ style, ...props }, ref) => {
   return (
     <motion.div
@@ -103,12 +104,24 @@ const ChatScroller = React.forwardRef<
 
 ChatScroller.displayName = 'ChatScroller';
 
-const ChatWindow = forwardRef<
-  ChatWindowRef,
-  {
-    chatroomId: string;
-  }
->(({ chatroomId }, ref) => {
+const ChatWindow = function <T>({
+  chatroomId,
+  slotProps,
+}: {
+  chatroomId?: string;
+  slotProps?: {
+    Virtuoso?: {
+      context?: T;
+      components: {
+        Header: ({
+          context,
+        }: {
+          context?: ChatWindowVirtualListContext & T;
+        }) => JSX.Element;
+      };
+    };
+  };
+}) {
   useMessageUpdate({ chatroomId });
   const {
     messages,
@@ -135,7 +148,7 @@ const ChatWindow = forwardRef<
 
   useEffect(() => {
     return () => {
-      chatroomState.chatroomWindowRefMap.delete(chatroomId);
+      chatroomState.chatroomWindowRefMap.delete(chatroomId!);
     };
   }, [chatroomId, chatroomState.chatroomWindowRefMap]);
 
@@ -161,9 +174,10 @@ const ChatWindow = forwardRef<
 
   const authorsHashmap = api.chatroom.getChatroom.useQuery(
     {
-      chatroomId: chatroomId,
+      chatroomId: chatroomId!,
     },
     {
+      enabled: !!chatroomId,
       select: (data) => {
         return data.authors.reduce<
           Record<
@@ -180,28 +194,29 @@ const ChatWindow = forwardRef<
 
   const filteredChatroomUsers = api.chatroom.getChatroom.useQuery(
     {
-      chatroomId: chatroomId,
+      chatroomId: chatroomId!,
     },
     {
+      enabled: !!chatroomId,
       select: (data) => {
         return filterAuthedUserFromChatroomAuthors(data?.authors ?? []);
       },
     }
   ).data;
 
-  if (
-    !messagesCountQuery.data ||
-    !messagesQuery.data ||
-    !filteredChatroomUsers ||
-    !authorsHashmap ||
-    !groupedMessagesCount
-  ) {
-    return <ChatWindowLoading />;
-  }
+  const scrollTop = () => {
+    if (messagesCountQuery.data) {
+      return messagesCountQuery.data?.messages_count > 0
+        ? messagesCountQuery.data?.messages_count - 1
+        : 0;
+    }
+    return 0;
+  };
+
   // TODO: fix not reliable scroll to top and fetch?
   return (
     <div className="h-0 w-full flex-[1_1_0px]" ref={virtualListWrapperRef}>
-      <GroupedVirtuoso
+      <GroupedVirtuoso<any, ChatWindowVirtualListContext | undefined>
         isScrolling={(value) => {
           isScrolling.current = value;
         }}
@@ -216,56 +231,52 @@ const ChatWindow = forwardRef<
         }}
         id="chat-window"
         ref={(ref) => {
-          if (ref) {
+          if (ref && chatroomId) {
             chatroomState.chatroomWindowRefMap.set(chatroomId, ref);
           }
         }}
         overscan={50}
         followOutput={(isAtBottom) => {
           // send message && close to bottom scroll smooth
-          if (chatroomState.sentNewMessage[chatroomId] && isAtBottom) {
-            chatroomState.setSentNewMessage(chatroomId, false);
-            if (isScrolling.current) {
-              return false;
+          if (chatroomId) {
+            if (chatroomState.sentNewMessage[chatroomId] && isAtBottom) {
+              chatroomState.setSentNewMessage(chatroomId, false);
+              if (isScrolling.current) {
+                return false;
+              }
+              return 'smooth';
             }
-            return 'smooth';
-          }
-          // sent new message scroll to bottom auto
-          if (chatroomState.sentNewMessage[chatroomId]) {
-            chatroomState.setSentNewMessage(chatroomId, false);
-            if (isScrolling.current) {
-              return false;
+            // sent new message scroll to bottom auto
+            if (chatroomState.sentNewMessage[chatroomId]) {
+              chatroomState.setSentNewMessage(chatroomId, false);
+              if (isScrolling.current) {
+                return false;
+              }
+              return 'auto';
             }
-            return 'auto';
-          }
-          // TODO: receive new message && at bottom then scroll to bottom
-          if (isAtBottom && chatroomState.receivedNewMessage[chatroomId]) {
-            chatroomState.setReceivedNewMessage(chatroomId, false);
-            if (isScrolling.current) {
-              return false;
+            // TODO: receive new message && at bottom then scroll to bottom
+            if (isAtBottom && chatroomState.receivedNewMessage[chatroomId]) {
+              chatroomState.setReceivedNewMessage(chatroomId, false);
+              if (isScrolling.current) {
+                return false;
+              }
+              return 'smooth';
             }
-            return 'smooth';
           }
 
           return false;
         }}
         firstItemIndex={firstItemIndex}
-        initialTopMostItemIndex={
-          messagesCountQuery.data?.messages_count > 0
-            ? messagesCountQuery.data?.messages_count - 1
-            : 0
-        }
-        initialScrollTop={
-          messagesCountQuery.data?.messages_count > 0
-            ? messagesCountQuery.data?.messages_count - 1
-            : 0
-        }
-        groupCounts={groupedMessagesCount}
+        initialTopMostItemIndex={scrollTop()}
+        initialScrollTop={scrollTop()}
+        groupCounts={groupedMessagesCount || []}
         context={{
+          chatroomId,
           topHeight,
           groupedMessagesKeys,
           filteredChatroomUsers,
           hasNextPage: messagesQuery.hasNextPage,
+          ...slotProps?.Virtuoso?.context,
         }}
         startReached={() => {
           if (messagesQuery.hasNextPage) {
@@ -275,7 +286,7 @@ const ChatWindow = forwardRef<
         }}
         // cannot pass data prop to grouped virtual list lib bug! https://github.com/petyosi/react-virtuoso/issues/608
         components={{
-          Header: ChatHeader,
+          Header: slotProps?.Virtuoso?.components?.Header || ChatHeader,
           Scroller: ChatScroller,
         }}
         style={{ height: '100%', position: 'relative' }}
@@ -288,7 +299,7 @@ const ChatWindow = forwardRef<
                 )}
               >
                 <p className="text-body">
-                  {dayjs(context.groupedMessagesKeys[index]).format(
+                  {dayjs(context?.groupedMessagesKeys[index]).format(
                     'dddd, MMMM Do'
                   )}
                 </p>
@@ -307,6 +318,9 @@ const ChatWindow = forwardRef<
             },
             0
           );
+          if (!accumulatedIndex) {
+            return <div>UNSUPPORTED MESSAGE</div>;
+          }
           const isStartOfGroup = accumulatedIndex - 1 === originalIndex;
           const isStartOfList = originalIndex === 0;
           const message = messages?.[_index - firstItemIndex];
@@ -314,7 +328,7 @@ const ChatWindow = forwardRef<
             return <div>UNSUPPORTED MESSAGE</div>;
           }
           const isEndOfList = originalIndex === messages.length - 1;
-          if (message) {
+          if (message && authorsHashmap) {
             return (
               <ChatWindowItem
                 isEndOfList={isEndOfList}
@@ -330,7 +344,7 @@ const ChatWindow = forwardRef<
       />
     </div>
   );
-});
+};
 
 ChatWindow.displayName = 'ChatWindow';
 
