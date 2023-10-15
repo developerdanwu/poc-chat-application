@@ -1,7 +1,7 @@
 import { protectedProcedure } from '@/server/api/trpc';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { jsonArrayFrom } from 'kysely/helpers/postgres';
+import { withChatrooms } from '@/server/api/routers/helpers';
 
 const getChatrooms = protectedProcedure
   .input(
@@ -12,70 +12,34 @@ const getChatrooms = protectedProcedure
       .optional()
   )
   .query(async ({ ctx, input }) => {
-    try {
-      const chatrooms = await ctx.db
-        .selectFrom('author')
-        .select((eb) => [
-          'author.author_id',
-          'author.user_id',
-          'author.first_name',
-          'author.last_name',
-          jsonArrayFrom(
-            eb
-              .selectFrom('chatroom')
-              .innerJoin(
-                '_authors_on_chatrooms',
-                '_authors_on_chatrooms.chatroom_id',
-                'chatroom.id'
-              )
-              .select((eb) => [
-                'chatroom.id',
-                'chatroom.status',
-                'chatroom.type',
-                'chatroom.created_at',
-                'chatroom.updated_at',
-                jsonArrayFrom(
-                  eb
-                    .selectFrom('author as au')
-                    .innerJoin(
-                      '_authors_on_chatrooms',
-                      '_authors_on_chatrooms.author_id',
-                      'au.author_id'
-                    )
-                    .select([
-                      'au.first_name',
-                      'au.last_name',
-                      'au.user_id',
-                      'au.author_id',
-                      'au.role',
-                      'au.created_at',
-                      'au.updated_at',
-                    ])
-                    .whereRef(
-                      '_authors_on_chatrooms.chatroom_id',
-                      '=',
-                      'chatroom.id'
-                    )
-                ).as('authors'),
-              ])
-              .whereRef(
-                '_authors_on_chatrooms.author_id',
-                '=',
-                'author.author_id'
-              )
-          ).as('chatrooms'),
-        ])
-        .where((eb) => eb('author.user_id', '=', ctx.auth.userId))
-        .executeTakeFirst();
+    const chatrooms = await ctx.db
+      .selectFrom('author')
+      .select((eb) => [
+        'author.author_id',
+        'author.user_id',
+        'author.first_name',
+        'author.last_name',
+        withChatrooms(eb),
+      ])
+      .where((eb) => eb('author.user_id', '=', ctx.auth.userId))
+      .execute();
 
-      return chatrooms;
-    } catch (e) {
+    if (chatrooms.length === 0) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Error retrieving chatroom',
-        cause: e,
+        code: 'NOT_FOUND',
+        message: 'No author and chatroom not found',
       });
     }
+
+    if (chatrooms.length > 1) {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'More than one author found',
+      });
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return chatrooms[0]!;
   });
 
 export default getChatrooms;

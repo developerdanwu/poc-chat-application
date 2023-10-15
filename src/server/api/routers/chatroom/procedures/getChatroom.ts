@@ -1,14 +1,10 @@
 import { protectedProcedure } from '@/server/api/trpc';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { type Kysely, sql } from 'kysely';
-import { jsonArrayFrom, jsonObjectFrom } from 'kysely/helpers/postgres';
-import {
-  ChatroomStatus,
-  type DB,
-  type Role,
-} from '@prisma-generated/generated/types';
+import { type Kysely } from 'kysely';
+import { type DB } from '@prisma-generated/generated/types';
 import { type SignedInAuthObject } from '@clerk/backend';
+import { withAuthors } from '@/server/api/routers/helpers';
 
 const chatroomInputSchema = z.object({
   chatroomId: z.string().min(1),
@@ -28,55 +24,27 @@ export const getChatroomMethod = async ({
     .selectFrom('chatroom')
     .select((eb) => [
       'id',
-      sql<number>`COUNT(DISTINCT _authors_on_chatrooms.author_id)`.as(
-        'user_count'
-      ),
-      sql<
-        {
-          author_id: number;
-          first_name: string;
-          last_name: string;
-          user_id: string;
-          role: (typeof Role)[keyof typeof Role];
-        }[]
-      >`JSON_AGG(JSON_BUILD_OBJECT('author_id', author.author_id, 'first_name', author.first_name, 'last_name', author.last_name, 'user_id', author.user_id, 'role', author.role))`.as(
-        'authors'
-      ),
-      jsonObjectFrom(
-        eb
-          .selectFrom('ai_settings')
-          .selectAll()
-          .where(({ cmpr }) =>
-            cmpr('ai_settings.chatroom_id', '=', input.chatroomId)
-          )
-      ).as('ai_settings'),
-      jsonArrayFrom(
-        eb
-          .selectFrom('chatroom as branch')
-          .selectAll()
-          .where(({ cmpr, and }) =>
-            and([
-              cmpr('branch.chatroom_branch_id', '=', input.chatroomId),
-              ...(input.includeDeletedBranches
-                ? []
-                : [cmpr('branch.status', '=', ChatroomStatus.ACTIVE)]),
-            ])
-          )
-      ).as('branches'),
+      withAuthors(eb),
       'chatroom.type',
       'chatroom.subtype',
     ])
-    .innerJoin(
-      '_authors_on_chatrooms',
-      '_authors_on_chatrooms.chatroom_id',
-      'chatroom.id'
-    )
-    .innerJoin('author', 'author.author_id', '_authors_on_chatrooms.author_id')
-    .where(({ cmpr }) => cmpr('id', '=', input.chatroomId))
-    .groupBy('id')
-    .executeTakeFirstOrThrow();
+    .where((eb) => eb('id', '=', input.chatroomId))
+    .execute();
 
-  return chatroom;
+  if (chatroom.length === 0) {
+    throw new TRPCError({
+      code: 'NOT_FOUND',
+      message: 'Chatroom not found',
+    });
+  }
+  if (chatroom.length > 1) {
+    throw new TRPCError({
+      code: 'INTERNAL_SERVER_ERROR',
+      message: 'More than one chatroom found',
+    });
+  }
+
+  return chatroom[0];
 };
 
 const getChatroom = protectedProcedure
