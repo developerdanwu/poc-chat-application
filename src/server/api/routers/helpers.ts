@@ -1,46 +1,64 @@
 import { type ExpressionBuilder } from 'kysely';
-import { type DB } from '@prisma-generated/generated/types';
+import {
+  type Author,
+  type Chatroom,
+  type DB,
+} from '@prisma-generated/generated/types';
 import { jsonArrayFrom } from 'kysely/helpers/postgres';
 
-export const withAuthors = (eb: ExpressionBuilder<DB, 'chatroom'>) => {
+export const CHATROOM_ALIAS = 'c' as const;
+export const AUTHOR_ALIAS = 'au' as const;
+export const withAuthors = (
+  eb: ExpressionBuilder<DB & { [CHATROOM_ALIAS]: Chatroom }, 'c'>
+) => {
   return jsonArrayFrom(
     eb
-      .selectFrom('author as au')
+      .selectFrom(`author as ${AUTHOR_ALIAS}`)
       .innerJoin(
         '_authors_on_chatrooms',
         '_authors_on_chatrooms.author_id',
-        'au.author_id'
+        `${AUTHOR_ALIAS}.author_id`
       )
       .select([
-        'au.first_name',
-        'au.last_name',
-        'au.user_id',
-        'au.author_id',
-        'au.role',
-        'au.created_at',
-        'au.updated_at',
+        `${AUTHOR_ALIAS}.first_name`,
+        `${AUTHOR_ALIAS}.last_name`,
+        `${AUTHOR_ALIAS}.user_id`,
+        `${AUTHOR_ALIAS}.author_id`,
+        `${AUTHOR_ALIAS}.role`,
+        `${AUTHOR_ALIAS}.created_at`,
+        `${AUTHOR_ALIAS}.updated_at`,
       ])
-      .whereRef('_authors_on_chatrooms.chatroom_id', '=', 'chatroom.id')
+      .whereRef(
+        '_authors_on_chatrooms.chatroom_id',
+        '=',
+        `${CHATROOM_ALIAS}.id`
+      )
   ).as('authors');
 };
 
-export const withChatrooms = (eb: ExpressionBuilder<DB, 'author'>) => {
+export const withChatrooms = (
+  eb: ExpressionBuilder<DB & { au: Author }, 'au'>
+) => {
   return jsonArrayFrom(
     eb
-      .selectFrom('chatroom')
+      .selectFrom(`chatroom as ${CHATROOM_ALIAS}`)
       .innerJoin(
         '_authors_on_chatrooms',
         '_authors_on_chatrooms.chatroom_id',
-        'chatroom.id'
+        `${CHATROOM_ALIAS}.id`
       )
       .select((eb) => [
-        'chatroom.id',
-        'chatroom.status',
-        'chatroom.type',
-        'chatroom.created_at',
-        'chatroom.updated_at',
+        `${CHATROOM_ALIAS}.id`,
+        `${CHATROOM_ALIAS}.status`,
+        `${CHATROOM_ALIAS}.type`,
+        `${CHATROOM_ALIAS}.created_at`,
+        `${CHATROOM_ALIAS}.updated_at`,
         withAuthors(eb),
       ])
-      .whereRef('_authors_on_chatrooms.author_id', '=', 'author.author_id')
+      .whereRef(
+        '_authors_on_chatrooms.author_id',
+        '=',
+        `${AUTHOR_ALIAS}.author_id`
+      )
   ).as('chatrooms');
 };

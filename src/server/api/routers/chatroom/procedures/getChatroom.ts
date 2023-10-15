@@ -4,7 +4,7 @@ import { TRPCError } from '@trpc/server';
 import { type Kysely } from 'kysely';
 import { type DB } from '@prisma-generated/generated/types';
 import { type SignedInAuthObject } from '@clerk/backend';
-import { withAuthors } from '@/server/api/routers/helpers';
+import { CHATROOM_ALIAS, withAuthors } from '@/server/api/routers/helpers';
 
 const chatroomInputSchema = z.object({
   chatroomId: z.string().min(1),
@@ -21,12 +21,12 @@ export const getChatroomMethod = async ({
   ctx: { db: Kysely<DB>; auth: SignedInAuthObject };
 }) => {
   const chatroom = await ctx.db
-    .selectFrom('chatroom')
+    .selectFrom(`chatroom as ${CHATROOM_ALIAS}`)
     .select((eb) => [
       'id',
       withAuthors(eb),
-      'chatroom.type',
-      'chatroom.subtype',
+      `${CHATROOM_ALIAS}.type`,
+      `${CHATROOM_ALIAS}.subtype`,
     ])
     .where((eb) => eb('id', '=', input.chatroomId))
     .execute();
@@ -54,15 +54,7 @@ const getChatroom = protectedProcedure
     })
   )
   .query(async ({ ctx, input }) => {
-    try {
-      return getChatroomMethod({ ctx, input });
-    } catch (e) {
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Error retrieving chatroom',
-        cause: e,
-      });
-    }
+    return getChatroomMethod({ ctx, input });
   });
 
 export default getChatroom;
