@@ -15,7 +15,8 @@ export const useChatroomMessages = ({
 }) => {
   const messagesQuery = api.messaging.getMessages.useInfiniteQuery(
     {
-      chatroomId: chatroomId,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      chatroomId: chatroomId!,
     },
     {
       enabled: !!chatroomId,
@@ -37,7 +38,8 @@ export const useChatroomMessages = ({
 
   const messagesCountQuery = api.messaging.getMessagesCount.useQuery(
     {
-      chatroomId,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      chatroomId: chatroomId!,
     },
     {
       enabled: !!chatroomId,
@@ -107,17 +109,22 @@ export const useChatroomMessages = ({
   };
 };
 
-export const useMessageUpdate = ({ chatroomId }: { chatroomId: string }) => {
+export const useMessageUpdate = ({ chatroomId }: { chatroomId?: string }) => {
   const chatroomState = useChatroomState((state) => ({
     setReceivedNewMessage: state.setReceivedNewMessage,
   }));
   const chatroomUpdateUtils = useChatroomUpdateUtils();
-  useChannel(ablyChannelKeyStore.chatroom(chatroomId), async (message) => {
-    chatroomState.setReceivedNewMessage(chatroomId, true);
-    chatroomUpdateUtils.updateMessages({
-      chatroomId,
-      message:
-        message.data as RouterOutput['messaging']['getMessages']['messages'][number],
-    });
-  });
+  useChannel(
+    ablyChannelKeyStore.chatroom(chatroomId || ''),
+    async (message) => {
+      if (chatroomId) {
+        chatroomState.setReceivedNewMessage(chatroomId, true);
+        chatroomUpdateUtils.updateMessages({
+          chatroomId,
+          message:
+            message.data as RouterOutput['messaging']['getMessages']['messages'][number],
+        });
+      }
+    }
+  );
 };

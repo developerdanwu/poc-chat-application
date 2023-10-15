@@ -286,6 +286,7 @@ const ChatWindow = function <T>({
         }}
         // cannot pass data prop to grouped virtual list lib bug! https://github.com/petyosi/react-virtuoso/issues/608
         components={{
+          // @ts-expect-error cannot infer types properly due to generic
           Header: slotProps?.Virtuoso?.components?.Header || ChatHeader,
           Scroller: ChatScroller,
         }}
