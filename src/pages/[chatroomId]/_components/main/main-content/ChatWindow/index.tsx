@@ -232,7 +232,6 @@ const ChatWindow = function <T>({
     }
   }, [messagesQuery.hasNextPage, messagesQuery.data, topHeight, chatroomId]);
 
-  // TODO: fix not reliable scroll to top and fetch?
   return (
     <div className="h-0 w-full flex-[1_1_0px]" ref={virtualListWrapperRef}>
       <GroupedVirtuoso<any, ChatWindowVirtualListContext | undefined>
