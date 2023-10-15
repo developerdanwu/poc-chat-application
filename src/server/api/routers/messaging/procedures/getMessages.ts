@@ -1,5 +1,6 @@
 import {protectedProcedure} from '@/server/api/trpc';
-import {z} from 'zod'; // implement a before and latest
+import {z} from 'zod';
+import {MESSAGES_PER_PAGE} from "@/pages/[chatroomId]/_components/main/main-content/ChatWindow/constants"; // implement a before and latest
 
 // implement a before and latest
 
@@ -14,7 +15,7 @@ const getMessages = protectedProcedure
     })
   )
   .query(async ({ ctx, input }) => {
-    const limit = input.take || 20;
+    const limit = input.take || MESSAGES_PER_PAGE;
     try {
       const messages = await ctx.db
         .selectFrom((eb) => {

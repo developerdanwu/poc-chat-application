@@ -22,6 +22,8 @@ import {
 import { create } from 'zustand';
 import { motion, type MotionValue, useMotionValue } from 'framer-motion';
 
+const CHATWINDOW_TOP_THRESHOLD = 50;
+
 export type ChatWindowRef = {
   scrollToBottom: () => void;
   scrollAreaRef: HTMLDivElement;
@@ -73,6 +75,7 @@ const ChatHeader = ({
 }: {
   context?: ChatWindowVirtualListContext;
 }) => {
+  console.log('HEADERRR', context);
   if (!context?.filteredChatroomUsers || context?.hasNextPage) {
     return (
       <div className="flex justify-center py-2">
@@ -214,6 +217,21 @@ const ChatWindow = function <T>({
     }
   }, [chatroomId]);
 
+  useEffect(() => {
+    if (virtualListRef.current && virtualListWrapperRef.current) {
+      const calculatedTop =
+        virtualListWrapperRef.current?.getBoundingClientRect().height -
+        listHeight.current;
+
+      if (
+        calculatedTop > -CHATWINDOW_TOP_THRESHOLD &&
+        messagesQuery.hasNextPage
+      ) {
+        messagesQuery.fetchNextPage();
+      }
+    }
+  }, [messagesQuery.hasNextPage, messagesQuery.data, topHeight, chatroomId]);
+
   // TODO: fix not reliable scroll to top and fetch?
   return (
     <div className="h-0 w-full flex-[1_1_0px]" ref={virtualListWrapperRef}>
@@ -275,7 +293,7 @@ const ChatWindow = function <T>({
           hasNextPage: messagesQuery.hasNextPage,
           ...slotProps?.Virtuoso?.context,
         }}
-        atTopThreshold={50}
+        atTopThreshold={CHATWINDOW_TOP_THRESHOLD}
         atTopStateChange={(atTop) => {
           if (messagesQuery.hasNextPage && atTop) {
             messagesQuery.fetchNextPage();
