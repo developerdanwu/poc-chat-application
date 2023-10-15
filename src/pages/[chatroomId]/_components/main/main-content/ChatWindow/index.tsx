@@ -215,7 +215,6 @@ const ChatWindow = forwardRef<
           }
         }}
         id="chat-window"
-        key={chatroomId}
         ref={(ref) => {
           if (ref) {
             chatroomState.chatroomWindowRefMap.set(chatroomId, ref);
