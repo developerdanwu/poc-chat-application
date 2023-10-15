@@ -140,17 +140,22 @@ const ChatWindow = forwardRef<
   }, [chatroomId, chatroomState.chatroomWindowRefMap]);
 
   useEffect(() => {
-    const handler = () => {
-      if (virtualListWrapperRef.current) {
-        const calculatedTop =
-          virtualListWrapperRef.current.getBoundingClientRect().height -
-          listHeight.current;
-        topHeight.set(calculatedTop > 0 ? calculatedTop : 0);
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.target === virtualListWrapperRef.current) {
+          const calculatedTop =
+            virtualListWrapperRef.current.getBoundingClientRect().height -
+            listHeight.current;
+          topHeight.set(calculatedTop > 0 ? calculatedTop : 0);
+        }
       }
-    };
-    window.addEventListener('resize', handler);
+    });
+    if (virtualListWrapperRef.current) {
+      resizeObserver.observe(virtualListWrapperRef.current);
+    }
+
     return () => {
-      window.removeEventListener('resize', handler);
+      resizeObserver.disconnect();
     };
   }, []);
 
