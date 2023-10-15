@@ -194,7 +194,6 @@ const ChatWindow = forwardRef<
     return <ChatWindowLoading />;
   }
   // TODO: fix not reliable scroll to top and fetch?
-
   return (
     <div className="h-0 w-full flex-[1_1_0px]" ref={virtualListWrapperRef}>
       <GroupedVirtuoso

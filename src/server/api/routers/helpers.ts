@@ -1,4 +1,5 @@
-import { type ExpressionBuilder } from 'kysely';
+import type { AliasableExpression, ColumnDataType, Expression } from 'kysely';
+import { type ExpressionBuilder, sql } from 'kysely';
 import {
   type Author,
   type Chatroom,
@@ -37,6 +38,30 @@ export const dbConfig = {
   tableAlias: TABLE_ALIAS,
   selectFields: SELECT_FIELDS,
 } as const;
+
+type Int8 = number | string | bigint;
+
+// if the input type can be null, then the output type can also be null; cast(null as type) always results in null
+type CastExpression<From, To> = AliasableExpression<
+  From extends null ? To | null : To
+>;
+
+export function cast<T extends string | null>(
+  expr: Expression<T>,
+  type: 'bytea'
+): CastExpression<T, Buffer>;
+export function cast<T extends Int8 | null>(
+  expr: Expression<T>,
+  type: 'int4'
+): CastExpression<T, number>;
+// ... add any other casts you need
+
+export function cast(
+  expr: Expression<unknown>,
+  type: ColumnDataType
+): AliasableExpression<unknown> {
+  return sql`cast(${expr} as ${sql.raw(type)})`;
+}
 
 export const withAuthors = (
   eb: ExpressionBuilder<DB & { [dbConfig.tableAlias.chatroom]: Chatroom }, 'c'>

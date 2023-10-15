@@ -1,6 +1,6 @@
 import { protectedProcedure } from '@/server/api/trpc';
 import { z } from 'zod';
-import { dbConfig } from '@/server/api/routers/helpers';
+import { cast, dbConfig } from '@/server/api/routers/helpers';
 
 const getMessagesCount = protectedProcedure
   .input(
@@ -9,26 +9,22 @@ const getMessagesCount = protectedProcedure
     })
   )
   .query(async ({ ctx, input }) => {
-    try {
-      const messagesCount = await ctx.db
-        .selectFrom((eb) => {
-          return eb
-            .selectFrom(`message as ${dbConfig.tableAlias.message}`)
-            .selectAll()
-            .where((eb) => {
-              return eb('chatroom_id', '=', input.chatroomId);
-            })
-            .as('message');
-        })
-        .select((eb) => [eb.fn.count('client_message_id').as('messages_count')])
-        .executeTakeFirst();
+    const messagesCount = await ctx.db
+      .selectFrom((eb) => {
+        return eb
+          .selectFrom(`message as ${dbConfig.tableAlias.message}`)
+          .selectAll()
+          .where((eb) => {
+            return eb('chatroom_id', '=', input.chatroomId);
+          })
+          .as('message');
+      })
+      .select((eb) => [
+        cast(eb.fn.count('client_message_id'), 'int4').as('messages_count'),
+      ])
+      .executeTakeFirstOrThrow();
 
-      return messagesCount;
-    } catch (e) {
-      return {
-        messages_count: 0,
-      };
-    }
+    return messagesCount;
   });
 
 export default getMessagesCount;

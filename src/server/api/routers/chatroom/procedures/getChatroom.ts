@@ -39,7 +39,8 @@ export const getChatroomMethod = async ({
     });
   }
 
-  return chatroom[0];
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  return chatroom[0]!;
 };
 
 const getChatroom = protectedProcedure
