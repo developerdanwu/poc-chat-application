@@ -17,13 +17,13 @@ const getAllHumanAuthors = protectedProcedure
         'author.last_name',
         'author.role',
       ])
-      .where(({ and, cmpr, or }) =>
-        and([
-          cmpr('author.user_id', '!=', ctx.auth.userId),
-          cmpr('author.role', '=', Role.USER),
-          or([
-            cmpr('author.first_name', 'ilike', `%${input.searchKeyword}%`),
-            cmpr('author.last_name', 'ilike', `%${input.searchKeyword}%`),
+      .where((eb) =>
+        eb.and([
+          eb('author.user_id', '!=', ctx.auth.userId),
+          eb('author.role', '=', Role.USER),
+          eb.or([
+            eb('author.first_name', 'ilike', `%${input.searchKeyword}%`),
+            eb('author.last_name', 'ilike', `%${input.searchKeyword}%`),
           ]),
         ])
       )
