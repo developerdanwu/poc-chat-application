@@ -73,7 +73,6 @@ const ChatHeader = ({
 }: {
   context?: ChatWindowVirtualListContext;
 }) => {
-  console.log('HEADERRR', context?.filteredChatroomUsers, context?.hasNextPage);
   if (!context?.filteredChatroomUsers || context?.hasNextPage) {
     return (
       <div className="flex justify-center py-2">
