@@ -1,6 +1,6 @@
 import { protectedProcedure } from '@/server/api/trpc';
 import { z } from 'zod';
-import { sql } from 'kysely';
+import { dbConfig } from '@/server/api/routers/helpers';
 
 const getMessagesCount = protectedProcedure
   .input(
@@ -13,20 +13,17 @@ const getMessagesCount = protectedProcedure
       const messagesCount = await ctx.db
         .selectFrom((eb) => {
           return eb
-            .selectFrom('message')
+            .selectFrom(`message as ${dbConfig.tableAlias.message}`)
             .selectAll()
-            .where(({ cmpr, and }) => {
-              return and([cmpr('chatroom_id', '=', input.chatroomId)]);
+            .where((eb) => {
+              return eb('chatroom_id', '=', input.chatroomId);
             })
             .as('message');
         })
-        .select([
-          sql<number>`COUNT(DISTINCT client_message_id)`.as('messages_count'),
-        ])
-        .execute();
+        .select((eb) => [eb.fn.count('client_message_id').as('messages_count')])
+        .executeTakeFirst();
 
-      // TODO: remove hack
-      return messagesCount[0];
+      return messagesCount;
     } catch (e) {
       return {
         messages_count: 0,

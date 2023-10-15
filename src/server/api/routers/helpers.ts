@@ -10,6 +10,7 @@ const TABLE_ALIAS = {
   chatroom: 'c',
   author: 'au',
   _authors_on_chatrooms: 'ac',
+  message: 'm',
 } as const;
 
 const SELECT_FIELDS = {
