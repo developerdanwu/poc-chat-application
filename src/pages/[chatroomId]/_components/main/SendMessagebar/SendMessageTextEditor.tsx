@@ -5,7 +5,7 @@ import {
   HoveringEmojiPicker,
   HoveringPeekMessage,
 } from '@/components/modules/rich-text/EditorFooterMenu';
-import { safeJSONParse, useApiTransformUtils } from '@/lib/utils';
+import { useApiTransformUtils } from '@/lib/utils';
 import {
   resetEditor,
   slateJSONToPlainText,
@@ -23,6 +23,7 @@ import { IconButton } from '@/components/elements/IconButton';
 import { MdSend } from 'react-icons/md';
 import EditorMenuBar from '@/components/modules/rich-text/EditorMenuBar';
 import { useSendMessagebar } from '@/pages/[chatroomId]/_components/main/SendMessagebar/SendMessagebarProvider';
+import { type RouterOutput } from '@/server/api/root';
 
 const MARKS_HOTKEYS = {
   'mod+b': 'bold',
@@ -38,8 +39,12 @@ const BLOCKS_HOTKEYS = {
 const SendMessageTextEditor = ({
   chatroomId,
   chatFormRef,
+  chatroomAuthors,
 }: {
-  chatroomId: string;
+  chatroomId: string | undefined;
+  chatroomAuthors:
+    | RouterOutput['chatroom']['getChatroom']['authors']
+    | undefined;
   chatFormRef: React.RefObject<HTMLFormElement>;
 }) => {
   const broadcast = useBroadcastEvent();
@@ -48,12 +53,10 @@ const SendMessageTextEditor = ({
   const { isValid } = useFormState({
     control: chatForm.control,
   });
-  const chatroomDetail = api.chatroom.getChatroom.useQuery({
-    chatroomId,
-  });
+
   const { filterAuthedUserFromChatroomAuthors } = useApiTransformUtils();
   const filteredAuthors = filterAuthedUserFromChatroomAuthors(
-    chatroomDetail.data?.authors || []
+    chatroomAuthors || []
   );
   const sendMessagebar = useSendMessagebar((state) => ({
     setPeekMessageOpen: state.setPeekMessageOpen,
@@ -121,7 +124,7 @@ const SendMessageTextEditor = ({
                 }
                 slotProps={{
                   root: {
-                    initialValue: safeJSONParse(value) || [
+                    initialValue: [
                       {
                         type: 'paragraph',
                         children: [{ text: '' }],
@@ -132,25 +135,29 @@ const SendMessageTextEditor = ({
                       clearTimeout(timer);
 
                       const newTimer = setTimeout(() => {
-                        broadcast({
-                          type: 'stopped_typing',
-                          data: {
-                            chatroom_id: chatroomId,
-                            author_id: ownAuthor.data!.author_id,
-                          },
-                        });
+                        if (chatroomId) {
+                          broadcast({
+                            type: 'stopped_typing',
+                            data: {
+                              chatroom_id: chatroomId,
+                              author_id: ownAuthor.data!.author_id,
+                            },
+                          });
+                        }
                       }, 2000);
 
                       // @ts-expect-error error with timeout type
                       setTimer(newTimer);
-                      broadcast({
-                        type: 'typing_message',
-                        data: {
-                          chatroom_id: chatroomId,
-                          content: JSON.stringify(value),
-                          author_id: ownAuthor.data!.author_id,
-                        },
-                      });
+                      if (chatroomId) {
+                        broadcast({
+                          type: 'typing_message',
+                          data: {
+                            chatroom_id: chatroomId,
+                            content: JSON.stringify(value),
+                            author_id: ownAuthor.data!.author_id,
+                          },
+                        });
+                      }
                       onChange(value);
                     },
                   },

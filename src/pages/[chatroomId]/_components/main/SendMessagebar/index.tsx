@@ -12,8 +12,9 @@ import { v4 as uuid } from 'uuid';
 import { useBroadcastEvent } from '../../../../../../liveblocks.config';
 import SendMessageTextEditor from '@/pages/[chatroomId]/_components/main/SendMessagebar/SendMessageTextEditor';
 import { useAblyStore } from '@/lib/ably';
+import { MessageStatus } from '@prisma-generated/generated/types';
 
-const getAuthorsTypingTranslation = (
+export const getAuthorsTypingTranslation = (
   typingAuthors: number[],
   authorsHashmap: Record<
     string,
@@ -46,9 +47,14 @@ const SendMessagebar = ({ chatroomId }: { chatroomId: string }) => {
   const chatroomState = useChatroomState((state) => ({
     setSentNewMessage: state.setSentNewMessage,
   }));
-  const chatroomDetail = api.chatroom.getChatroom.useQuery({
-    chatroomId: chatroomId,
-  });
+  const chatroomDetail = api.chatroom.getChatroom.useQuery(
+    {
+      chatroomId: chatroomId,
+    },
+    {
+      enabled: !!chatroomId,
+    }
+  );
   const trpcUtils = api.useContext();
   const broadcast = useBroadcastEvent();
 
@@ -76,7 +82,12 @@ const SendMessagebar = ({ chatroomId }: { chatroomId: string }) => {
     ),
     defaultValues: {
       text: '',
-      content: '',
+      content: JSON.stringify([
+        {
+          type: 'paragraph',
+          children: [{ text: '' }],
+        },
+      ]),
     },
   });
 
@@ -93,6 +104,7 @@ const SendMessagebar = ({ chatroomId }: { chatroomId: string }) => {
         chatroomUpdateUtils.updateMessages({
           chatroomId: variables.chatroomId,
           message: {
+            status: MessageStatus.QUEUED,
             message_checksum: variables.messageChecksum,
             client_message_id:
               flatMapMessages.length > 0
@@ -156,6 +168,7 @@ const SendMessagebar = ({ chatroomId }: { chatroomId: string }) => {
       >
         <div className="flex flex-col px-6 ">
           <SendMessageTextEditor
+            chatroomAuthors={chatroomDetail.data?.authors}
             chatroomId={chatroomId}
             chatFormRef={chatFormRef}
           />

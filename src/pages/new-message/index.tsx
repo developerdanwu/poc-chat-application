@@ -13,25 +13,25 @@ import ScrollArea from '@/components/elements/ScrollArea';
 import StartOfDirectMessage from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/StartOfDirectMessage';
 import { Role } from '@prisma-generated/generated/types';
 import MainChatLayout from '@/pages/[chatroomId]/_components/MainChatLayout';
-import BaseRichTextEditor from '@/components/modules/rich-text/BaseRichTextEditor';
-import EditorMenuBar from '@/components/modules/rich-text/EditorMenuBar';
-import { safeJSONParse } from '@/lib/utils';
-import {
-  resetEditor,
-  slateJSONToPlainText,
-} from '@/components/modules/rich-text/utils';
-import isHotkey from 'is-hotkey';
 import { v4 as uuid } from 'uuid';
+import SendMessageTextEditor from '@/pages/[chatroomId]/_components/main/SendMessagebar/SendMessageTextEditor';
+import { RoomProvider } from '../../../liveblocks.config';
+import SendMessagebarProvider from '@/pages/[chatroomId]/_components/main/SendMessagebar/SendMessagebarProvider';
+import { getAuthorsTypingTranslation } from '@/pages/[chatroomId]/_components/main/SendMessagebar';
+import { useAblyStore } from '@/lib/ably';
+import { type RouterOutput } from '@/server/api/root';
 
 const newMessageSchema = z.object({
-  authors: z.array(
-    z.object({
-      author_id: z.number(),
-      first_name: z.string(),
-      last_name: z.string(),
-      role: z.union([z.literal(Role.AI), z.literal(Role.USER)]),
-    })
-  ),
+  authors: z
+    .array(
+      z.object({
+        author_id: z.number(),
+        first_name: z.string(),
+        last_name: z.string(),
+        role: z.union([z.literal(Role.AI), z.literal(Role.USER)]),
+      })
+    )
+    .min(1),
   text: z.string().min(1),
   content: z.any(),
 });
@@ -58,7 +58,20 @@ const NewMessage: NextPageWithLayout = () => {
     api.chatroom.guessChatroomFromAuthors.useQuery({
       authors: watchedAuthors,
     });
-
+  const ablyStore = useAblyStore((state) => ({
+    typing: state.typing,
+  }));
+  const authorsInConversation =
+    ablyStore.typing[guessChatroomFromAuthors.data?.id || ''] || undefined;
+  const uniqueSortedAuthorsInConversation = [
+    ...new Set(authorsInConversation),
+  ].sort((a, b) => a - b);
+  const authorsHashmap = guessChatroomFromAuthors.data?.authors.reduce<
+    Record<string, RouterOutput['chatroom']['getChatroom']['authors'][number]>
+  >((prevVal, author) => {
+    prevVal[author.author_id] = author;
+    return prevVal;
+  }, {});
   const trpcUtils = api.useContext();
   const startNewChat = api.chatroom.startNewChat.useMutation({
     onMutate: () => {
@@ -104,7 +117,7 @@ const NewMessage: NextPageWithLayout = () => {
           />
         ) : (
           <div className="flex w-full flex-[1_1_0px] flex-col">
-            <div className="flex-[1_1_0]" />
+            <div className="flex-[1_1_0px]" />
             <ScrollArea
               slotProps={{
                 root: {
@@ -118,68 +131,44 @@ const NewMessage: NextPageWithLayout = () => {
             </ScrollArea>
           </div>
         )}
-        <form
-          ref={chatFormRef}
-          id="message-text-input-form"
-          className="h-auto min-h-fit flex-shrink-0 overflow-hidden"
-          onSubmit={newMessageForm.handleSubmit((data) => {
-            startNewChat.mutate({
-              message_checksum: uuid(),
-              authors: data.authors,
-              text: data.text,
-              content: JSON.stringify(data.content),
-            });
-          })}
+        <RoomProvider
+          id={guessChatroomFromAuthors.data?.id || 'new-message'}
+          initialPresence={{}}
         >
-          <div className="flex h-full px-6">
-            <Controller
-              control={newMessageForm.control}
-              render={({ field: { value, onChange } }) => {
-                return (
-                  <div className="flex h-auto min-h-fit w-full flex-col space-y-2 rounded-md border border-slate-300 p-3">
-                    <BaseRichTextEditor
-                      header={<EditorMenuBar />}
-                      slotProps={{
-                        root: {
-                          initialValue: safeJSONParse(value) || [
-                            {
-                              type: 'paragraph',
-                              children: [{ text: '' }],
-                            },
-                          ],
-                          onChange: (value) => {
-                            newMessageForm.setValue(
-                              'text',
-                              slateJSONToPlainText(value)
-                            );
-                            onChange(value);
-                          },
-                        },
-                        editable: {
-                          onKeyDown: (event, editor) => {
-                            if (isHotkey('enter', event as any)) {
-                              resetEditor(editor, {
-                                insertEmptyNode: true,
-                              });
-                              event.preventDefault();
-                              chatFormRef.current?.dispatchEvent(
-                                new Event('submit', {
-                                  cancelable: true,
-                                  bubbles: true,
-                                })
-                              );
-                            }
-                          },
-                        },
-                      }}
-                    />
-                  </div>
-                );
-              }}
-              name="content"
-            />
-          </div>
-        </form>
+          <SendMessagebarProvider>
+            <FormProvider {...newMessageForm}>
+              <form
+                ref={chatFormRef}
+                id="message-text-input-form"
+                className="h-auto min-h-fit flex-shrink-0 overflow-hidden"
+                onSubmit={newMessageForm.handleSubmit((data) => {
+                  startNewChat.mutate({
+                    message_checksum: uuid(),
+                    authors: data.authors,
+                    text: data.text,
+                    content: JSON.stringify(data.content),
+                  });
+                })}
+              >
+                <div className="flex flex-col px-6 ">
+                  <SendMessageTextEditor
+                    chatroomId={guessChatroomFromAuthors.data?.id}
+                    chatroomAuthors={guessChatroomFromAuthors.data?.authors}
+                    chatFormRef={chatFormRef}
+                  />
+                  <p className="h-6 text-detail text-slate-500">
+                    {authorsHashmap
+                      ? getAuthorsTypingTranslation(
+                          uniqueSortedAuthorsInConversation,
+                          authorsHashmap
+                        )
+                      : null}
+                  </p>
+                </div>
+              </form>
+            </FormProvider>
+          </SendMessagebarProvider>
+        </RoomProvider>
       </FormProvider>
     </div>
   );
