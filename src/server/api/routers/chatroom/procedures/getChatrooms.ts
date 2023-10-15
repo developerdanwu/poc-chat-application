@@ -1,7 +1,7 @@
 import { protectedProcedure } from '@/server/api/trpc';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { AUTHOR_ALIAS, withChatrooms } from '@/server/api/routers/helpers';
+import { TABLE_ALIAS, withChatrooms } from '@/server/api/routers/helpers';
 
 const getChatrooms = protectedProcedure
   .input(
@@ -13,15 +13,15 @@ const getChatrooms = protectedProcedure
   )
   .query(async ({ ctx, input }) => {
     const chatrooms = await ctx.db
-      .selectFrom(`author as ${AUTHOR_ALIAS}`)
+      .selectFrom(`author as ${TABLE_ALIAS.author}`)
       .select((eb) => [
-        `${AUTHOR_ALIAS}.author_id`,
-        `${AUTHOR_ALIAS}.user_id`,
-        `${AUTHOR_ALIAS}.first_name`,
-        `${AUTHOR_ALIAS}.last_name`,
+        `${TABLE_ALIAS.author}.author_id`,
+        `${TABLE_ALIAS.author}.user_id`,
+        `${TABLE_ALIAS.author}.first_name`,
+        `${TABLE_ALIAS.author}.last_name`,
         withChatrooms(eb),
       ])
-      .where((eb) => eb(`${AUTHOR_ALIAS}.user_id`, '=', ctx.auth.userId))
+      .where((eb) => eb(`${TABLE_ALIAS.author}.user_id`, '=', ctx.auth.userId))
       .execute();
 
     if (chatrooms.length === 0) {

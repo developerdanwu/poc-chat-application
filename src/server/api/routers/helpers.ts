@@ -6,32 +6,36 @@ import {
 } from '@prisma-generated/generated/types';
 import { jsonArrayFrom } from 'kysely/helpers/postgres';
 
-export const CHATROOM_ALIAS = 'c' as const;
-export const AUTHOR_ALIAS = 'au' as const;
+export const TABLE_ALIAS = {
+  chatroom: 'c',
+  author: 'au',
+  authors_on_chatrooms: 'ac',
+} as const;
+
 export const withAuthors = (
-  eb: ExpressionBuilder<DB & { [CHATROOM_ALIAS]: Chatroom }, 'c'>
+  eb: ExpressionBuilder<DB & { [TABLE_ALIAS.chatroom]: Chatroom }, 'c'>
 ) => {
   return jsonArrayFrom(
     eb
-      .selectFrom(`author as ${AUTHOR_ALIAS}`)
+      .selectFrom(`author as ${TABLE_ALIAS.author}`)
       .innerJoin(
-        '_authors_on_chatrooms',
-        '_authors_on_chatrooms.author_id',
-        `${AUTHOR_ALIAS}.author_id`
+        `_authors_on_chatrooms as ${TABLE_ALIAS.authors_on_chatrooms}`,
+        `${TABLE_ALIAS.authors_on_chatrooms}.author_id`,
+        `${TABLE_ALIAS.author}.author_id`
       )
       .select([
-        `${AUTHOR_ALIAS}.first_name`,
-        `${AUTHOR_ALIAS}.last_name`,
-        `${AUTHOR_ALIAS}.user_id`,
-        `${AUTHOR_ALIAS}.author_id`,
-        `${AUTHOR_ALIAS}.role`,
-        `${AUTHOR_ALIAS}.created_at`,
-        `${AUTHOR_ALIAS}.updated_at`,
+        `${TABLE_ALIAS.author}.first_name`,
+        `${TABLE_ALIAS.author}.last_name`,
+        `${TABLE_ALIAS.author}.user_id`,
+        `${TABLE_ALIAS.author}.author_id`,
+        `${TABLE_ALIAS.author}.role`,
+        `${TABLE_ALIAS.author}.created_at`,
+        `${TABLE_ALIAS.author}.updated_at`,
       ])
       .whereRef(
-        '_authors_on_chatrooms.chatroom_id',
+        `${TABLE_ALIAS.authors_on_chatrooms}.chatroom_id`,
         '=',
-        `${CHATROOM_ALIAS}.id`
+        `${TABLE_ALIAS.chatroom}.id`
       )
   ).as('authors');
 };
@@ -41,24 +45,24 @@ export const withChatrooms = (
 ) => {
   return jsonArrayFrom(
     eb
-      .selectFrom(`chatroom as ${CHATROOM_ALIAS}`)
+      .selectFrom(`chatroom as ${TABLE_ALIAS.chatroom}`)
       .innerJoin(
-        '_authors_on_chatrooms',
-        '_authors_on_chatrooms.chatroom_id',
-        `${CHATROOM_ALIAS}.id`
+        `_authors_on_chatrooms as ${TABLE_ALIAS.authors_on_chatrooms}`,
+        `${TABLE_ALIAS.authors_on_chatrooms}.chatroom_id`,
+        `${TABLE_ALIAS.chatroom}.id`
       )
       .select((eb) => [
-        `${CHATROOM_ALIAS}.id`,
-        `${CHATROOM_ALIAS}.status`,
-        `${CHATROOM_ALIAS}.type`,
-        `${CHATROOM_ALIAS}.created_at`,
-        `${CHATROOM_ALIAS}.updated_at`,
+        `${TABLE_ALIAS.chatroom}.id`,
+        `${TABLE_ALIAS.chatroom}.status`,
+        `${TABLE_ALIAS.chatroom}.type`,
+        `${TABLE_ALIAS.chatroom}.created_at`,
+        `${TABLE_ALIAS.chatroom}.updated_at`,
         withAuthors(eb),
       ])
       .whereRef(
-        '_authors_on_chatrooms.author_id',
+        `${TABLE_ALIAS.authors_on_chatrooms}.author_id`,
         '=',
-        `${AUTHOR_ALIAS}.author_id`
+        `${TABLE_ALIAS.author}.author_id`
       )
   ).as('chatrooms');
 };
