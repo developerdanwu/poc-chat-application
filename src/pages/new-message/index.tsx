@@ -30,7 +30,7 @@ const ChatHeader = ({
   };
 }) => {
   if (!context?.watchedAuthors || context?.watchedAuthors.length === 0) {
-    return null;
+    return <></>;
   }
 
   if (context.watchedAuthors.length > 0) {
