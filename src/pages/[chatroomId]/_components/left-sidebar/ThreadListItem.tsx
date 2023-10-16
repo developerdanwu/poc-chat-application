@@ -57,7 +57,7 @@ const ThreadListItem = ({
 
         <p
           className={cn(
-            'select-none overflow-hidden overflow-ellipsis whitespace-nowrap pl-3 text-xs font-normal leading-4 text-slate-400',
+            'select-none overflow-hidden overflow-ellipsis whitespace-nowrap pl-3 text-detail text-slate-400',
             {
               'text-white': selected,
             }
@@ -67,12 +67,9 @@ const ThreadListItem = ({
         </p>
       </div>
       <p
-        className={cn(
-          'text-warm-gray-400 select-none text-xs font-normal leading-4',
-          {
-            'text-white': selected,
-          }
-        )}
+        className={cn('text-warm-gray-400 select-none text-detail ', {
+          'text-white': selected,
+        })}
       >
         {helperText}
       </p>

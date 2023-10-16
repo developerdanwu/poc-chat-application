@@ -1,7 +1,8 @@
 import origCN, { type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { extendTailwindMerge } from 'tailwind-merge';
 import { useUser } from '@clerk/nextjs';
 import { useAblyStore } from '@/lib/ably';
+import extendedTheme from './extended-theme.cjs';
 
 const getFullName = ({
   firstName,
@@ -45,8 +46,42 @@ export const useApiTransformUtils = () => {
   };
 };
 
+function formatColors() {
+  const colors = [];
+  for (const [key, color] of Object.entries(extendedTheme.colors)) {
+    if (typeof color === 'string') {
+      colors.push(key);
+    } else {
+      const colorGroup = Object.keys(color).map((subKey) =>
+        subKey === 'DEFAULT' ? '' : subKey
+      );
+      colors.push({ [key]: colorGroup });
+    }
+  }
+  return colors;
+}
+
+const customTwMerge = extendTailwindMerge({
+  theme: {
+    colors: formatColors(),
+    borderRadius: Object.keys(extendedTheme.borderRadius),
+  },
+  classGroups: {
+    'font-size': [
+      {
+        text: Object.keys(extendedTheme.fontSize),
+      },
+    ],
+    animate: [
+      {
+        animate: Object.keys(extendedTheme.animation),
+      },
+    ],
+  },
+});
+
 export const cn = (...inputs: ClassValue[]) => {
-  return twMerge(origCN(inputs));
+  return customTwMerge(origCN(inputs));
 };
 
 export const safeJSONParse = (content: any) => {
