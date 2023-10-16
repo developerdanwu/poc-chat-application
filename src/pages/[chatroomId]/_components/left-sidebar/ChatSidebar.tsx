@@ -24,8 +24,7 @@ const ChatSidebar = () => {
 
   const user = useUser();
 
-  const { filterAuthedUserFromChatroomAuthors, getFullName } =
-    useApiTransformUtils();
+  const { filterAuthedUserFromChatroomAuthors } = useApiTransformUtils();
   useDebounce(
     () => {
       setDebouncedSearch(search);
@@ -53,7 +52,6 @@ const ChatSidebar = () => {
       </div>
 
       <div className="flex w-full flex-col space-y-3 overflow-auto pt-4">
-        {/*<AiModelsSection />*/}
         <Collapsible defaultOpen={true}>
           <div className="flex items-center space-x-2 pl-3">
             <CollapsibleTrigger asChild>

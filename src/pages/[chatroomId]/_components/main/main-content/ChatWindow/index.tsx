@@ -4,7 +4,6 @@ import dayjs from 'dayjs';
 import { cn, useApiTransformUtils } from '@/lib/utils';
 import { type RouterOutput } from '@/server/api/root';
 import { useUser } from '@clerk/nextjs';
-import RadialProgress from '@/components/elements/RadialProgress';
 import {
   useChatroomMessages,
   useMessageUpdate,
@@ -21,6 +20,7 @@ import {
 } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/chat-reply-item';
 import { create } from 'zustand';
 import { motion, type MotionValue, useMotionValue } from 'framer-motion';
+import { Skeleton } from '@/components/elements/skeleton';
 
 const CHATWINDOW_TOP_THRESHOLD = 50;
 
@@ -30,6 +30,7 @@ export type ChatWindowRef = {
 };
 
 export type ChatWindowVirtualListContext = {
+  firstItemIndex?: number;
   chatroomId?: string;
   hasNextPage?: boolean;
   filteredChatroomUsers?: RouterOutput['chatroom']['getChatroom']['authors'];
@@ -59,12 +60,27 @@ export const useChatroomState = create<{
   },
 }));
 
-export const ChatWindowLoading = () => {
+const ChatItemSkeleton = ({
+  variant = 'one',
+}: {
+  variant?: 'one' | 'two' | 'three' | 'four';
+}) => {
   return (
-    <div className="flex w-full flex-[1_0_0] flex-col">
-      <div className="flex-[1_1_0]" />
-      <div className="flex justify-center py-2">
-        <RadialProgress />
+    <div className="flex space-x-3 py-2 px-6">
+      <Skeleton className={cn('h-10 w-10 flex-shrink-0 rounded-full')} />
+      <div className="mt-2 flex flex-shrink  flex-col space-y-3">
+        <div className="flex space-x-1">
+          <Skeleton className={cn(' h-2 w-20 rounded-full')} />
+          <Skeleton className={cn('h-2 w-12 rounded-full')} />
+        </div>
+        <Skeleton
+          className={cn('flex-shrink ', {
+            'h-2 w-72 rounded-full': variant === 'one',
+            'h-2 w-52 rounded-full': variant === 'two',
+            'h-2 w-16 rounded-full': variant === 'three',
+            'h-52 w-72': variant === 'four',
+          })}
+        />
       </div>
     </div>
   );
@@ -75,12 +91,24 @@ const ChatHeader = ({
 }: {
   context?: ChatWindowVirtualListContext;
 }) => {
-  console.log('HEADERRR', context);
   if (!context?.filteredChatroomUsers || context?.hasNextPage) {
     return (
-      <div className="flex justify-center py-2">
-        <RadialProgress />
-      </div>
+      <>
+        {Array(10)
+          .fill(true)
+          .map((_, index) => {
+            if (index % 4 === 0) {
+              return <ChatItemSkeleton key={index} variant="four" />;
+            }
+            if (index % 3 === 0) {
+              return <ChatItemSkeleton key={index} variant="three" />;
+            }
+            if (index % 2 === 0) {
+              return <ChatItemSkeleton key={index} variant="two" />;
+            }
+            return <ChatItemSkeleton key={index} variant="one" />;
+          })}
+      </>
     );
   }
 
@@ -285,6 +313,7 @@ const ChatWindow = function <T>({
         initialScrollTop={scrollTop()}
         groupCounts={groupedMessagesCount || []}
         context={{
+          firstItemIndex,
           chatroomId,
           topHeight,
           groupedMessagesKeys,
@@ -323,8 +352,9 @@ const ChatWindow = function <T>({
             </div>
           );
         }}
-        itemContent={(_index, _groupIndex) => {
-          const originalIndex = _index - firstItemIndex;
+        itemContent={(_index, _groupIndex, _data, context) => {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const originalIndex = _index - context!.firstItemIndex!;
           const accumulatedIndex = groupedMessagesCount?.reduce(
             (prevVal, nextVal, index) => {
               if (index <= _groupIndex) {
@@ -335,13 +365,13 @@ const ChatWindow = function <T>({
             0
           );
           if (!accumulatedIndex) {
-            return <div>UNSUPPORTED MESSAGE</div>;
+            return <ChatItemSkeleton />;
           }
           const isStartOfGroup = accumulatedIndex - 1 === originalIndex;
           const isStartOfList = originalIndex === 0;
           const message = messages?.[_index - firstItemIndex];
           if (!message) {
-            return <div>UNSUPPORTED MESSAGE</div>;
+            return <ChatItemSkeleton />;
           }
           const isEndOfList = originalIndex === messages.length - 1;
           if (message && authorsHashmap) {

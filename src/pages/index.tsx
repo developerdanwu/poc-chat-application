@@ -7,8 +7,8 @@ const Home: NextPageWithLayout = () => {
   const chatrooms = api.chatroom.getChatrooms.useQuery();
   const router = useRouter();
 
-  if (chatrooms.data && chatrooms.data.length > 0) {
-    const chatroom = chatrooms.data[0];
+  if (chatrooms.data && chatrooms.data.chatrooms.length > 0) {
+    const chatroom = chatrooms.data.chatrooms[0];
     if (chatroom) {
       router.push(`/${chatroom.id}`);
     }

@@ -14,7 +14,7 @@ const ThreadListItem = ({
   selected,
   helperText,
 }: {
-  authors: RouterOutput['chatroom']['getChatrooms'][number]['authors'];
+  authors: RouterOutput['chatroom']['getChatrooms']['chatrooms'][number]['authors'];
   helperText?: string;
   selected?: boolean;
 }) => {
