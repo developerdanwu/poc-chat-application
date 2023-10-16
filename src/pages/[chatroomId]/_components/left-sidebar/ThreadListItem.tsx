@@ -15,7 +15,7 @@ const ThreadListItem = ({
   helperText,
 }: {
   authors: RouterOutput['chatroom']['getChatrooms']['chatrooms'][number]['authors'];
-  helperText?: string;
+  helperText?: React.ReactNode;
   selected?: boolean;
 }) => {
   const { getUserPrescence, getFullName } = useApiTransformUtils();
@@ -35,7 +35,7 @@ const ThreadListItem = ({
   return (
     <div
       className={cn(
-        'flex w-full cursor-pointer items-center justify-between rounded-sm py-2 px-2 hover:bg-slate-700',
+        'flex w-full cursor-pointer items-center justify-between rounded-sm py-1 px-2 hover:bg-slate-700',
         {
           'bg-slate-500 hover:bg-slate-500': selected,
         }

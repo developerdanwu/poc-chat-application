@@ -1,7 +1,9 @@
 import { protectedProcedure } from '@/server/api/trpc';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { dbConfig, withChatrooms } from '@/server/api/routers/helpers';
+import { cast, dbConfig, withAuthors } from '@/server/api/routers/helpers';
+import { jsonArrayFrom } from 'kysely/helpers/postgres';
+import { MessageStatus } from '@prisma-generated/generated/types';
 
 const getChatrooms = protectedProcedure
   .input(
@@ -14,7 +16,48 @@ const getChatrooms = protectedProcedure
   .query(async ({ ctx, input }) => {
     const chatrooms = await ctx.db
       .selectFrom(`author as ${dbConfig.tableAlias.author}`)
-      .select((eb) => [...dbConfig.selectFields.author, withChatrooms(eb)])
+      .select((eb) => [
+        ...dbConfig.selectFields.author,
+        jsonArrayFrom(
+          eb
+            .selectFrom(`chatroom as ${dbConfig.tableAlias.chatroom}`)
+            .innerJoin(
+              `_authors_on_chatrooms as ${dbConfig.tableAlias._authors_on_chatrooms}`,
+              `${dbConfig.tableAlias._authors_on_chatrooms}.chatroom_id`,
+              `${dbConfig.tableAlias.chatroom}.id`
+            )
+            .innerJoin(
+              `message as ${dbConfig.tableAlias.message}`,
+              `${dbConfig.tableAlias.chatroom}.id`,
+              `${dbConfig.tableAlias.message}.chatroom_id`
+            )
+
+            .select((eb) => [
+              ...dbConfig.selectFields.chatroom,
+              cast(
+                eb.fn
+                  .count(`${dbConfig.tableAlias.message}.client_message_id`)
+                  .filterWhere((eb) =>
+                    eb(
+                      `${dbConfig.tableAlias.message}.status`,
+                      '=',
+                      MessageStatus.SENT
+                    )
+                  )
+                  .distinct(),
+                'int4'
+              ).as('unread_count'),
+              // @ts-expect-error idk why this is not working
+              withAuthors(eb),
+            ])
+            .groupBy(`${dbConfig.tableAlias.chatroom}.id`)
+            .whereRef(
+              `${dbConfig.tableAlias._authors_on_chatrooms}.author_id`,
+              '=',
+              `${dbConfig.tableAlias.author}.author_id`
+            )
+        ).as('chatrooms'),
+      ])
       .where((eb) =>
         eb(`${dbConfig.tableAlias.author}.user_id`, '=', ctx.auth.userId)
       )

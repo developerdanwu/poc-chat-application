@@ -75,6 +75,17 @@ const ChatSidebar = () => {
                   <ThreadListItem
                     authors={filteredAuthors}
                     selected={chatroomId === chatroom.id}
+                    helperText={
+                      chatroom.unread_count > 0 ? (
+                        <div
+                          className="flex  h-5 w-7 items-center justify-center rounded-full bg-red-600 text-white"
+                        >
+                          <p className="text-detail">
+                            {chatroom.unread_count}
+                          </p>
+                        </div>
+                      ) : null
+                    }
                     // TODO: setup page to let user fill in important details
                   />
                 </Link>
