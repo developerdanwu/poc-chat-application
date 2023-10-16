@@ -10,6 +10,7 @@ html, body {
 
 @layer base {
     :root {
+        --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont;
         --background: 0 0% 100%;
         --foreground: 222.2 84% 4.9%;
 
