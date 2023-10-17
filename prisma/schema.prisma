@@ -31,6 +31,8 @@ model Message {
   attachments       Attachment[]
   messageRecepients MessageRecepient[]
   chatroom          Chatroom           @relation("ChatroomMessage", fields: [chatroomId], references: [id], onDelete: Cascade)
+  authorId          Int                @map("author_id")
+  author            Author             @relation(fields: [authorId], references: [authorId])
 
   @@index([chatroomId])
   @@map("message")
@@ -78,20 +80,21 @@ model AiSettings {
 }
 
 model Author {
-  firstName         String               @map("first_name")
-  lastName          String               @map("last_name")
-  email             String?              @unique
-  authorId          Int                  @id @default(autoincrement()) @map("author_id")
-  role              Role                 @map("role")
-  userId            String               @unique @map("user_id")
-  createdAt         DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt         DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
-  humanUserId       Int?                 @map("human_user_id")
-  chatrooms         AuthorsOnChatrooms[]
-  aiSettings        AiSettings?
-  humanUser         Author?              @relation("HumanUserAIUsers", fields: [humanUserId], references: [authorId])
-  aiUsers           Author[]             @relation("HumanUserAIUsers")
-  messageRecepients MessageRecepient[]
+  firstName        String               @map("first_name")
+  lastName         String               @map("last_name")
+  email            String?              @unique
+  authorId         Int                  @id @default(autoincrement()) @map("author_id")
+  role             Role                 @map("role")
+  userId           String               @unique @map("user_id")
+  createdAt        DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt        DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
+  humanUserId      Int?                 @map("human_user_id")
+  chatrooms        AuthorsOnChatrooms[]
+  aiSettings       AiSettings?
+  humanUser        Author?              @relation("HumanUserAIUsers", fields: [humanUserId], references: [authorId])
+  aiUsers          Author[]             @relation("HumanUserAIUsers")
+  messagesReceived MessageRecepient[]
+  messagesSent     Message[]
 
   @@index([authorId])
   @@map("author")

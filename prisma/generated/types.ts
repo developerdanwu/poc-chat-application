@@ -100,6 +100,7 @@ export type Message = {
   updated_at: Timestamp;
   is_edited: Generated<boolean>;
   visibility: MessageVisibility;
+  author_id: number;
 };
 export type MessageRecepient = {
   id: Generated<number>;
