@@ -6,14 +6,10 @@ import {
   authorsInputSchema,
   guessChatroomFromAuthorsMethod,
 } from '@/server/api/routers/chatroom/procedures/guessChatroomFromAuthors';
-import {
-  ChatroomType,
-  MessageStatus,
-  MessageType,
-  MessageVisibility,
-} from '@prisma-generated/generated/types';
+import { ChatroomType } from '@prisma-generated/generated/types';
 import { getChatroomMethod } from '@/server/api/routers/chatroom/procedures/getChatroom';
 import { dbConfig, withAuthors } from '@/server/api/routers/helpers';
+import { sendMessageMethod } from '@/server/api/routers/messaging/procedures/sendMessage';
 
 const startNewChat = protectedProcedure
   .input(
@@ -26,6 +22,7 @@ const startNewChat = protectedProcedure
   )
   .mutation(async ({ ctx, input }) => {
     // get chatroom
+
     const chatroom = await guessChatroomFromAuthorsMethod({
       input: {
         authors: input.authors,
@@ -35,36 +32,20 @@ const startNewChat = protectedProcedure
 
     // if there is 1 element return the chatroom
     if (chatroom) {
-      // create new message
       await ctx.db.transaction().execute(async (trx) => {
-        const message = await trx
-          .insertInto('message')
-          .values((eb) => {
-            return {
-              message_checksum: input.message_checksum,
-              text: input.text,
-              type: MessageType.MESSAGE,
-              content: input.content,
-              visibility: MessageVisibility.ALL,
-              author_id: eb
-                .selectFrom('author')
-                .select('author_id')
-                .where('author.user_id', '=', ctx.auth.userId),
-              chatroom_id: chatroom.id,
-              updated_at: dayjs.utc().toISOString(),
-            };
-          })
-          .returning('client_message_id')
-          .executeTakeFirstOrThrow();
-        chatroom.authors.forEach((author) => {
-          trx
-            .insertInto('message_recepient')
-            .values((eb) => ({
-              recepient_id: author.author_id,
-              message_id: message.client_message_id,
-              status: MessageStatus.SENT,
-            }))
-            .execute();
+        // create new message
+        await sendMessageMethod({
+          input: {
+            messageChecksum: input.message_checksum,
+            text: input.text,
+            chatroomId: chatroom.id,
+            content: input.content,
+            authors: chatroom.authors,
+          },
+          ctx: {
+            db: trx,
+            auth: ctx.auth,
+          },
         });
       });
 
@@ -101,34 +82,18 @@ const startNewChat = protectedProcedure
         .execute();
 
       // create new message
-      const message = await trx
-        .insertInto('message')
-        .values((eb) => {
-          return {
-            message_checksum: input.message_checksum,
-            text: input.text,
-            type: MessageType.MESSAGE,
-            content: input.content,
-            visibility: MessageVisibility.ALL,
-            author_id: eb
-              .selectFrom('author')
-              .select('author_id')
-              .where('author.user_id', '=', ctx.auth.userId),
-            chatroom_id: _newChatroom.id,
-            updated_at: dayjs.utc().toISOString(),
-          };
-        })
-        .returning('client_message_id')
-        .executeTakeFirstOrThrow();
-      _newChatroom.authors.forEach((author) => {
-        trx
-          .insertInto('message_recepient')
-          .values((eb) => ({
-            recepient_id: author.author_id,
-            message_id: message.client_message_id,
-            status: MessageStatus.SENT,
-          }))
-          .execute();
+      await sendMessageMethod({
+        input: {
+          messageChecksum: input.message_checksum,
+          text: input.text,
+          chatroomId: _newChatroom.id,
+          content: input.content,
+          authors: _newChatroom.authors,
+        },
+        ctx: {
+          db: trx,
+          auth: ctx.auth,
+        },
       });
 
       return _newChatroom;

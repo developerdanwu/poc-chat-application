@@ -1,6 +1,7 @@
 import { ablyRest, protectedProcedure } from '@/server/api/trpc';
 import { z } from 'zod';
 import {
+  type DB,
   MessageStatus,
   MessageType,
   MessageVisibility,
@@ -9,25 +10,66 @@ import dayjs from 'dayjs';
 import { ablyChannelKeyStore } from '@/lib/ably';
 import { TRPCError } from '@trpc/server';
 import { dbConfig, withAuthors } from '@/server/api/routers/helpers';
+import { type SignedInAuthObject } from '@clerk/backend';
+import { type Kysely } from 'kysely';
+
+const sendMessageInputSchema = z.object({
+  messageChecksum: z.string().min(1),
+  text: z.string().min(1),
+  chatroomId: z.string().min(1),
+  content: z.string(),
+});
+
+type SendMessageInputSchema = z.infer<typeof sendMessageInputSchema>;
+
+export const sendMessageMethod = async ({
+  input,
+  ctx,
+}: {
+  input: SendMessageInputSchema & {
+    authors: {
+      author_id: number;
+    }[];
+  };
+  ctx: { db: Kysely<DB>; auth: SignedInAuthObject };
+}) => {
+  const message = await ctx.db
+    .insertInto('message')
+    .values((eb) => {
+      return {
+        message_checksum: input.messageChecksum,
+        text: input.text,
+        type: MessageType.MESSAGE,
+        content: input.content,
+        visibility: MessageVisibility.ALL,
+        author_id: eb
+          .selectFrom('author')
+          .select('author_id')
+          .where('author.user_id', '=', ctx.auth.userId),
+        chatroom_id: input.chatroomId,
+        updated_at: dayjs.utc().toISOString(),
+      };
+    })
+    .returning([...dbConfig.selectFields.message])
+    .executeTakeFirstOrThrow();
+  input.authors.forEach((author) => {
+    ctx.db
+      .insertInto('message_recepient')
+      .values((eb) => ({
+        recepient_id: author.author_id,
+        message_id: message.client_message_id,
+        status: MessageStatus.SENT,
+      }))
+      .execute();
+  });
+
+  return message;
+};
 
 const sendMessage = protectedProcedure
-  .input(
-    z.object({
-      messageChecksum: z.string().min(1),
-      text: z.string().min(1),
-      chatroomId: z.string().min(1),
-      content: z.string(),
-      // TODO: add Ai model
-    })
-  )
+  .input(sendMessageInputSchema)
   .mutation(async ({ ctx, input }) => {
     try {
-      const author = await ctx.db
-        .selectFrom('author')
-        .select('author_id')
-        .where('author.user_id', '=', ctx.auth.userId)
-        .executeTakeFirstOrThrow();
-
       const chatroom = await ctx.db
         .selectFrom(`chatroom as ${dbConfig.tableAlias.chatroom}`)
         .select((eb) => [...dbConfig.selectFields.chatroom, withAuthors(eb)])
@@ -38,37 +80,16 @@ const sendMessage = protectedProcedure
         .executeTakeFirstOrThrow();
 
       const message = await ctx.db.transaction().execute(async (trx) => {
-        const _message = await trx
-          .insertInto('message')
-          .values((eb) => {
-            return {
-              message_checksum: input.messageChecksum,
-              text: input.text,
-              type: MessageType.MESSAGE,
-              content: input.content,
-              visibility: MessageVisibility.ALL,
-              author_id: eb
-                .selectFrom('author')
-                .select('author_id')
-                .where('author.user_id', '=', ctx.auth.userId),
-              chatroom_id: chatroom.id,
-              updated_at: dayjs.utc().toISOString(),
-            };
-          })
-          .returning([...dbConfig.selectFields.message])
-          .executeTakeFirstOrThrow();
-        chatroom.authors.forEach((author) => {
-          trx
-            .insertInto('message_recepient')
-            .values((eb) => ({
-              recepient_id: author.author_id,
-              message_id: _message.client_message_id,
-              status: MessageStatus.SENT,
-            }))
-            .execute();
+        return await sendMessageMethod({
+          ctx: {
+            db: trx,
+            auth: ctx.auth,
+          },
+          input: {
+            authors: chatroom.authors,
+            ...input,
+          },
         });
-
-        return _message;
       });
 
       for (const c of chatroom.authors) {
