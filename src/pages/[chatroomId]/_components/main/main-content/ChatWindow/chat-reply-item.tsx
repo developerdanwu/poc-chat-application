@@ -91,7 +91,7 @@ export const ChatReplyItemWrapper = ({
           className={cn(
             'absolute left-1/2 -top-[10px] flex w-full -translate-x-1/2 items-center space-x-3',
             {
-              '-top-8': isFirstOfNewGroup,
+              '-top-7': isFirstOfNewGroup,
             }
           )}
         >

@@ -22,7 +22,7 @@ const getMessages = protectedProcedure
         .selectFrom((eb) => {
           return eb
             .selectFrom(`message as ${dbConfig.tableAlias.message}`)
-            .selectAll()
+            .select([...dbConfig.selectFields.message])
             .where((eb) => {
               return eb.and([
                 eb('chatroom_id', '=', input.chatroomId),

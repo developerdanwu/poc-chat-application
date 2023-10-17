@@ -40,11 +40,18 @@ const getChatrooms = protectedProcedure
                   .count(`${dbConfig.tableAlias.message}.client_message_id`)
                   .filterWhere((eb) =>
                     eb.and([
-                      eb(
-                        `${dbConfig.tableAlias.message}.status`,
-                        '=',
-                        MessageStatus.SENT
-                      ),
+                      eb.or([
+                        eb(
+                          `${dbConfig.tableAlias.message}.status`,
+                          '=',
+                          MessageStatus.DELIVERED
+                        ),
+                        eb(
+                          `${dbConfig.tableAlias.message}.status`,
+                          '=',
+                          MessageStatus.SENT
+                        ),
+                      ]),
                       eb('m.author_id', '!=', ownAuthor.author_id),
                     ])
                   )

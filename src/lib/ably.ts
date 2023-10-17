@@ -139,6 +139,7 @@ export const useSyncGlobalStore = () => {
     (message: AblyChannelMessage['chatroom']) => {
       switch (message.name) {
         case 'get_chatrooms': {
+          console.log('DATAAA', message.data);
           queryClient.setQueriesData<RouterOutput['chatroom']['getChatrooms']>(
             getQueryKey(api.chatroom.getChatrooms),
             (oldData) => {

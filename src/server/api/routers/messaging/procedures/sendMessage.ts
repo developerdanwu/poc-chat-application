@@ -32,7 +32,7 @@ const sendMessage = protectedProcedure
         .values((eb) => ({
           text: input.text,
           type: MessageType.MESSAGE,
-          status: MessageStatus.SENT,
+          status: MessageStatus.DELIVERED,
           visibility: MessageVisibility.ALL,
           message_checksum: input.messageChecksum,
           content: input.content,
@@ -51,51 +51,7 @@ const sendMessage = protectedProcedure
 
       const chatroom = await ctx.db
         .selectFrom(`chatroom as ${dbConfig.tableAlias.chatroom}`)
-        .select((eb) => [
-          ...dbConfig.selectFields.chatroom,
-          withAuthors(eb),
-          // jsonArrayFrom(
-          //   eb
-          //     .selectFrom(`chatroom as ${dbConfig.tableAlias.chatroom}`)
-          //     .innerJoin(
-          //       `_authors_on_chatrooms as ${dbConfig.tableAlias._authors_on_chatrooms}`,
-          //       `${dbConfig.tableAlias._authors_on_chatrooms}.chatroom_id`,
-          //       `${dbConfig.tableAlias.chatroom}.id`
-          //     )
-          //     .innerJoin(
-          //       `message as ${dbConfig.tableAlias.message}`,
-          //       `${dbConfig.tableAlias.chatroom}.id`,
-          //       `${dbConfig.tableAlias.message}.chatroom_id`
-          //     )
-          //     .select((eb) => [
-          //       ...dbConfig.selectFields.chatroom,
-          //       cast(
-          //         eb.fn
-          //           .count(`${dbConfig.tableAlias.message}.client_message_id`)
-          //           .filterWhere((eb) =>
-          //             eb.and([
-          //               eb(
-          //                 `${dbConfig.tableAlias.message}.status`,
-          //                 '=',
-          //                 MessageStatus.SENT
-          //               ),
-          //               eb('m.author_id', '!=', ownAuthor.author_id),
-          //             ])
-          //           )
-          //           .distinct(),
-          //         'int4'
-          //       ).as('unread_count'),
-          //       // @ts-expect-error idk why this is not working
-          //       withAuthors(eb),
-          //     ])
-          //     .groupBy(`${dbConfig.tableAlias.chatroom}.id`)
-          //     .whereRef(
-          //       `${dbConfig.tableAlias._authors_on_chatrooms}.author_id`,
-          //       '=',
-          //       `${dbConfig.tableAlias.author}.author_id`
-          //     )
-          // ).as('chatrooms'),
-        ])
+        .select((eb) => [...dbConfig.selectFields.chatroom, withAuthors(eb)])
         .where((eb) =>
           eb(`${dbConfig.tableAlias.chatroom}.id`, '=', input.chatroomId)
         )
@@ -111,12 +67,28 @@ const sendMessage = protectedProcedure
                 .count(`${dbConfig.tableAlias.message}.client_message_id`)
                 .filterWhere((eb) =>
                   eb.and([
+                    eb.or([
+                      eb(
+                        `${dbConfig.tableAlias.message}.status`,
+                        '=',
+                        MessageStatus.SENT
+                      ),
+                      eb(
+                        `${dbConfig.tableAlias.message}.status`,
+                        '=',
+                        MessageStatus.DELIVERED
+                      ),
+                    ]),
                     eb(
-                      `${dbConfig.tableAlias.message}.status`,
-                      '=',
-                      MessageStatus.SENT
+                      `${dbConfig.tableAlias.message}.author_id`,
+                      '!=',
+                      c.author_id
                     ),
-                    eb('m.author_id', '!=', c.author_id),
+                    eb(
+                      `${dbConfig.tableAlias.message}.chatroom_id`,
+                      '=',
+                      input.chatroomId
+                    ),
                   ])
                 )
                 .distinct(),
