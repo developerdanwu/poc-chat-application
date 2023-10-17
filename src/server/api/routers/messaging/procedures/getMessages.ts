@@ -1,8 +1,7 @@
 import {protectedProcedure} from '@/server/api/trpc';
 import {z} from 'zod';
 import {MESSAGES_PER_PAGE} from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/constants';
-import {dbConfig} from '@/server/api/routers/helpers';
-import {jsonArrayFrom} from 'kysely/helpers/postgres';
+import {dbConfig} from '@/server/api/routers/helpers'; // implement a before and latest
 
 // implement a before and latest
 
@@ -23,21 +22,7 @@ const getMessages = protectedProcedure
         .selectFrom((eb) => {
           return eb
             .selectFrom(`message as ${dbConfig.tableAlias.message}`)
-            .select([
-              ...dbConfig.selectFields.message,
-              jsonArrayFrom(
-                eb
-                  .selectFrom(
-                    `message_recepient as ${dbConfig.tableAlias.message_recepient}`
-                  )
-                  .select(['mr.message_id'])
-                  .whereRef(
-                    `${dbConfig.tableAlias.message}.client_message_id`,
-                    '=',
-                    `${dbConfig.tableAlias.message_recepient}.message_id`
-                  )
-              ).as('message_recepients'),
-            ])
+            .select([...dbConfig.selectFields.message])
             .where((eb) => {
               return eb.and([
                 eb('chatroom_id', '=', input.chatroomId),

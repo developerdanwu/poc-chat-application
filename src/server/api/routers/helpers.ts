@@ -8,11 +8,11 @@ import {
 import { jsonArrayFrom } from 'kysely/helpers/postgres';
 
 const TABLE_ALIAS = {
-  chatroom: 'c',
-  author: 'au',
-  _authors_on_chatrooms: 'ac',
-  message: 'm',
-  message_recepient: 'mr',
+  chatroom: 'chatroom',
+  author: 'author',
+  _authors_on_chatrooms: '_authors_on_chatrooms',
+  message: 'message',
+  message_recepient: 'message_recepient',
 } as const;
 
 const SELECT_FIELDS = {
@@ -41,6 +41,7 @@ const SELECT_FIELDS = {
     `${TABLE_ALIAS.message}.is_edited`,
     `${TABLE_ALIAS.message}.created_at`,
     `${TABLE_ALIAS.message}.updated_at`,
+    `${TABLE_ALIAS.message}.author_id`,
   ],
 } as const;
 
@@ -74,7 +75,10 @@ export function cast(
 }
 
 export const withAuthors = (
-  eb: ExpressionBuilder<DB & { [dbConfig.tableAlias.chatroom]: Chatroom }, 'c'>
+  eb: ExpressionBuilder<
+    DB & { [dbConfig.tableAlias.chatroom]: Chatroom },
+    'chatroom'
+  >
 ) => {
   return jsonArrayFrom(
     eb
