@@ -2434,27 +2434,27 @@
     "@tauri-apps/cli-win32-ia32-msvc" "1.3.1"
     "@tauri-apps/cli-win32-x64-msvc" "1.3.1"
 
-"@trpc/client@^10.9.0":
-  version "10.18.0"
-  resolved "https://registry.npmjs.org/@trpc/client/-/client-10.18.0.tgz"
-  integrity sha512-2d+6r2C/xygTjDWX9jT66defgHzbQP0Z8vrvyT3XtPjqU6JNlRNuS2ZtB8xDPdOQUUVnndzZ43BMr+Zu49K0OQ==
+"@trpc/client@^10.40.0":
+  version "10.40.0"
+  resolved "https://registry.yarnpkg.com/@trpc/client/-/client-10.40.0.tgz#edf1eb1221c611de911a85b3fa433fbb1421a47b"
+  integrity sha512-bT6BcdWjj0KzGQiimE6rB2tIaRYX0Ear4Gthb5szN/c01wrP0yC1Fbz2uCcm/QTVAwu4Lve5M+YjPoEaTHG6lg==
 
-"@trpc/next@^10.9.0":
-  version "10.18.0"
-  resolved "https://registry.npmjs.org/@trpc/next/-/next-10.18.0.tgz"
-  integrity sha512-GftAMy3K9AEATmsVTdc5zhCTLzSYpZ9bene7+sTlCF7QX/AMxIsd0ZUFrRnF6yg3jnxN+SvdNcF9IXeETXtGUw==
+"@trpc/next@^10.40.0":
+  version "10.40.0"
+  resolved "https://registry.yarnpkg.com/@trpc/next/-/next-10.40.0.tgz#a7610e9abd5896b85ea13212489c863bc4021f5f"
+  integrity sha512-GMOiN+2DIfUXxS2DuTuTT3FOzkuB5p6+1QglY5M9ywKFWBVTGkBnbLkTgoPGuglq+dPfcZbcSajRN22AUv5Qtg==
   dependencies:
     react-ssr-prepass "^1.5.0"
 
-"@trpc/react-query@^10.9.0":
-  version "10.18.0"
-  resolved "https://registry.npmjs.org/@trpc/react-query/-/react-query-10.18.0.tgz"
-  integrity sha512-5IxlvBh+KY/zOYCekBXzZUHtOrURQyXNnpQg9ZlEZTiyZmivGjIyH2VQIsFsGrK8IU99GAmIReQCw6uWgQrEcQ==
+"@trpc/react-query@^10.40.0":
+  version "10.40.0"
+  resolved "https://registry.yarnpkg.com/@trpc/react-query/-/react-query-10.40.0.tgz#11be7e6860417aa699555e2f2757c18028f8fbc3"
+  integrity sha512-DpJrV3lmYNo9xtPtcg49lfh9CUFap3ZivjhlSmfe4QPf7H6xBjAE+ml4OdJ0RmKvSTFvbLSOiNdB1k5O8zIdzQ==
 
-"@trpc/server@^10.9.0":
-  version "10.18.0"
-  resolved "https://registry.npmjs.org/@trpc/server/-/server-10.18.0.tgz"
-  integrity sha512-nVMqdDIF9YLOeC3g6RdAvdCPqkHFjpshSqZGThZ+fyjiWSUXj2ZKCduhJFnY77TjtgODojeaaghmzcnjxb+Onw==
+"@trpc/server@^10.40.0":
+  version "10.40.0"
+  resolved "https://registry.yarnpkg.com/@trpc/server/-/server-10.40.0.tgz#34b8dbc1ae58193003de01b25b44861bd338a72a"
+  integrity sha512-49SUOMWzSZtu5+OdrADmJD+u+sjSE0qj1cWgYk2FY4jLkPJunLuNRuhzM7aOeBhiUjyfhg2YTfur8FN1WBmvEw==
 
 "@tsconfig/node10@^1.0.7":
   version "1.0.9"

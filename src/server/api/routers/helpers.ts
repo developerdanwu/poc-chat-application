@@ -32,6 +32,16 @@ const SELECT_FIELDS = {
     `${TABLE_ALIAS.chatroom}.created_at`,
     `${TABLE_ALIAS.chatroom}.updated_at`,
   ],
+  message: [
+    `${TABLE_ALIAS.message}.message_checksum`,
+    `${TABLE_ALIAS.message}.client_message_id`,
+    `${TABLE_ALIAS.message}.text`,
+    `${TABLE_ALIAS.message}.content`,
+    `${TABLE_ALIAS.message}.is_edited`,
+    `${TABLE_ALIAS.message}.created_at`,
+    `${TABLE_ALIAS.message}.updated_at`,
+    `${TABLE_ALIAS.message}.author_id`,
+  ],
 } as const;
 
 export const dbConfig = {

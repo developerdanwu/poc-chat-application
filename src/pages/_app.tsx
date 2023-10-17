@@ -14,7 +14,7 @@ import {
 import { type ReactElement, type ReactNode, useEffect, useState } from 'react';
 import { type NextPage } from 'next';
 import { configureAbly } from '@ably-labs/react-hooks';
-import { useSyncOnlinePresence } from '@/lib/ably';
+import { useSyncGlobalStore, useSyncOnlinePresence } from '@/lib/ably';
 import dayjs from 'dayjs';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import utc from 'dayjs/plugin/utc';
@@ -48,6 +48,7 @@ const AblyConfigWrapper = ({ children }: { children: React.ReactNode }) => {
 
 const GlobalConfigWrapper = ({ children }: { children: React.ReactNode }) => {
   useSyncOnlinePresence();
+  useSyncGlobalStore();
   return <>{children}</>;
 };
 

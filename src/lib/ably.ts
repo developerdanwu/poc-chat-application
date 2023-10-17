@@ -1,18 +1,25 @@
-import { usePresence } from '@ably-labs/react-hooks';
+import { useChannel, usePresence } from '@ably-labs/react-hooks';
 import { useEffect } from 'react';
 import { create } from 'zustand';
 import produce from 'immer';
 import { Types } from 'ably';
+import { useAuth } from '@clerk/nextjs';
+import { type RouterOutput } from '@/server/api/root';
+import { api } from '@/lib/api';
 import PresenceMessage = Types.PresenceMessage;
 
-export const MESSAGE_STREAM_NAMES = {
-  openAiMessage: 'OPEN_AI_MESSAGE',
-} as const;
+type AblyChannelMessage = {
+  chatroom: Omit<Types.Message, 'name' | 'data'> & {
+    name: 'unread_count';
+    data: RouterOutput['chatroom']['getChatrooms']['chatrooms'][number];
+  };
+};
 
 export const ablyChannelKeyStore = {
   chatroom: (chatroomId: string) => `chatroom-${chatroomId}`,
   global: 'global',
-};
+  user: (userId: string) => `user-${userId}`,
+} as const;
 export const useAblyStore = create<{
   onlinePresence: Record<string, PresenceMessage>;
   addOnlinePresence: (presenceMessage: PresenceMessage) => void;
@@ -117,4 +124,23 @@ export const useSyncOnlinePresence = () => {
   useEffect(() => {
     setOnlinePresence(onlineUsers);
   }, [setOnlinePresence, onlineUsers]);
+};
+
+export const useSyncGlobalStore = () => {
+  const auth = useAuth();
+  const trpcUtils = api.useContext();
+  useChannel(
+    {
+      channelName: ablyChannelKeyStore.user(auth.userId!),
+    },
+    // @ts-expect-error this is correct typing
+    (message: AblyChannelMessage['chatroom']) => {
+      switch (message.name) {
+        case 'unread_count': {
+          // TODO: can do optimistic update here for better performance
+          trpcUtils.chatroom.getChatrooms.invalidate();
+        }
+      }
+    }
+  );
 };

@@ -4,6 +4,7 @@ import { TRPCError } from '@trpc/server';
 import { cast, dbConfig, withAuthors } from '@/server/api/routers/helpers';
 import { jsonArrayFrom } from 'kysely/helpers/postgres';
 import { MessageStatus } from '@prisma-generated/generated/types';
+import { getOwhAuthorMethod } from '@/server/api/routers/chatroom/procedures/getOwnAuthor';
 
 const getChatrooms = protectedProcedure
   .input(
@@ -14,6 +15,7 @@ const getChatrooms = protectedProcedure
       .optional()
   )
   .query(async ({ ctx, input }) => {
+    const ownAuthor = await getOwhAuthorMethod({ ctx });
     const chatrooms = await ctx.db
       .selectFrom(`author as ${dbConfig.tableAlias.author}`)
       .select((eb) => [
@@ -31,18 +33,20 @@ const getChatrooms = protectedProcedure
               `${dbConfig.tableAlias.chatroom}.id`,
               `${dbConfig.tableAlias.message}.chatroom_id`
             )
-
             .select((eb) => [
               ...dbConfig.selectFields.chatroom,
               cast(
                 eb.fn
                   .count(`${dbConfig.tableAlias.message}.client_message_id`)
                   .filterWhere((eb) =>
-                    eb(
-                      `${dbConfig.tableAlias.message}.status`,
-                      '=',
-                      MessageStatus.SENT
-                    )
+                    eb.and([
+                      eb(
+                        `${dbConfig.tableAlias.message}.status`,
+                        '=',
+                        MessageStatus.SENT
+                      ),
+                      eb('m.author_id', '!=', ownAuthor.author_id),
+                    ])
                   )
                   .distinct(),
                 'int4'
