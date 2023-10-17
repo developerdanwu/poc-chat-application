@@ -12,6 +12,7 @@ const TABLE_ALIAS = {
   author: 'au',
   _authors_on_chatrooms: 'ac',
   message: 'm',
+  message_recepient: 'mr',
 } as const;
 
 const SELECT_FIELDS = {
@@ -33,7 +34,6 @@ const SELECT_FIELDS = {
     `${TABLE_ALIAS.chatroom}.updated_at`,
   ],
   message: [
-    `${TABLE_ALIAS.message}.status`,
     `${TABLE_ALIAS.message}.message_checksum`,
     `${TABLE_ALIAS.message}.client_message_id`,
     `${TABLE_ALIAS.message}.text`,

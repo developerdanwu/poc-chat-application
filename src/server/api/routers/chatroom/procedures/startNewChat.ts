@@ -8,7 +8,6 @@ import {
 } from '@/server/api/routers/chatroom/procedures/guessChatroomFromAuthors';
 import {
   ChatroomType,
-  MessageStatus,
   MessageType,
   MessageVisibility,
 } from '@prisma-generated/generated/types';
@@ -43,12 +42,8 @@ const startNewChat = protectedProcedure
             text: input.text,
             type: MessageType.MESSAGE,
             content: input.content,
-            status: MessageStatus.SENT,
             visibility: MessageVisibility.ALL,
-            author_id: eb
-              .selectFrom('author')
-              .select('author_id')
-              .where('author.user_id', '=', ctx.auth.userId),
+
             chatroom_id: chatroom.id,
             updated_at: dayjs.utc().toISOString(),
           };
@@ -96,12 +91,7 @@ const startNewChat = protectedProcedure
             text: input.text,
             type: MessageType.MESSAGE,
             content: input.content,
-            status: MessageStatus.SENT,
             visibility: MessageVisibility.ALL,
-            author_id: eb
-              .selectFrom('author')
-              .select('author_id')
-              .where('author.user_id', '=', ctx.auth.userId),
             chatroom_id: _newChatroom.id,
             updated_at: dayjs.utc().toISOString(),
           };
