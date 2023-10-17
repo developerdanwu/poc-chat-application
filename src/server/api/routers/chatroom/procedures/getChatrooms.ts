@@ -1,9 +1,10 @@
 import { protectedProcedure } from '@/server/api/trpc';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { dbConfig, withAuthors } from '@/server/api/routers/helpers';
+import { cast, dbConfig, withAuthors } from '@/server/api/routers/helpers';
 import { jsonArrayFrom } from 'kysely/helpers/postgres';
 import { getOwhAuthorMethod } from '@/server/api/routers/chatroom/procedures/getOwnAuthor';
+import { MessageStatus } from '@prisma-generated/generated/types';
 
 const getChatrooms = protectedProcedure
   .input(
@@ -32,31 +33,39 @@ const getChatrooms = protectedProcedure
               `${dbConfig.tableAlias.chatroom}.id`,
               `${dbConfig.tableAlias.message}.chatroom_id`
             )
+            .innerJoin(
+              `message_recepient as ${dbConfig.tableAlias.message_recepient}`,
+              `${dbConfig.tableAlias.message_recepient}.message_id`,
+              `${dbConfig.tableAlias.message}.client_message_id`
+            )
             .select((eb) => [
               ...dbConfig.selectFields.chatroom,
-              // cast(
-              //   eb.fn
-              //     .count(`${dbConfig.tableAlias.message}.client_message_id`)
-              //     .filterWhere((eb) =>
-              //       eb.and([
-              //         eb.or([
-              //           eb(
-              //             `${dbConfig.tableAlias.message}.status`,
-              //             '=',
-              //             MessageStatus.DELIVERED
-              //           ),
-              //           eb(
-              //             `${dbConfig.tableAlias.message}.status`,
-              //             '=',
-              //             MessageStatus.SENT
-              //           ),
-              //         ]),
-              //         eb('m.author_id', '!=', ownAuthor.author_id),
-              //       ])
-              //     )
-              //     .distinct(),
-              //   'int4'
-              // ).as('unread_count'),
+              cast(
+                eb.fn
+                  .count(`${dbConfig.tableAlias.message}.client_message_id`)
+                  .filterWhere((eb) =>
+                    eb.and([
+                      eb(
+                        `${dbConfig.tableAlias.message}.author_id`,
+                        '!=',
+                        ownAuthor.author_id
+                      ),
+
+                      eb(
+                        `${dbConfig.tableAlias.message_recepient}.status`,
+                        '=',
+                        MessageStatus.DELIVERED
+                      ),
+                      eb(
+                        `${dbConfig.tableAlias.message_recepient}.recepient_id`,
+                        '=',
+                        ownAuthor.author_id
+                      ),
+                    ])
+                  )
+                  .distinct(),
+                'int4'
+              ).as('unread_count'),
               // @ts-expect-error idk why this is not working
               withAuthors(eb),
             ])

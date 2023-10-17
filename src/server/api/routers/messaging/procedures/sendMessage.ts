@@ -9,7 +9,7 @@ import {
 import dayjs from 'dayjs';
 import { ablyChannelKeyStore } from '@/lib/ably';
 import { TRPCError } from '@trpc/server';
-import { dbConfig, withAuthors } from '@/server/api/routers/helpers';
+import { cast, dbConfig, withAuthors } from '@/server/api/routers/helpers';
 import { type SignedInAuthObject } from '@clerk/backend';
 import { type Kysely } from 'kysely';
 
@@ -58,7 +58,7 @@ export const sendMessageMethod = async ({
       .values((eb) => ({
         recepient_id: author.author_id,
         message_id: message.client_message_id,
-        status: MessageStatus.SENT,
+        status: MessageStatus.DELIVERED,
       }))
       .execute();
   });
@@ -92,50 +92,53 @@ const sendMessage = protectedProcedure
         });
       });
 
-      for (const c of chatroom.authors) {
-        // const unreadCount = await ctx.db
-        //   .selectFrom(`message as ${dbConfig.tableAlias.message}`)
-        //   .select((eb) => [
-        //     cast(
-        //       eb.fn
-        //         .count(`${dbConfig.tableAlias.message}.client_message_id`)
-        //         .filterWhere((eb) =>
-        //           eb.and([
-        //             eb.or([
-        //               eb(
-        //                 `${dbConfig.tableAlias.message}.status`,
-        //                 '=',
-        //                 MessageStatus.SENT
-        //               ),
-        //               eb(
-        //                 `${dbConfig.tableAlias.message}.status`,
-        //                 '=',
-        //                 MessageStatus.DELIVERED
-        //               ),
-        //             ]),
-        //             eb(
-        //               `${dbConfig.tableAlias.message}.author_id`,
-        //               '!=',
-        //               c.author_id
-        //             ),
-        //             eb(
-        //               `${dbConfig.tableAlias.message}.chatroom_id`,
-        //               '=',
-        //               input.chatroomId
-        //             ),
-        //           ])
-        //         )
-        //         .distinct(),
-        //       'int4'
-        //     ).as('unread_count'),
-        //   ])
-        //   .executeTakeFirstOrThrow();
+      for (const a of chatroom.authors) {
+        const unreadCount = await ctx.db
+          .selectFrom(`message as ${dbConfig.tableAlias.message}`)
+          .innerJoin(
+            `message_recepient as ${dbConfig.tableAlias.message_recepient}`,
+            `${dbConfig.tableAlias.message_recepient}.message_id`,
+            `${dbConfig.tableAlias.message}.client_message_id`
+          )
+          .select((eb) => [
+            cast(
+              eb.fn
+                .count(`${dbConfig.tableAlias.message}.client_message_id`)
+                .filterWhere((eb) =>
+                  eb.and([
+                    eb(
+                      `${dbConfig.tableAlias.message}.author_id`,
+                      '!=',
+                      a.author_id
+                    ),
+                    eb(
+                      `${dbConfig.tableAlias.message}.chatroom_id`,
+                      '=',
+                      input.chatroomId
+                    ),
+                    eb(
+                      `${dbConfig.tableAlias.message_recepient}.status`,
+                      '=',
+                      MessageStatus.DELIVERED
+                    ),
+                    eb(
+                      `${dbConfig.tableAlias.message_recepient}.recepient_id`,
+                      '=',
+                      a.author_id
+                    ),
+                  ])
+                )
+                .distinct(),
+              'int4'
+            ).as('unread_count'),
+          ])
+          .executeTakeFirstOrThrow();
 
         await ablyRest.channels
-          .get(ablyChannelKeyStore.user(c.user_id))
+          .get(ablyChannelKeyStore.user(a.user_id))
           .publish('get_chatrooms', {
             ...chatroom,
-            unreadCount: 0,
+            ...unreadCount,
           });
       }
 
