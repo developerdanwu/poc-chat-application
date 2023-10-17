@@ -218,6 +218,18 @@ const ChatWindow = function <T>({
     }
   ).data;
 
+  const firstUnreadMessage = api.chatroom.getChatroom.useQuery(
+    {
+      chatroomId: chatroomId!,
+    },
+    {
+      enabled: !!chatroomId,
+      select: (data) => {
+        return data.first_unread_message;
+      },
+    }
+  ).data;
+
   const filteredChatroomUsers = api.chatroom.getChatroom.useQuery(
     {
       chatroomId: chatroomId!,
@@ -358,25 +370,40 @@ const ChatWindow = function <T>({
           const accumulatedIndex = groupedMessagesCount?.reduce(
             (prevVal, nextVal, index) => {
               if (index <= _groupIndex) {
-                return (prevVal += nextVal);
+                prevVal.accumulatedIndex += nextVal;
+              }
+              if (index < _groupIndex) {
+                prevVal.prevAccumulatedIndex += nextVal;
               }
               return prevVal;
             },
-            0
+            {
+              accumulatedIndex: 0,
+              prevAccumulatedIndex: 0,
+            }
           );
+
           if (!accumulatedIndex) {
             return <ChatItemSkeleton />;
           }
-          const isStartOfGroup = accumulatedIndex - 1 === originalIndex;
+          const isStartOfGroup =
+            accumulatedIndex.accumulatedIndex - 1 === originalIndex;
+          const isFirstOfNewGroup =
+            originalIndex - accumulatedIndex.prevAccumulatedIndex === 0;
           const isStartOfList = originalIndex === 0;
           const message = messages?.[_index - firstItemIndex];
+
           if (!message) {
             return <ChatItemSkeleton />;
           }
+          const isFirstUnreadMessage =
+            firstUnreadMessage?.client_message_id === message.client_message_id;
           const isEndOfList = originalIndex === messages.length - 1;
           if (message && authorsHashmap) {
             return (
               <ChatWindowItem
+                isFirstOfNewGroup={isFirstOfNewGroup}
+                isFirstUnreadMessage={isFirstUnreadMessage}
                 isEndOfList={isEndOfList}
                 isStartOfList={isStartOfList}
                 isStartOfGroup={isStartOfGroup}
@@ -396,6 +423,8 @@ ChatWindow.displayName = 'ChatWindow';
 
 const ChatWindowItem = React.memo(
   ({
+    isFirstOfNewGroup,
+    isFirstUnreadMessage,
     isEndOfList,
     isStartOfList,
     authorsHashmap,
@@ -403,6 +432,8 @@ const ChatWindowItem = React.memo(
     user,
     isStartOfGroup,
   }: {
+    isFirstOfNewGroup: boolean;
+    isFirstUnreadMessage: boolean;
     isEndOfList: boolean;
     isStartOfList: boolean;
     isStartOfGroup: boolean;
@@ -437,6 +468,8 @@ const ChatWindowItem = React.memo(
       previousMessageAuthor?.author_id === author.author_id;
     return (
       <ChatReplyItemWrapper
+        isFirstOfNewGroup={isFirstOfNewGroup}
+        isFirstUnreadMessage={isFirstUnreadMessage}
         isEndOfList={isEndOfList}
         isStartOfList={isStartOfList}
         isStartOfGroup={isStartOfGroup}

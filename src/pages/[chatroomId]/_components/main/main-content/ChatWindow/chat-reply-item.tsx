@@ -61,6 +61,8 @@ const ChatReplyAvatar = ({
   );
 };
 export const ChatReplyItemWrapper = ({
+  isFirstOfNewGroup,
+  isFirstUnreadMessage,
   isEndOfList,
   isStartOfList,
   isStartOfGroup,
@@ -71,6 +73,8 @@ export const ChatReplyItemWrapper = ({
   communicator,
   author,
 }: {
+  isFirstOfNewGroup: boolean;
+  isFirstUnreadMessage: boolean;
   isEndOfList: boolean;
   isStartOfList: boolean;
   isStartOfGroup: boolean;
@@ -85,25 +89,40 @@ export const ChatReplyItemWrapper = ({
     <div
       data-communicator={communicator}
       className={cn(
-        'group relative flex space-x-3 py-2 px-6 hover:bg-slate-50',
-        {
-          'before:absolute before:-bottom-5 before:left-1/2 before:h-[1px] before:w-full before:-translate-x-1/2 before:bg-slate-300':
-            isStartOfGroup && !isEndOfList,
-          'before:absolute before:-top-5 before:left-1/2 before:h-[1px] before:w-full before:-translate-x-1/2 before:bg-slate-300':
-            isStartOfList,
-        }
+        'group relative flex flex-col justify-start  py-2 px-6 hover:bg-slate-50'
       )}
     >
-      <ChatReplyAvatar
-        isLastMessageSenderEqualToCurrentMessageSender={
-          isLastMessageSenderEqualToCurrentMessageSender
-        }
-        sendDate={sendDate}
-        differenceBetweenLastMessage={differenceBetweenLastMessage}
-        lastName={author.last_name}
-        firstName={author.first_name}
-      />
-      {children}
+      {isFirstUnreadMessage ? (
+        <div
+          className={cn(
+            'absolute left-1/2 -top-[10px] flex w-full -translate-x-1/2 items-center space-x-3',
+            {
+              '-top-7': isStartOfList && isFirstOfNewGroup,
+              '-top-8': isFirstOfNewGroup,
+            }
+          )}
+        >
+          <div className="flex-grow border-t border-red-500  outline-1" />
+          <p className="pr-2 text-detail text-red-500">New</p>
+        </div>
+      ) : null}
+      {!isFirstUnreadMessage && isFirstOfNewGroup ? (
+        <div className={cn('absolute -top-5 left-1/2 w-full -translate-x-1/2')}>
+          <div className="flex-grow border-t border-slate-300" />
+        </div>
+      ) : null}
+      <div className="relative flex space-x-3">
+        <ChatReplyAvatar
+          isLastMessageSenderEqualToCurrentMessageSender={
+            isLastMessageSenderEqualToCurrentMessageSender
+          }
+          sendDate={sendDate}
+          differenceBetweenLastMessage={differenceBetweenLastMessage}
+          lastName={author.last_name}
+          firstName={author.first_name}
+        />
+        {children}
+      </div>
     </div>
   );
 };
