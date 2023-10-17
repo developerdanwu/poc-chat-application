@@ -63,9 +63,6 @@ const ChatReplyAvatar = ({
 export const ChatReplyItemWrapper = ({
   isFirstOfNewGroup,
   isFirstUnreadMessage,
-  isEndOfList,
-  isStartOfList,
-  isStartOfGroup,
   isLastMessageSenderEqualToCurrentMessageSender,
   sendDate,
   differenceBetweenLastMessage,
@@ -75,9 +72,6 @@ export const ChatReplyItemWrapper = ({
 }: {
   isFirstOfNewGroup: boolean;
   isFirstUnreadMessage: boolean;
-  isEndOfList: boolean;
-  isStartOfList: boolean;
-  isStartOfGroup: boolean;
   isLastMessageSenderEqualToCurrentMessageSender: boolean;
   differenceBetweenLastMessage: number | undefined;
   sendDate: Date;
@@ -97,7 +91,6 @@ export const ChatReplyItemWrapper = ({
           className={cn(
             'absolute left-1/2 -top-[10px] flex w-full -translate-x-1/2 items-center space-x-3',
             {
-              '-top-7': isStartOfList && isFirstOfNewGroup,
               '-top-8': isFirstOfNewGroup,
             }
           )}

@@ -386,11 +386,9 @@ const ChatWindow = function <T>({
           if (!accumulatedIndex) {
             return <ChatItemSkeleton />;
           }
-          const isStartOfGroup =
-            accumulatedIndex.accumulatedIndex - 1 === originalIndex;
+
           const isFirstOfNewGroup =
             originalIndex - accumulatedIndex.prevAccumulatedIndex === 0;
-          const isStartOfList = originalIndex === 0;
           const message = messages?.[_index - firstItemIndex];
 
           if (!message) {
@@ -398,15 +396,11 @@ const ChatWindow = function <T>({
           }
           const isFirstUnreadMessage =
             firstUnreadMessage?.client_message_id === message.client_message_id;
-          const isEndOfList = originalIndex === messages.length - 1;
           if (message && authorsHashmap) {
             return (
               <ChatWindowItem
                 isFirstOfNewGroup={isFirstOfNewGroup}
                 isFirstUnreadMessage={isFirstUnreadMessage}
-                isEndOfList={isEndOfList}
-                isStartOfList={isStartOfList}
-                isStartOfGroup={isStartOfGroup}
                 authorsHashmap={authorsHashmap}
                 message={message}
                 user={user}
@@ -425,18 +419,12 @@ const ChatWindowItem = React.memo(
   ({
     isFirstOfNewGroup,
     isFirstUnreadMessage,
-    isEndOfList,
-    isStartOfList,
     authorsHashmap,
     message,
     user,
-    isStartOfGroup,
   }: {
     isFirstOfNewGroup: boolean;
     isFirstUnreadMessage: boolean;
-    isEndOfList: boolean;
-    isStartOfList: boolean;
-    isStartOfGroup: boolean;
     authorsHashmap: Record<
       string,
       RouterOutput['chatroom']['getChatroom']['authors'][number]
@@ -470,9 +458,6 @@ const ChatWindowItem = React.memo(
       <ChatReplyItemWrapper
         isFirstOfNewGroup={isFirstOfNewGroup}
         isFirstUnreadMessage={isFirstUnreadMessage}
-        isEndOfList={isEndOfList}
-        isStartOfList={isStartOfList}
-        isStartOfGroup={isStartOfGroup}
         isLastMessageSenderEqualToCurrentMessageSender={
           isLastMessageSenderEqualToCurrentMessageSender
         }
