@@ -5,6 +5,7 @@ import { type Kysely } from 'kysely';
 import { type DB } from '@prisma-generated/generated/types';
 import { type SignedInAuthObject } from '@clerk/backend';
 import { dbConfig, withAuthors } from '@/server/api/routers/helpers';
+import { jsonObjectFrom } from 'kysely/helpers/postgres';
 
 const chatroomInputSchema = z.object({
   chatroomId: z.string().min(1),
@@ -22,7 +23,24 @@ export const getChatroomMethod = async ({
 }) => {
   const chatroom = await ctx.db
     .selectFrom(`chatroom as ${dbConfig.tableAlias.chatroom}`)
-    .select((eb) => [...dbConfig.selectFields.chatroom, 'id', withAuthors(eb)])
+    .select((eb) => [
+      ...dbConfig.selectFields.chatroom,
+      'id',
+      withAuthors(eb),
+      jsonObjectFrom(
+        eb
+          .selectFrom(`message as ${dbConfig.tableAlias.message}`)
+          .selectAll()
+          .whereRef(
+            `${dbConfig.tableAlias.chatroom}.id`,
+            '=',
+            `${dbConfig.tableAlias.message}.chatroom_id`
+          )
+          .where((eb) => eb('status', '=', 'SENT'))
+          .orderBy(`${dbConfig.tableAlias.message}.created_at`, 'desc')
+          .limit(1)
+      ).as('last_unread_message'),
+    ])
     .where((eb) => eb('id', '=', input.chatroomId))
     .execute();
 

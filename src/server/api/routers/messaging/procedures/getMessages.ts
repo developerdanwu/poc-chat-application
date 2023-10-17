@@ -1,6 +1,7 @@
 import {protectedProcedure} from '@/server/api/trpc';
 import {z} from 'zod';
-import {MESSAGES_PER_PAGE} from "@/pages/[chatroomId]/_components/main/main-content/ChatWindow/constants"; // implement a before and latest
+import {MESSAGES_PER_PAGE} from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/constants';
+import {dbConfig} from '@/server/api/routers/helpers'; // implement a before and latest
 
 // implement a before and latest
 
@@ -20,13 +21,13 @@ const getMessages = protectedProcedure
       const messages = await ctx.db
         .selectFrom((eb) => {
           return eb
-            .selectFrom('message')
+            .selectFrom(`message as ${dbConfig.tableAlias.message}`)
             .selectAll()
-            .where(({ cmpr, and }) => {
-              return and([
-                cmpr('chatroom_id', '=', input.chatroomId),
+            .where((eb) => {
+              return eb.and([
+                eb('chatroom_id', '=', input.chatroomId),
                 ...(input.cursor !== null && input.cursor !== undefined
-                  ? [cmpr('created_at', '<', input.cursor)]
+                  ? [eb('created_at', '<', input.cursor)]
                   : []),
               ]);
             })
@@ -34,17 +35,7 @@ const getMessages = protectedProcedure
             .orderBy('created_at', input.orderBy || 'desc')
             .as('message');
         })
-        .select([
-          'status',
-          'message_checksum',
-          'client_message_id',
-          'text',
-          'is_edited',
-          'content',
-          'message.created_at',
-          'message.updated_at',
-          'message.author_id',
-        ])
+        .selectAll()
         .execute();
 
       return {

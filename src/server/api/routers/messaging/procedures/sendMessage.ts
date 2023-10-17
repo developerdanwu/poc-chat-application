@@ -127,8 +127,8 @@ const sendMessage = protectedProcedure
 
         await ablyRest.channels
           .get(ablyChannelKeyStore.user(c.user_id))
-          .publish('unread_count', {
-            ...c,
+          .publish('get_chatrooms', {
+            ...chatroom,
             ...unreadCount,
           });
       }

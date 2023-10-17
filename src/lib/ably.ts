@@ -6,11 +6,13 @@ import { Types } from 'ably';
 import { useAuth } from '@clerk/nextjs';
 import { type RouterOutput } from '@/server/api/root';
 import { api } from '@/lib/api';
+import { useQueryClient } from '@tanstack/react-query';
+import { getQueryKey } from '@trpc/react-query';
 import PresenceMessage = Types.PresenceMessage;
 
 type AblyChannelMessage = {
   chatroom: Omit<Types.Message, 'name' | 'data'> & {
-    name: 'unread_count';
+    name: 'get_chatrooms';
     data: RouterOutput['chatroom']['getChatrooms']['chatrooms'][number];
   };
 };
@@ -128,7 +130,7 @@ export const useSyncOnlinePresence = () => {
 
 export const useSyncGlobalStore = () => {
   const auth = useAuth();
-  const trpcUtils = api.useContext();
+  const queryClient = useQueryClient();
   useChannel(
     {
       channelName: ablyChannelKeyStore.user(auth.userId!),
@@ -136,9 +138,25 @@ export const useSyncGlobalStore = () => {
     // @ts-expect-error this is correct typing
     (message: AblyChannelMessage['chatroom']) => {
       switch (message.name) {
-        case 'unread_count': {
-          // TODO: can do optimistic update here for better performance
-          trpcUtils.chatroom.getChatrooms.invalidate();
+        case 'get_chatrooms': {
+          queryClient.setQueriesData<RouterOutput['chatroom']['getChatrooms']>(
+            getQueryKey(api.chatroom.getChatrooms),
+            (oldData) => {
+              if (!oldData) {
+                return oldData;
+              }
+
+              return produce(oldData, (draft) => {
+                const chatroomIndex = draft.chatrooms.findIndex(
+                  (chatroom) => chatroom.id === message.data.id
+                );
+
+                if (chatroomIndex !== -1) {
+                  draft.chatrooms[chatroomIndex] = message.data;
+                }
+              });
+            }
+          );
         }
       }
     }
