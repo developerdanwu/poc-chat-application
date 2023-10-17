@@ -1,8 +1,9 @@
-import { protectedProcedure } from '@/server/api/trpc';
-import { z } from 'zod';
-import { MessageStatus } from '@prisma-generated/generated/types';
-import { dbConfig, withAuthors } from '@/server/api/routers/helpers';
+import {protectedProcedure} from '@/server/api/trpc';
+import {z} from 'zod';
+import {MessageStatus} from '@prisma-generated/generated/types';
+import {dbConfig, withAuthors} from '@/server/api/routers/helpers'; // TODO: read all messages
 
+// TODO: read all messages
 const readAllMessages = protectedProcedure
   .input(
     z.object({

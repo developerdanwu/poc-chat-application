@@ -41,7 +41,6 @@ const SELECT_FIELDS = {
     `${TABLE_ALIAS.message}.is_edited`,
     `${TABLE_ALIAS.message}.created_at`,
     `${TABLE_ALIAS.message}.updated_at`,
-    `${TABLE_ALIAS.message}.author_id`,
   ],
 } as const;
 

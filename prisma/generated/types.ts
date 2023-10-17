@@ -30,7 +30,6 @@ export const MessageStatus = {
   QUEUED: 'QUEUED',
   SENT: 'SENT',
   DELIVERED: 'DELIVERED',
-  READ: 'READ',
   FAILED: 'FAILED',
 } as const;
 export type MessageStatus = (typeof MessageStatus)[keyof typeof MessageStatus];
@@ -96,13 +95,17 @@ export type Message = {
   text: string;
   type: MessageType;
   content: string;
-  author_id: number;
   chatroom_id: string;
   created_at: Generated<Timestamp>;
   updated_at: Timestamp;
   is_edited: Generated<boolean>;
-  status: MessageStatus;
   visibility: MessageVisibility;
+};
+export type MessageRecepient = {
+  id: Generated<number>;
+  recepient_id: number;
+  message_id: number;
+  status: MessageStatus;
 };
 export type OpenAiSettings = {
   id: Generated<number>;
@@ -126,6 +129,7 @@ export type DB = {
   author: Author;
   chatroom: Chatroom;
   message: Message;
+  message_recepient: MessageRecepient;
   open_ai_settings: OpenAiSettings;
   slack_chatroom: SlackChatroom;
   slack_message: SlackMessage;

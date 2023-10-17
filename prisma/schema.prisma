@@ -18,26 +18,33 @@ datasource db {
 }
 
 model Message {
-  clientMessageId     Int               @id @default(autoincrement()) @map("client_message_id")
-  messageChecksum     String            @map("message_checksum")
-  text                String
-  type                MessageType
-  content             String
-  authorId            Int               @map("author_id")
-  chatroomId          String            @map("chatroom_id")
-  createdAt           DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt           DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
-  isEdited            Boolean           @default(false) @map("is_edited")
-  status              MessageStatus
-  visibility          MessageVisibility
-  attachments         Attachment[]
-  author              Author            @relation(fields: [authorId], references: [authorId])
-  chatroom            Chatroom          @relation("ChatroomMessage", fields: [chatroomId], references: [id], onDelete: Cascade)
-  lastMessageChatroom Chatroom?         @relation("LastMessageChatroomMessage")
+  clientMessageId   Int                @id @default(autoincrement()) @map("client_message_id")
+  messageChecksum   String             @map("message_checksum")
+  text              String
+  type              MessageType
+  content           String
+  chatroomId        String             @map("chatroom_id")
+  createdAt         DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
+  isEdited          Boolean            @default(false) @map("is_edited")
+  visibility        MessageVisibility
+  attachments       Attachment[]
+  messageRecepients MessageRecepient[]
+  chatroom          Chatroom           @relation("ChatroomMessage", fields: [chatroomId], references: [id], onDelete: Cascade)
 
-  @@index([authorId])
   @@index([chatroomId])
   @@map("message")
+}
+
+model MessageRecepient {
+  id          Int           @id @default(autoincrement()) @map("id")
+  recepientId Int           @map("recepient_id")
+  recepient   Author        @relation(fields: [recepientId], references: [authorId])
+  messageId   Int           @map("message_id")
+  message     Message       @relation(fields: [messageId], references: [clientMessageId])
+  status      MessageStatus
+
+  @@map("message_recepient")
 }
 
 model Attachment {
@@ -71,20 +78,20 @@ model AiSettings {
 }
 
 model Author {
-  firstName   String               @map("first_name")
-  lastName    String               @map("last_name")
-  email       String?              @unique
-  authorId    Int                  @id @default(autoincrement()) @map("author_id")
-  role        Role                 @map("role")
-  userId      String               @unique @map("user_id")
-  createdAt   DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt   DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
-  humanUserId Int?                 @map("human_user_id")
-  chatrooms   AuthorsOnChatrooms[]
-  aiSettings  AiSettings?
-  humanUser   Author?              @relation("HumanUserAIUsers", fields: [humanUserId], references: [authorId])
-  aiUsers     Author[]             @relation("HumanUserAIUsers")
-  messages    Message[]
+  firstName         String               @map("first_name")
+  lastName          String               @map("last_name")
+  email             String?              @unique
+  authorId          Int                  @id @default(autoincrement()) @map("author_id")
+  role              Role                 @map("role")
+  userId            String               @unique @map("user_id")
+  createdAt         DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
+  humanUserId       Int?                 @map("human_user_id")
+  chatrooms         AuthorsOnChatrooms[]
+  aiSettings        AiSettings?
+  humanUser         Author?              @relation("HumanUserAIUsers", fields: [humanUserId], references: [authorId])
+  aiUsers           Author[]             @relation("HumanUserAIUsers")
+  messageRecepients MessageRecepient[]
 
   @@index([authorId])
   @@map("author")
@@ -103,20 +110,18 @@ model AuthorsOnChatrooms {
 }
 
 model Chatroom {
-  id                        String               @id @default(dbgenerated("extensions.uuid_generate_v4()"))
-  type                      ChatroomType         @default(HUMAN_CHATROOM)
-  subtype                   ChatroomSubtype      @default(DEFAULT)
-  createdAt                 DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt                 DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
-  chatroomBranchId          String?              @map("chatroom_branch_id")
-  status                    ChatroomStatus       @default(ACTIVE) @map("status")
-  authors                   AuthorsOnChatrooms[]
-  AiSettings                AiSettings?
-  chatroom                  Chatroom?            @relation("ChatroomBranches", fields: [chatroomBranchId], references: [id])
-  branches                  Chatroom[]           @relation("ChatroomBranches")
-  messages                  Message[]            @relation("ChatroomMessage")
-  lastUnreadMessage         Message?             @relation("LastMessageChatroomMessage", fields: [lastUnreadClientMessageId], references: [clientMessageId])
-  lastUnreadClientMessageId Int?                 @unique @map("last_unread_client_message_id")
+  id               String               @id @default(dbgenerated("extensions.uuid_generate_v4()"))
+  type             ChatroomType         @default(HUMAN_CHATROOM)
+  subtype          ChatroomSubtype      @default(DEFAULT)
+  createdAt        DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt        DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
+  chatroomBranchId String?              @map("chatroom_branch_id")
+  status           ChatroomStatus       @default(ACTIVE) @map("status")
+  authors          AuthorsOnChatrooms[]
+  AiSettings       AiSettings?
+  chatroom         Chatroom?            @relation("ChatroomBranches", fields: [chatroomBranchId], references: [id])
+  branches         Chatroom[]           @relation("ChatroomBranches")
+  messages         Message[]            @relation("ChatroomMessage")
 
   @@map("chatroom")
 }
