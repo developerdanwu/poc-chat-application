@@ -18,7 +18,10 @@ export const getChatroomMethod = async ({
   input,
   ctx,
 }: {
-  input: ChatroomInputSchema;
+  input: {
+    chatroomId: string;
+    authorId: number;
+  };
   ctx: { db: Kysely<DB>; auth: SignedInAuthObject };
 }) => {
   const chatroom = await ctx.db
@@ -52,10 +55,7 @@ export const getChatroomMethod = async ({
               eb(
                 `${dbConfig.tableAlias.message_recepient}.recepient_id`,
                 '=',
-                eb
-                  .selectFrom('author')
-                  .select('author_id')
-                  .where('author.user_id', '=', ctx.auth.userId)
+                input.authorId
               ),
             ])
           )
@@ -90,7 +90,19 @@ const getChatroom = protectedProcedure
     })
   )
   .query(async ({ ctx, input }) => {
-    return getChatroomMethod({ ctx, input });
+    const ownAuthor = await ctx.db
+      .selectFrom('author')
+      .select('author_id')
+      .where('author.user_id', '=', ctx.auth.userId)
+      .executeTakeFirstOrThrow();
+
+    return getChatroomMethod({
+      ctx,
+      input: {
+        chatroomId: input.chatroomId,
+        authorId: ownAuthor.author_id,
+      },
+    });
   });
 
 export default getChatroom;

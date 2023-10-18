@@ -128,14 +128,7 @@ export const useMessageUpdate = ({ chatroomId }: { chatroomId?: string }) => {
             });
             break;
           }
-          case 'get_chatroom': {
-            console.log('UNREAD', message.data);
-            chatroomUpdateUtils.updateChatroom({
-              chatroomId,
-              chatroom: message.data,
-            });
-            break;
-          }
+
           default:
             throw new Error(
               `Event ${message.name} not found in chatroom ${chatroomId}`

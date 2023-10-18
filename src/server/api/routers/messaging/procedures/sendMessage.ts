@@ -12,6 +12,7 @@ import { TRPCError } from '@trpc/server';
 import { cast, dbConfig, withAuthors } from '@/server/api/routers/helpers';
 import { type SignedInAuthObject } from '@clerk/backend';
 import { type Kysely } from 'kysely';
+import { getChatroomMethod } from '@/server/api/routers/chatroom/procedures/getChatroom';
 
 const sendMessageInputSchema = z.object({
   messageChecksum: z.string().min(1),
@@ -140,6 +141,18 @@ const sendMessage = protectedProcedure
             ...chatroom,
             ...unreadCount,
           });
+
+        const updatedChatroom = await getChatroomMethod({
+          ctx,
+          input: {
+            chatroomId: input.chatroomId,
+            authorId: a.author_id,
+          },
+        });
+
+        await ablyRest.channels
+          .get(ablyChannelKeyStore.user(a.user_id))
+          .publish('get_chatroom', updatedChatroom);
       }
 
       await ablyRest.channels

@@ -8,19 +8,23 @@ import { type RouterOutput } from '@/server/api/root';
 import { api } from '@/lib/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { getQueryKey } from '@trpc/react-query';
+import useChatroomUpdateUtils from '@/pages/[chatroomId]/_components/useChatroomUpdateUtils';
 import PresenceMessage = Types.PresenceMessage;
 
 export type AblyChannelMessage = {
-  user: Omit<Types.Message, 'name' | 'data'> & {
-    name: 'get_chatrooms';
-    data: RouterOutput['chatroom']['getChatrooms']['chatrooms'][number];
-  };
+  user: Omit<Types.Message, 'name' | 'data'> &
+    (
+      | {
+          name: 'get_chatrooms';
+          data: RouterOutput['chatroom']['getChatrooms']['chatrooms'][number];
+        }
+      | {
+          name: 'get_chatroom';
+          data: RouterOutput['chatroom']['getChatroom'];
+        }
+    );
   chatroom:
-    | (Omit<Types.Message, 'name' | 'data'> & {
-        name: 'get_chatroom';
-        data: RouterOutput['chatroom']['getChatroom'];
-      })
-    | {
+    | Omit<Types.Message, 'name' | 'data'> & {
         name: 'message';
         data: RouterOutput['messaging']['getMessages']['messages'][number];
       };
@@ -140,6 +144,8 @@ export const useSyncOnlinePresence = () => {
 export const useSyncGlobalStore = () => {
   const auth = useAuth();
   const queryClient = useQueryClient();
+  const chatroomUpdateUtils = useChatroomUpdateUtils();
+
   useChannel(
     {
       channelName: ablyChannelKeyStore.user(auth.userId!),
@@ -166,6 +172,15 @@ export const useSyncGlobalStore = () => {
               });
             }
           );
+          break;
+        }
+        case 'get_chatroom': {
+          console.log('UNREAD', message.data);
+          chatroomUpdateUtils.updateChatroom({
+            chatroomId: message.data.id,
+            chatroom: message.data,
+          });
+          break;
         }
       }
     }

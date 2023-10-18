@@ -10,6 +10,7 @@ import { ChatroomType } from '@prisma-generated/generated/types';
 import { getChatroomMethod } from '@/server/api/routers/chatroom/procedures/getChatroom';
 import { dbConfig, withAuthors } from '@/server/api/routers/helpers';
 import { sendMessageMethod } from '@/server/api/routers/messaging/procedures/sendMessage';
+import { getOwhAuthorMethod } from '@/server/api/routers/chatroom/procedures/getOwnAuthor';
 
 const startNewChat = protectedProcedure
   .input(
@@ -52,6 +53,7 @@ const startNewChat = protectedProcedure
       return chatroom;
     }
 
+    const ownAuthor = await getOwhAuthorMethod({ ctx });
     // create new chatroom if no chatroom found
     const newChatroom = await ctx.db.transaction().execute(async (trx) => {
       const _newChatroom = await trx
@@ -68,10 +70,7 @@ const startNewChat = protectedProcedure
         .insertInto('_authors_on_chatrooms')
         .values((eb) => [
           {
-            author_id: eb
-              .selectFrom('author')
-              .select('author_id')
-              .where('author.user_id', '=', ctx.auth.userId),
+            author_id: ownAuthor.author_id,
             chatroom_id: _newChatroom.id,
           },
           ...input.authors.map((author) => ({
@@ -104,6 +103,7 @@ const startNewChat = protectedProcedure
     const resultChatroom = await getChatroomMethod({
       input: {
         chatroomId: newChatroom.id,
+        authorId: ownAuthor.author_id,
       },
       ctx,
     });
