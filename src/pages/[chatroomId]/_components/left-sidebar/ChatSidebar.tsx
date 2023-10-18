@@ -76,6 +76,7 @@ const ChatSidebar = () => {
                     chatroomId={chatroom.id}
                     authors={filteredAuthors}
                     selected={chatroomId === chatroom.id}
+                    hasUnreadMessages={chatroom.unread_count > 0}
                     helperText={
                       chatroom.unread_count > 0 ? (
                         <div className="flex  h-5 w-7 items-center justify-center rounded-full bg-red-600 text-white">

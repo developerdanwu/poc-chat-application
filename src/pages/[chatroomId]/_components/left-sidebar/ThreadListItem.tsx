@@ -15,7 +15,9 @@ const ThreadListItem = ({
   selected,
   helperText,
   chatroomId,
+  hasUnreadMessages,
 }: {
+  hasUnreadMessages: boolean;
   chatroomId: string;
   authors: RouterOutput['chatroom']['getChatrooms']['chatrooms'][number]['authors'];
   helperText?: React.ReactNode;
@@ -39,7 +41,9 @@ const ThreadListItem = ({
   return (
     <div
       onClick={() => {
-        readAllMessages.mutate({ chatroomId });
+        if (hasUnreadMessages) {
+          readAllMessages.mutate({ chatroomId });
+        }
       }}
       className={cn(
         'flex w-full cursor-pointer items-center justify-between rounded-sm py-1 px-2 hover:bg-slate-700',
