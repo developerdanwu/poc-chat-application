@@ -33,7 +33,6 @@ export const getChatroomMethod = async ({
       jsonObjectFrom(
         eb
           .selectFrom(`message as ${dbConfig.tableAlias.message}`)
-
           .selectAll()
           .innerJoin(
             `message_recepient as ${dbConfig.tableAlias.message_recepient}`,
@@ -47,6 +46,11 @@ export const getChatroomMethod = async ({
           )
           .where((eb) =>
             eb.and([
+              eb(
+                `${dbConfig.tableAlias.message}.author_id`,
+                '!=',
+                input.authorId
+              ),
               eb(
                 `${dbConfig.tableAlias.message_recepient}.status`,
                 '=',

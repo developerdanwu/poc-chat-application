@@ -50,7 +50,6 @@ const getChatrooms = protectedProcedure
                         '!=',
                         ownAuthor.author_id
                       ),
-
                       eb(
                         `${dbConfig.tableAlias.message_recepient}.status`,
                         '=',
