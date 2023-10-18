@@ -90,12 +90,6 @@ const ChatItemSkeleton = ({
   );
 };
 
-// const ChatGroup = ({
-//   children,
-// }: GroupProps & { context?: ChatWindowVirtualListContext }) => {
-//   return <div>penis {children}</div>;
-// };
-
 const TopItemList = ({
   children,
   style,
