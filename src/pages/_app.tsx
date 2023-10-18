@@ -11,13 +11,26 @@ import {
   SignedIn,
   SignedOut,
 } from '@clerk/nextjs';
-import { type ReactElement, type ReactNode, useEffect, useState } from 'react';
+import {
+  type ReactElement,
+  type ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { type NextPage } from 'next';
 import { configureAbly } from '@ably-labs/react-hooks';
 import { useSyncGlobalStore, useSyncOnlinePresence } from '@/lib/ably';
 import dayjs from 'dayjs';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import utc from 'dayjs/plugin/utc';
+import { useQueryClient } from '@tanstack/react-query';
+import {
+  type PersistedClient,
+  type Persister,
+  persistQueryClient,
+} from '@tanstack/react-query-persist-client';
+import { del, get, set } from 'idb-keyval';
 
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
   getLayout?: (page: ReactElement) => ReactNode;
@@ -35,6 +48,7 @@ const AblyConfigWrapper = ({ children }: { children: React.ReactNode }) => {
       configureAbly({
         authUrl: '/api/ably-auth',
         authMethod: 'GET',
+        autoConnect: true,
       });
       setConfigured(true);
     }
@@ -46,9 +60,47 @@ const AblyConfigWrapper = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+/**
+ * Creates an Indexed DB persister
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API
+ */
+export function createIDBPersister(idbValidKey: IDBValidKey = 'reactQuery') {
+  return {
+    persistClient: async (client: PersistedClient) => {
+      await set(idbValidKey, client);
+    },
+    restoreClient: async () => {
+      return await get<PersistedClient>(idbValidKey);
+    },
+    removeClient: async () => {
+      await del(idbValidKey);
+    },
+  } as Persister;
+}
+
+const persister = createIDBPersister();
+
 const GlobalConfigWrapper = ({ children }: { children: React.ReactNode }) => {
   useSyncOnlinePresence();
   useSyncGlobalStore();
+  const queryClient = useQueryClient();
+  const loaded = useRef(false);
+
+  // TODO: fine tune indexDB persister
+  persistQueryClient({
+    queryClient,
+    persister,
+    maxAge: Infinity,
+  });
+
+  useEffect(() => {
+    if (!loaded.current) {
+      // invalidate all queries on page load to make sure everything is up to date
+      queryClient.invalidateQueries();
+      loaded.current = true;
+    }
+  }, []);
+
   return <>{children}</>;
 };
 
@@ -60,6 +112,7 @@ const MyApp = ({
   pageProps: { ...pageProps },
 }: AppPropsWithLayout) => {
   const getLayout = Component.getLayout ?? ((page) => page);
+
   return (
     <>
       <ClerkProvider {...pageProps}>

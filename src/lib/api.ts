@@ -26,6 +26,8 @@ export const api = createTRPCNext<AppRouter>({
         defaultOptions: {
           queries: {
             suspense: true,
+            cacheTime: Infinity,
+            staleTime: Infinity,
           },
         },
       },

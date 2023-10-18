@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { Fragment, useEffect, useRef, useState } from 'react';
 import { api } from '@/lib/api';
 import dayjs from 'dayjs';
 import { cn, useApiTransformUtils } from '@/lib/utils';
@@ -12,6 +12,7 @@ import {
   GroupedVirtuoso,
   type GroupedVirtuosoHandle,
   type ScrollerProps,
+  type TopItemListProps,
 } from 'react-virtuoso';
 import StartOfDirectMessage from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/StartOfDirectMessage';
 import {
@@ -21,6 +22,8 @@ import {
 import { create } from 'zustand';
 import { motion, type MotionValue, useMotionValue } from 'framer-motion';
 import { Skeleton } from '@/components/elements/skeleton';
+import { useQueryClient } from '@tanstack/react-query';
+import { useIntersection } from 'react-use';
 
 const CHATWINDOW_TOP_THRESHOLD = 50;
 
@@ -30,6 +33,7 @@ export type ChatWindowRef = {
 };
 
 export type ChatWindowVirtualListContext = {
+  unreadCount?: number;
   firstItemIndex?: number;
   chatroomId?: string;
   hasNextPage?: boolean;
@@ -84,6 +88,29 @@ const ChatItemSkeleton = ({
       </div>
     </div>
   );
+};
+
+// const ChatGroup = ({
+//   children,
+// }: GroupProps & { context?: ChatWindowVirtualListContext }) => {
+//   return <div>penis {children}</div>;
+// };
+
+const TopItemList = ({
+  children,
+  style,
+  context,
+}: TopItemListProps & {
+  context?: ChatWindowVirtualListContext;
+}) => {
+  if (context?.unreadCount && context.unreadCount > 0) {
+    return (
+      <div style={{ ...style, position: 'absolute' }} className="static ">
+        {children}
+      </div>
+    );
+  }
+  return <div style={style}>{children}</div>;
 };
 
 const ChatHeader = ({
@@ -176,8 +203,15 @@ const ChatWindow = function <T>({
     setReceivedNewMessage: state.setReceivedNewMessage,
   }));
   const user = useUser();
-  const topHeight = useMotionValue(-1000);
+  const testRef = useRef(null);
+  const intersectionObserver = useIntersection(testRef, {
+    root: null,
+  });
 
+  console.log('ISINTERSECTING', intersectionObserver?.isIntersecting);
+
+  const topHeight = useMotionValue(-1000);
+  const queryClient = useQueryClient();
   useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
@@ -218,30 +252,27 @@ const ChatWindow = function <T>({
     }
   ).data;
 
-  const firstUnreadMessage = api.chatroom.getChatroom.useQuery(
+  const chatroom = api.chatroom.getChatroom.useQuery(
     {
       chatroomId: chatroomId!,
     },
     {
       enabled: !!chatroomId,
       select: (data) => {
-        return data.first_unread_message;
+        return {
+          firstUnreadMessage: data.first_unread_message,
+          filteredChatroomUsers: filterAuthedUserFromChatroomAuthors(
+            data?.authors ?? []
+          ),
+          unreadCount: data.unread_count,
+        };
       },
     }
-  ).data;
+  );
 
-  const filteredChatroomUsers = api.chatroom.getChatroom.useQuery(
-    {
-      chatroomId: chatroomId!,
-    },
-    {
-      enabled: !!chatroomId,
-      select: (data) => {
-        return filterAuthedUserFromChatroomAuthors(data?.authors ?? []);
-      },
-    }
-  ).data;
-
+  const filteredChatroomUsers = chatroom.data?.filteredChatroomUsers;
+  const firstUnreadMessage = chatroom.data?.firstUnreadMessage;
+  const unreadCount = chatroom.data?.unreadCount;
   const scrollTop = () => {
     if (messagesCountQuery.data) {
       return messagesCountQuery.data?.messages_count > 0
@@ -273,7 +304,43 @@ const ChatWindow = function <T>({
   }, [messagesQuery.hasNextPage, messagesQuery.data, topHeight, chatroomId]);
 
   return (
-    <div className="h-0 w-full flex-[1_1_0px]" ref={virtualListWrapperRef}>
+    <div
+      className="relative h-0 w-full flex-[1_1_0px]"
+      ref={virtualListWrapperRef}
+    >
+      {unreadCount && unreadCount > 0 ? (
+        <button
+          onClick={() => {
+            if (messages) {
+              const firstUnreadMessageIndex = messages.findIndex((m) => {
+                return (
+                  m.client_message_id === firstUnreadMessage?.client_message_id
+                );
+              });
+
+              // TODO: work out edge cases like lastUnReadMessage not loaded yet
+              if (firstUnreadMessageIndex !== -1) {
+                virtualListRef.current.getState((state) => {
+                  console.log('TANGER', state.ranges);
+                });
+                virtualListRef.current?.scrollToIndex({
+                  index: firstUnreadMessageIndex,
+                });
+              }
+            }
+          }}
+          className="absolute top-0 z-50 flex w-full justify-center bg-transparent "
+        >
+          <div
+            className={cn(
+              'left-[50%] z-50 my-2 w-max self-center rounded-full border border-slate-300 bg-red-500 py-0.5 px-4 text-white'
+            )}
+          >
+            <p className="text-detail">{unreadCount} new messages</p>
+          </div>
+        </button>
+      ) : null}
+
       <GroupedVirtuoso<any, ChatWindowVirtualListContext | undefined>
         isScrolling={(value) => {
           isScrolling.current = value;
@@ -325,6 +392,7 @@ const ChatWindow = function <T>({
         initialScrollTop={scrollTop()}
         groupCounts={groupedMessagesCount || []}
         context={{
+          unreadCount,
           firstItemIndex,
           chatroomId,
           topHeight,
@@ -345,6 +413,7 @@ const ChatWindow = function <T>({
           // @ts-expect-error cannot infer types properly due to generic
           Header: slotProps?.Virtuoso?.components?.Header || ChatHeader,
           Scroller: ChatScroller,
+          TopItemList,
         }}
         style={{ height: '100%', position: 'relative' }}
         groupContent={(index, context) => {
@@ -352,10 +421,10 @@ const ChatWindow = function <T>({
             <div className="relative flex w-full justify-center bg-transparent ">
               <div
                 className={cn(
-                  'left-[50%] z-50 my-2 w-max self-center rounded-full border border-slate-300 bg-white px-4 text-slate-700'
+                  'left-[50%] z-50 my-2 w-max self-center rounded-full border border-slate-300 bg-white px-4 py-0.5 text-slate-700'
                 )}
               >
-                <p className="text-body">
+                <p className="text-detail">
                   {dayjs(context?.groupedMessagesKeys[index]).format(
                     'dddd, MMMM Do'
                   )}
@@ -389,6 +458,7 @@ const ChatWindow = function <T>({
 
           const isFirstOfNewGroup =
             originalIndex - accumulatedIndex.prevAccumulatedIndex === 0;
+
           const message = messages?.[_index - firstItemIndex];
 
           if (!message) {
