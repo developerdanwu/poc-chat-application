@@ -31,6 +31,7 @@ export const MessageStatus = {
   SENT: 'SENT',
   DELIVERED: 'DELIVERED',
   FAILED: 'FAILED',
+  READ: 'READ',
 } as const;
 export type MessageStatus = (typeof MessageStatus)[keyof typeof MessageStatus];
 export const MessageVisibility = {

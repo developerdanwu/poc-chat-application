@@ -8,16 +8,20 @@ import {
 } from '@/components/elements/avatar';
 import { type RouterOutput } from '@/server/api/root';
 import { notEmpty } from '@/lib/ts-utils';
+import { api } from '@/lib/api';
 
 const ThreadListItem = ({
   authors,
   selected,
   helperText,
+  chatroomId,
 }: {
+  chatroomId: string;
   authors: RouterOutput['chatroom']['getChatrooms']['chatrooms'][number]['authors'];
   helperText?: React.ReactNode;
   selected?: boolean;
 }) => {
+  const readAllMessages = api.messaging.readAllMessages.useMutation();
   const { getUserPrescence, getFullName } = useApiTransformUtils();
   const name = authors
     ?.map((author) =>
@@ -34,6 +38,9 @@ const ThreadListItem = ({
   );
   return (
     <div
+      onClick={() => {
+        readAllMessages.mutate({ chatroomId });
+      }}
       className={cn(
         'flex w-full cursor-pointer items-center justify-between rounded-sm py-1 px-2 hover:bg-slate-700',
         {

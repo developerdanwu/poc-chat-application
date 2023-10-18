@@ -85,7 +85,23 @@ const useChatroomUpdateUtils = () => {
     });
   };
 
-  return { updateMessages };
+  const updateChatroom = ({
+    chatroom,
+    chatroomId,
+  }: {
+    chatroom: RouterOutput['chatroom']['getChatroom'];
+    chatroomId: string;
+  }) => {
+    trpcUtils.chatroom.getChatroom.setData({ chatroomId }, (old) => {
+      if (!old) {
+        return old;
+      }
+
+      return chatroom;
+    });
+  };
+
+  return { updateMessages, updateChatroom };
 };
 
 export default useChatroomUpdateUtils;

@@ -10,11 +10,20 @@ import { useQueryClient } from '@tanstack/react-query';
 import { getQueryKey } from '@trpc/react-query';
 import PresenceMessage = Types.PresenceMessage;
 
-type AblyChannelMessage = {
-  chatroom: Omit<Types.Message, 'name' | 'data'> & {
+export type AblyChannelMessage = {
+  user: Omit<Types.Message, 'name' | 'data'> & {
     name: 'get_chatrooms';
     data: RouterOutput['chatroom']['getChatrooms']['chatrooms'][number];
   };
+  chatroom:
+    | (Omit<Types.Message, 'name' | 'data'> & {
+        name: 'get_chatroom';
+        data: RouterOutput['chatroom']['getChatroom'];
+      })
+    | {
+        name: 'message';
+        data: RouterOutput['messaging']['getMessages']['messages'][number];
+      };
 };
 
 export const ablyChannelKeyStore = {
@@ -136,10 +145,9 @@ export const useSyncGlobalStore = () => {
       channelName: ablyChannelKeyStore.user(auth.userId!),
     },
     // @ts-expect-error this is correct typing
-    (message: AblyChannelMessage['chatroom']) => {
+    (message: AblyChannelMessage['user']) => {
       switch (message.name) {
         case 'get_chatrooms': {
-          console.log('DATAAA', message.data);
           queryClient.setQueriesData<RouterOutput['chatroom']['getChatrooms']>(
             getQueryKey(api.chatroom.getChatrooms),
             (oldData) => {

@@ -173,6 +173,7 @@ enum MessageStatus {
   SENT
   DELIVERED
   FAILED
+  READ
 }
 
 enum MessageVisibility {
