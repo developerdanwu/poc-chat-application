@@ -11,6 +11,7 @@ import BaseRichTextEditor from '@/components/modules/rich-text/BaseRichTextEdito
 import { type RouterOutput } from '@/server/api/root';
 import { type useChatroomMessages } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/hooks';
 import { type useUser } from '@clerk/nextjs';
+import { useChatroomState } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/index';
 
 const EditableWrapper = ({
   children,
@@ -64,7 +65,7 @@ const ChatReplyAvatar = ({
   );
 };
 export const ChatReplyItemWrapper = ({
-  setNewMessageScrollDirection,
+  chatroomId,
   virtualListWrapperRef,
   isFirstOfNewGroup,
   isFirstUnreadMessage,
@@ -75,9 +76,7 @@ export const ChatReplyItemWrapper = ({
   communicator,
   author,
 }: {
-  setNewMessageScrollDirection: React.Dispatch<
-    React.SetStateAction<'up' | 'down' | 'in-view'>
-  >;
+  chatroomId: string;
   virtualListWrapperRef: React.RefObject<HTMLDivElement>;
   isFirstOfNewGroup: boolean;
   isFirstUnreadMessage: boolean;
@@ -88,21 +87,28 @@ export const ChatReplyItemWrapper = ({
   children: React.ReactNode;
   communicator: 'sender' | 'receiver';
 }) => {
-  const intersectingRef = useRef(null);
+  const { setNewMessageScrollDirection } = useChatroomState((state) => ({
+    setNewMessageScrollDirection: state.setNewMessageScrollDirection,
+  }));
+  const intersectingRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (isFirstUnreadMessage && entry.isIntersecting) {
-          setNewMessageScrollDirection('in-view');
+        if (isFirstUnreadMessage && entry?.isIntersecting) {
+          setNewMessageScrollDirection(chatroomId, 'in-view');
+
           return;
         }
 
-        if (isFirstUnreadMessage && !entry.isIntersecting) {
-          if (entry.boundingClientRect.top > 0) {
-            setNewMessageScrollDirection('down');
+        if (isFirstUnreadMessage && !entry?.isIntersecting) {
+          if (
+            entry?.boundingClientRect.top &&
+            entry.boundingClientRect.top > 0
+          ) {
+            setNewMessageScrollDirection(chatroomId, 'down');
             console.log('BELOW'); // do things if below
           } else {
-            setNewMessageScrollDirection('up');
+            setNewMessageScrollDirection(chatroomId, 'up');
             console.log('ABOVE'); // do things if above
           }
           // console.log(originalIndex, entry.isIntersecting);
@@ -112,12 +118,14 @@ export const ChatReplyItemWrapper = ({
         root: virtualListWrapperRef.current,
       }
     );
+    if (intersectingRef.current) {
+      observer.observe(intersectingRef.current);
+    }
 
-    observer.observe(intersectingRef.current);
     return () => {
       observer.disconnect();
     };
-  });
+  }, [chatroomId, isFirstUnreadMessage]);
 
   return (
     <div
@@ -241,7 +249,7 @@ export const ChatReplyItem = ({
 
 export const ChatWindowItem = React.memo(
   ({
-    setNewMessageScrollDirection,
+    chatroomId,
     virtualListWrapperRef,
     isFirstOfNewGroup,
     isFirstUnreadMessage,
@@ -249,9 +257,7 @@ export const ChatWindowItem = React.memo(
     message,
     user,
   }: {
-    setNewMessageScrollDirection: React.Dispatch<
-      React.SetStateAction<'up' | 'down' | 'in-view'>
-    >;
+    chatroomId: string;
     virtualListWrapperRef: React.RefObject<HTMLDivElement>;
     isFirstOfNewGroup: boolean;
     isFirstUnreadMessage: boolean;
@@ -286,7 +292,7 @@ export const ChatWindowItem = React.memo(
       previousMessageAuthor?.author_id === author.author_id;
     return (
       <ChatReplyItemWrapper
-        setNewMessageScrollDirection={setNewMessageScrollDirection}
+        chatroomId={chatroomId}
         virtualListWrapperRef={virtualListWrapperRef}
         isFirstOfNewGroup={isFirstOfNewGroup}
         isFirstUnreadMessage={isFirstUnreadMessage}

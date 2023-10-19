@@ -81,7 +81,7 @@
     "react-resizable-panels": "^0.0.48",
     "react-syntax-highlighter": "^15.5.0",
     "react-use": "^17.4.0",
-    "react-virtuoso": "^4.6.0",
+    "react-virtuoso": "^4.6.2",
     "slate": "^0.94.1",
     "slate-history": "^0.93.0",
     "slate-react": "^0.99.0",
