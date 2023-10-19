@@ -65,6 +65,7 @@ const ChatReplyAvatar = ({
   );
 };
 export const ChatReplyItemWrapper = ({
+  isScrolling,
   chatroomId,
   virtualListWrapperRef,
   isFirstOfNewGroup,
@@ -76,6 +77,7 @@ export const ChatReplyItemWrapper = ({
   communicator,
   author,
 }: {
+  isScrolling: boolean;
   chatroomId: string;
   virtualListWrapperRef: React.RefObject<HTMLDivElement>;
   isFirstOfNewGroup: boolean;
@@ -92,11 +94,13 @@ export const ChatReplyItemWrapper = ({
   }));
   const intersectingRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
+    let timeout: NodeJS.Timeout;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (isFirstUnreadMessage && entry?.isIntersecting) {
-          setNewMessageScrollDirection(chatroomId, 'in-view');
-
+        if (isFirstUnreadMessage && entry?.isIntersecting && !isScrolling) {
+          timeout = setTimeout(() => {
+            setNewMessageScrollDirection(chatroomId, 'in-view');
+          }, 800);
           return;
         }
 
@@ -106,12 +110,9 @@ export const ChatReplyItemWrapper = ({
             entry.boundingClientRect.top > 0
           ) {
             setNewMessageScrollDirection(chatroomId, 'down');
-            console.log('BELOW'); // do things if below
           } else {
             setNewMessageScrollDirection(chatroomId, 'up');
-            console.log('ABOVE'); // do things if above
           }
-          // console.log(originalIndex, entry.isIntersecting);
         }
       },
       {
@@ -123,9 +124,10 @@ export const ChatReplyItemWrapper = ({
     }
 
     return () => {
+      clearTimeout(timeout);
       observer.disconnect();
     };
-  }, [chatroomId, isFirstUnreadMessage]);
+  }, [chatroomId, isFirstUnreadMessage, isScrolling]);
 
   return (
     <div
@@ -249,6 +251,7 @@ export const ChatReplyItem = ({
 
 export const ChatWindowItem = React.memo(
   ({
+    isScrolling,
     chatroomId,
     virtualListWrapperRef,
     isFirstOfNewGroup,
@@ -257,6 +260,7 @@ export const ChatWindowItem = React.memo(
     message,
     user,
   }: {
+    isScrolling: boolean;
     chatroomId: string;
     virtualListWrapperRef: React.RefObject<HTMLDivElement>;
     isFirstOfNewGroup: boolean;
@@ -292,6 +296,7 @@ export const ChatWindowItem = React.memo(
       previousMessageAuthor?.author_id === author.author_id;
     return (
       <ChatReplyItemWrapper
+        isScrolling={isScrolling}
         chatroomId={chatroomId}
         virtualListWrapperRef={virtualListWrapperRef}
         isFirstOfNewGroup={isFirstOfNewGroup}

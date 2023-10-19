@@ -1,7 +1,9 @@
 import { type NextPageWithLayout } from '@/pages/_app';
 import React from 'react';
 import { useRouter } from 'next/router';
-import ChatWindow from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow';
+import ChatWindow, {
+  useChatroomState,
+} from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow';
 import SendMessagebar from '@/pages/[chatroomId]/_components/main/SendMessagebar';
 import { ChatNameBar } from '@/pages/[chatroomId]/_components/main/top-controls/actions';
 import MainChatLayout from '@/pages/[chatroomId]/_components/MainChatLayout';
@@ -14,7 +16,13 @@ const ChatroomId: NextPageWithLayout = () => {
     typeof router.query.chatroomId === 'string'
       ? router.query.chatroomId
       : undefined;
-
+  const chatroomState = useChatroomState((state) => ({
+    sentNewMessage: state.sentNewMessage,
+    setSentNewMessage: state.setSentNewMessage,
+    receivedNewMessage: state.receivedNewMessage,
+    setReceivedNewMessage: state.setReceivedNewMessage,
+    newMessageScrollDirection: state.newMessageScrollDirection,
+  }));
   if (!chatroomId) {
     return null;
   }
@@ -23,7 +31,7 @@ const ChatroomId: NextPageWithLayout = () => {
     <RoomProvider id={chatroomId} initialPresence={{}}>
       <div className="flex h-full w-full flex-col">
         <ChatNameBar chatroomId={chatroomId} />
-        <ChatWindow chatroomId={chatroomId} />
+        <ChatWindow chatroomId={chatroomId} chatroomState={chatroomState} />
         <SendMessagebarProvider>
           <SendMessagebar chatroomId={chatroomId} />
         </SendMessagebarProvider>

@@ -17,6 +17,7 @@ import { AiOutlineArrowDown, AiOutlineArrowUp } from 'react-icons/ai';
 import dayjs from 'dayjs';
 import { create } from 'zustand';
 import { ChatWindowItem } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/chat-reply-item';
+import { useLatest } from 'react-use';
 
 const CHATWINDOW_TOP_THRESHOLD = 50;
 
@@ -26,6 +27,7 @@ export type ChatWindowRef = {
 };
 
 export type ChatWindowVirtualListContext = {
+  isScrolling: boolean;
   virtualListWrapperRef: React.RefObject<HTMLDivElement>;
   unreadCount?: number;
   firstItemIndex?: number;
@@ -42,7 +44,6 @@ export const useChatroomState = create<{
     chatroomId: string,
     value: 'up' | 'down' | 'in-view'
   ) => void;
-  chatroomWindowRefMap: Map<string, GroupedVirtuosoHandle>;
   setSentNewMessage: (chatroomId: string, value: boolean) => void;
   sentNewMessage: Record<string, boolean>;
   setReceivedNewMessage: (chatroomId: string, value: boolean) => void;
@@ -57,7 +58,6 @@ export const useChatroomState = create<{
       },
     }));
   },
-  chatroomWindowRefMap: new Map(),
   receivedNewMessage: {},
   sentNewMessage: {},
   setReceivedNewMessage: (chatroomId, value) => {
@@ -166,8 +166,16 @@ ChatScroller.displayName = 'ChatScroller';
 
 const ChatWindow = function <T>({
   chatroomId,
+  chatroomState,
   slotProps,
 }: {
+  chatroomState: {
+    newMessageScrollDirection: Record<string, 'up' | 'down' | 'in-view'>;
+    setSentNewMessage: (chatroomId: string, value: boolean) => void;
+    sentNewMessage: Record<string, boolean>;
+    setReceivedNewMessage: (chatroomId: string, value: boolean) => void;
+    receivedNewMessage: Record<string, boolean>;
+  };
   chatroomId?: string;
   slotProps?: {
     Virtuoso?: {
@@ -192,20 +200,13 @@ const ChatWindow = function <T>({
   } = useChatroomMessages({ chatroomId });
   // // TODO fix this first item index so it calculates more reliably
   const [firstItemIndex, setFirstItemIndex] = useState(10000000);
-  const isScrolling = useRef<boolean>(false);
+  // const isScrolling = useRef<boolean>(false);
   const { filterAuthedUserFromChatroomAuthors } = useApiTransformUtils();
   const virtualListWrapperRef = useRef<HTMLDivElement>(null);
   const virtualListRef = useRef<GroupedVirtuosoHandle>(null);
   const listHeight = useRef<number>(0);
-  const chatroomState = useChatroomState((state) => ({
-    chatroomWindowRefMap: state.chatroomWindowRefMap,
-    sentNewMessage: state.sentNewMessage,
-    setSentNewMessage: state.setSentNewMessage,
-    receivedNewMessage: state.receivedNewMessage,
-    setReceivedNewMessage: state.setReceivedNewMessage,
-    newMessageScrollDirection: state.newMessageScrollDirection,
-  }));
-
+  const [isScrolling, setIsScrolling] = useState(false);
+  const isScrollingLatest = useLatest(isScrolling);
   const user = useUser();
   const newMessageScrollDirection =
     chatroomState.newMessageScrollDirection[chatroomId!];
@@ -360,8 +361,7 @@ const ChatWindow = function <T>({
 
       <GroupedVirtuoso<any, ChatWindowVirtualListContext | undefined>
         isScrolling={(value) => {
-          isScrolling.current = value;
-          // setVelocity(value);
+          setIsScrolling(value);
         }}
         totalListHeightChanged={(height) => {
           listHeight.current = height;
@@ -380,7 +380,7 @@ const ChatWindow = function <T>({
           if (chatroomId) {
             if (chatroomState.sentNewMessage[chatroomId] && isAtBottom) {
               chatroomState.setSentNewMessage(chatroomId, false);
-              if (isScrolling.current) {
+              if (isScrollingLatest) {
                 return false;
               }
               return 'smooth';
@@ -388,7 +388,7 @@ const ChatWindow = function <T>({
             // sent new message scroll to bottom auto
             if (chatroomState.sentNewMessage[chatroomId]) {
               chatroomState.setSentNewMessage(chatroomId, false);
-              if (isScrolling.current) {
+              if (isScrollingLatest) {
                 return false;
               }
               return 'auto';
@@ -396,7 +396,7 @@ const ChatWindow = function <T>({
             // TODO: receive new message && at bottom then scroll to bottom
             if (isAtBottom && chatroomState.receivedNewMessage[chatroomId]) {
               chatroomState.setReceivedNewMessage(chatroomId, false);
-              if (isScrolling.current) {
+              if (isScrollingLatest) {
                 return false;
               }
               return 'smooth';
@@ -410,6 +410,7 @@ const ChatWindow = function <T>({
         initialScrollTop={scrollTop()}
         groupCounts={groupedMessagesCount || []}
         context={{
+          isScrolling,
           virtualListWrapperRef,
           unreadCount,
           firstItemIndex,
@@ -489,6 +490,7 @@ const ChatWindow = function <T>({
           if (message && authorsHashmap) {
             return (
               <ChatWindowItem
+                isScrolling={context!.isScrolling}
                 chatroomId={context!.chatroomId!}
                 virtualListWrapperRef={context!.virtualListWrapperRef}
                 isFirstOfNewGroup={isFirstOfNewGroup}
