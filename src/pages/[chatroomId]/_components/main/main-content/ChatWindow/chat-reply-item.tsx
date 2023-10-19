@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { cn, safeJSONParse, useApiTransformUtils } from '@/lib/utils';
 import {
   Avatar,
@@ -8,6 +8,9 @@ import {
 import dayjs from 'dayjs';
 import { type Author } from '@prisma-generated/generated/types';
 import BaseRichTextEditor from '@/components/modules/rich-text/BaseRichTextEditor';
+import { type RouterOutput } from '@/server/api/root';
+import { type useChatroomMessages } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/hooks';
+import { type useUser } from '@clerk/nextjs';
 
 const EditableWrapper = ({
   children,
@@ -61,6 +64,8 @@ const ChatReplyAvatar = ({
   );
 };
 export const ChatReplyItemWrapper = ({
+  setNewMessageScrollDirection,
+  virtualListWrapperRef,
   isFirstOfNewGroup,
   isFirstUnreadMessage,
   isLastMessageSenderEqualToCurrentMessageSender,
@@ -70,6 +75,10 @@ export const ChatReplyItemWrapper = ({
   communicator,
   author,
 }: {
+  setNewMessageScrollDirection: React.Dispatch<
+    React.SetStateAction<'up' | 'down' | 'in-view'>
+  >;
+  virtualListWrapperRef: React.RefObject<HTMLDivElement>;
   isFirstOfNewGroup: boolean;
   isFirstUnreadMessage: boolean;
   isLastMessageSenderEqualToCurrentMessageSender: boolean;
@@ -79,8 +88,40 @@ export const ChatReplyItemWrapper = ({
   children: React.ReactNode;
   communicator: 'sender' | 'receiver';
 }) => {
+  const intersectingRef = useRef(null);
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (isFirstUnreadMessage && entry.isIntersecting) {
+          setNewMessageScrollDirection('in-view');
+          return;
+        }
+
+        if (isFirstUnreadMessage && !entry.isIntersecting) {
+          if (entry.boundingClientRect.top > 0) {
+            setNewMessageScrollDirection('down');
+            console.log('BELOW'); // do things if below
+          } else {
+            setNewMessageScrollDirection('up');
+            console.log('ABOVE'); // do things if above
+          }
+          // console.log(originalIndex, entry.isIntersecting);
+        }
+      },
+      {
+        root: virtualListWrapperRef.current,
+      }
+    );
+
+    observer.observe(intersectingRef.current);
+    return () => {
+      observer.disconnect();
+    };
+  });
+
   return (
     <div
+      ref={intersectingRef}
       data-communicator={communicator}
       className={cn(
         'group relative flex flex-col justify-start  py-2 px-6 hover:bg-slate-50'
@@ -197,3 +238,80 @@ export const ChatReplyItem = ({
     </div>
   );
 };
+
+export const ChatWindowItem = React.memo(
+  ({
+    setNewMessageScrollDirection,
+    virtualListWrapperRef,
+    isFirstOfNewGroup,
+    isFirstUnreadMessage,
+    authorsHashmap,
+    message,
+    user,
+  }: {
+    setNewMessageScrollDirection: React.Dispatch<
+      React.SetStateAction<'up' | 'down' | 'in-view'>
+    >;
+    virtualListWrapperRef: React.RefObject<HTMLDivElement>;
+    isFirstOfNewGroup: boolean;
+    isFirstUnreadMessage: boolean;
+    authorsHashmap: Record<
+      string,
+      RouterOutput['chatroom']['getChatroom']['authors'][number]
+    >;
+    message: NonNullable<
+      ReturnType<typeof useChatroomMessages>['messages']
+    >[number];
+    user: ReturnType<typeof useUser>;
+  }) => {
+    const author = authorsHashmap[message.author_id];
+    if (!author) {
+      throw new Error('author not found');
+    }
+    const isSentByMe = author.user_id === user.user?.id;
+    const previousMessage = message?.previousMessage;
+    const previousMessageAuthor = previousMessage
+      ? authorsHashmap[previousMessage.author_id]
+      : undefined;
+
+    // TODO: AVATAR PLACEMENT DUE TO TIME IS BUGGED??
+    const differenceBetweenLastMessage = previousMessage
+      ? dayjs
+          .utc(message.created_at)
+          .local()
+          .diff(dayjs.utc(previousMessage.created_at).local(), 'minute')
+      : undefined;
+
+    const isLastMessageSenderEqualToCurrentMessageSender =
+      previousMessageAuthor?.author_id === author.author_id;
+    return (
+      <ChatReplyItemWrapper
+        setNewMessageScrollDirection={setNewMessageScrollDirection}
+        virtualListWrapperRef={virtualListWrapperRef}
+        isFirstOfNewGroup={isFirstOfNewGroup}
+        isFirstUnreadMessage={isFirstUnreadMessage}
+        isLastMessageSenderEqualToCurrentMessageSender={
+          isLastMessageSenderEqualToCurrentMessageSender
+        }
+        sendDate={message.created_at}
+        differenceBetweenLastMessage={differenceBetweenLastMessage}
+        key={message.client_message_id}
+        author={author}
+        communicator={isSentByMe ? 'sender' : 'receiver'}
+      >
+        <ChatReplyItem
+          key={message.text}
+          isLastMessageSenderEqualToCurrentMessageSender={
+            isLastMessageSenderEqualToCurrentMessageSender
+          }
+          differenceBetweenLastMessage={differenceBetweenLastMessage}
+          sendDate={message.created_at}
+          author={author}
+          content={message.content}
+        />
+      </ChatReplyItemWrapper>
+    );
+  }
+);
+
+ChatWindowItem.displayName = 'ChatWindowItem';
