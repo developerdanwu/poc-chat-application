@@ -9,6 +9,7 @@ import { api } from '@/lib/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { getQueryKey } from '@trpc/react-query';
 import useChatroomUpdateUtils from '@/pages/[chatroomId]/_components/useChatroomUpdateUtils';
+import { useChatroomState } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow';
 import PresenceMessage = Types.PresenceMessage;
 
 export type AblyChannelMessage = {
@@ -21,6 +22,10 @@ export type AblyChannelMessage = {
       | {
           name: 'get_chatroom';
           data: RouterOutput['chatroom']['getChatroom'];
+        }
+      | {
+          name: 'message';
+          data: RouterOutput['messaging']['getMessages']['messages'][number];
         }
     );
   chatroom:
@@ -145,7 +150,9 @@ export const useSyncGlobalStore = () => {
   const auth = useAuth();
   const queryClient = useQueryClient();
   const chatroomUpdateUtils = useChatroomUpdateUtils();
-
+  const chatroomState = useChatroomState((state) => ({
+    setReceivedNewMessage: state.setReceivedNewMessage,
+  }));
   useChannel(
     {
       channelName: ablyChannelKeyStore.user(auth.userId!),
@@ -175,10 +182,17 @@ export const useSyncGlobalStore = () => {
           break;
         }
         case 'get_chatroom': {
-          console.log('UNREAD', message.data);
           chatroomUpdateUtils.updateChatroom({
             chatroomId: message.data.id,
             chatroom: message.data,
+          });
+          break;
+        }
+        case 'message': {
+          chatroomState.setReceivedNewMessage(message.data.chatroom_id, true);
+          chatroomUpdateUtils.updateMessages({
+            chatroomId: message.data.chatroom_id,
+            message: message.data,
           });
           break;
         }

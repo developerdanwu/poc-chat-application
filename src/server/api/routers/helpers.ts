@@ -34,6 +34,7 @@ const SELECT_FIELDS = {
     `${TABLE_ALIAS.chatroom}.updated_at`,
   ],
   message: [
+    `${TABLE_ALIAS.message}.chatroom_id`,
     `${TABLE_ALIAS.message}.message_checksum`,
     `${TABLE_ALIAS.message}.client_message_id`,
     `${TABLE_ALIAS.message}.text`,

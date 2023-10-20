@@ -17,7 +17,7 @@ import { AiOutlineArrowDown, AiOutlineArrowUp } from 'react-icons/ai';
 import dayjs from 'dayjs';
 import { create } from 'zustand';
 import { ChatWindowItem } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/chat-reply-item';
-import { useLatest } from 'react-use';
+import { useDeepCompareEffect, useLatest } from 'react-use';
 
 const CHATWINDOW_TOP_THRESHOLD = 50;
 
@@ -170,6 +170,10 @@ const ChatWindow = function <T>({
   slotProps,
 }: {
   chatroomState: {
+    setNewMessageScrollDirection: (
+      chatroomId: string,
+      value: 'up' | 'down' | 'in-view'
+    ) => void;
     newMessageScrollDirection: Record<string, 'up' | 'down' | 'in-view'>;
     setSentNewMessage: (chatroomId: string, value: boolean) => void;
     sentNewMessage: Record<string, boolean>;
@@ -190,7 +194,6 @@ const ChatWindow = function <T>({
     };
   };
 }) {
-  // useMessageUpdate({ chatroomId });
   const {
     messages,
     groupedMessagesKeys,
@@ -198,9 +201,14 @@ const ChatWindow = function <T>({
     messagesQuery,
     messagesCountQuery,
   } = useChatroomMessages({ chatroomId });
-  // // TODO fix this first item index so it calculates more reliably
+  const [renderedRange, setRenderedRange] = useState<{
+    startIndex: number;
+    endIndex: number;
+  }>({
+    startIndex: 0,
+    endIndex: 0,
+  });
   const [firstItemIndex, setFirstItemIndex] = useState(10000000);
-  // const isScrolling = useRef<boolean>(false);
   const { filterAuthedUserFromChatroomAuthors } = useApiTransformUtils();
   const virtualListWrapperRef = useRef<HTMLDivElement>(null);
   const virtualListRef = useRef<GroupedVirtuosoHandle>(null);
@@ -272,6 +280,9 @@ const ChatWindow = function <T>({
 
   const filteredChatroomUsers = chatroom.data?.filteredChatroomUsers;
   const firstUnreadMessage = chatroom.data?.firstUnreadMessage;
+  const firstUnreadMessageIndex = messages?.findIndex((m) => {
+    return m.client_message_id === firstUnreadMessage?.client_message_id;
+  });
   const unreadCount = chatroom.data?.unreadCount;
   const scrollTop = () => {
     if (messagesCountQuery.data) {
@@ -281,6 +292,36 @@ const ChatWindow = function <T>({
     }
     return 0;
   };
+
+  // control the new message indicator
+  useDeepCompareEffect(() => {
+    let timeout: NodeJS.Timeout;
+    if (firstUnreadMessageIndex && firstUnreadMessageIndex !== -1) {
+      if (
+        renderedRange.startIndex < firstUnreadMessageIndex &&
+        firstUnreadMessageIndex < renderedRange.endIndex &&
+        chatroomId
+      ) {
+        timeout = setTimeout(() => {
+          chatroomState.setNewMessageScrollDirection(chatroomId, 'in-view');
+        }, 800);
+      } else if (
+        firstUnreadMessageIndex < renderedRange.startIndex &&
+        chatroomId
+      ) {
+        chatroomState.setNewMessageScrollDirection(chatroomId, 'up');
+      } else if (
+        firstUnreadMessageIndex > renderedRange.endIndex &&
+        chatroomId
+      ) {
+        chatroomState.setNewMessageScrollDirection(chatroomId, 'down');
+      }
+    }
+
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, [renderedRange, firstUnreadMessageIndex, chatroomId]);
 
   useEffect(() => {
     if (virtualListRef.current && chatroomId) {
@@ -407,7 +448,6 @@ const ChatWindow = function <T>({
         }}
         firstItemIndex={firstItemIndex}
         initialTopMostItemIndex={scrollTop()}
-        initialScrollTop={scrollTop()}
         groupCounts={groupedMessagesCount || []}
         context={{
           isScrolling,
@@ -434,6 +474,14 @@ const ChatWindow = function <T>({
           Header: slotProps?.Virtuoso?.components?.Header || ChatHeader,
           Scroller: ChatScroller,
           TopItemList,
+        }}
+        rangeChanged={(range) => {
+          const originalStartIndex = range.startIndex - firstItemIndex!;
+          const originalEndIndex = range.endIndex - firstItemIndex!;
+          setRenderedRange({
+            startIndex: originalStartIndex,
+            endIndex: originalEndIndex,
+          });
         }}
         style={{ height: '100%', position: 'relative' }}
         groupContent={(index, context) => {

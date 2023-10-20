@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { cn, safeJSONParse, useApiTransformUtils } from '@/lib/utils';
 import {
   Avatar,
@@ -11,7 +11,6 @@ import BaseRichTextEditor from '@/components/modules/rich-text/BaseRichTextEdito
 import { type RouterOutput } from '@/server/api/root';
 import { type useChatroomMessages } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/hooks';
 import { type useUser } from '@clerk/nextjs';
-import { useChatroomState } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/index';
 
 const EditableWrapper = ({
   children,
@@ -89,49 +88,50 @@ export const ChatReplyItemWrapper = ({
   children: React.ReactNode;
   communicator: 'sender' | 'receiver';
 }) => {
-  const { setNewMessageScrollDirection } = useChatroomState((state) => ({
-    setNewMessageScrollDirection: state.setNewMessageScrollDirection,
-  }));
-  const intersectingRef = useRef<HTMLDivElement | null>(null);
-  useEffect(() => {
-    let timeout: NodeJS.Timeout;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (isFirstUnreadMessage && entry?.isIntersecting && !isScrolling) {
-          timeout = setTimeout(() => {
-            setNewMessageScrollDirection(chatroomId, 'in-view');
-          }, 800);
-          return;
-        }
-
-        if (isFirstUnreadMessage && !entry?.isIntersecting) {
-          if (
-            entry?.boundingClientRect.top &&
-            entry.boundingClientRect.top > 0
-          ) {
-            setNewMessageScrollDirection(chatroomId, 'down');
-          } else {
-            setNewMessageScrollDirection(chatroomId, 'up');
-          }
-        }
-      },
-      {
-        root: virtualListWrapperRef.current,
-      }
-    );
-    if (intersectingRef.current) {
-      observer.observe(intersectingRef.current);
-    }
-
-    return () => {
-      clearTimeout(timeout);
-      observer.disconnect();
-    };
-  }, [chatroomId, isFirstUnreadMessage, isScrolling]);
+  // TODO: remove original implementation for the unread message indicator
+  // const { setNewMessageScrollDirection } = useChatroomState((state) => ({
+  //   setNewMessageScrollDirection: state.setNewMessageScrollDirection,
+  // }));
+  // const intersectingRef = useRef<HTMLDivElement | null>(null);
+  // useEffect(() => {
+  //   let timeout: NodeJS.Timeout;
+  //   const observer = new IntersectionObserver(
+  //     ([entry]) => {
+  //       if (isFirstUnreadMessage && entry?.isIntersecting && !isScrolling) {
+  //         timeout = setTimeout(() => {
+  //           setNewMessageScrollDirection(chatroomId, 'in-view');
+  //         }, 800);
+  //         return;
+  //       }
+  //
+  //       if (isFirstUnreadMessage && !entry?.isIntersecting) {
+  //         if (
+  //           entry?.boundingClientRect.top &&
+  //           entry.boundingClientRect.top > 0
+  //         ) {
+  //           setNewMessageScrollDirection(chatroomId, 'down');
+  //         } else {
+  //           setNewMessageScrollDirection(chatroomId, 'up');
+  //         }
+  //       }
+  //     },
+  //     {
+  //       root: virtualListWrapperRef.current,
+  //     }
+  //   );
+  //   if (intersectingRef.current) {
+  //     observer.observe(intersectingRef.current);
+  //   }
+  //
+  //   return () => {
+  //     clearTimeout(timeout);
+  //     observer.disconnect();
+  //   };
+  // }, [chatroomId, isFirstUnreadMessage, isScrolling]);
 
   return (
     <div
-      ref={intersectingRef}
+      // ref={intersectingRef}
       data-communicator={communicator}
       className={cn(
         'group relative flex flex-col justify-start  py-2 px-6 hover:bg-slate-50'

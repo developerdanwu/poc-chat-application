@@ -9,6 +9,7 @@ import { useRouter } from 'next/router';
 import ChatWindow, {
   type ChatWindowRef,
   type ChatWindowVirtualListContext,
+  useChatroomState,
 } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow';
 import { Role } from '@prisma-generated/generated/types';
 import MainChatLayout from '@/pages/[chatroomId]/_components/MainChatLayout';
@@ -74,6 +75,14 @@ const NewMessage: NextPageWithLayout = () => {
       content: '',
     },
   });
+  const chatroomState = useChatroomState((state) => ({
+    sentNewMessage: state.sentNewMessage,
+    setSentNewMessage: state.setSentNewMessage,
+    receivedNewMessage: state.receivedNewMessage,
+    setReceivedNewMessage: state.setReceivedNewMessage,
+    newMessageScrollDirection: state.newMessageScrollDirection,
+    setNewMessageScrollDirection: state.setNewMessageScrollDirection,
+  }));
   const watchedAuthors = useWatch({
     control: newMessageForm.control,
     name: 'authors',
@@ -144,6 +153,7 @@ const NewMessage: NextPageWithLayout = () => {
         </div>
 
         <ChatWindow
+          chatroomState={chatroomState}
           chatroomId={guessChatroomFromAuthors.data?.id}
           slotProps={{
             Virtuoso: {

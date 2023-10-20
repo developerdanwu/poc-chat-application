@@ -22,7 +22,9 @@ const ChatroomId: NextPageWithLayout = () => {
     receivedNewMessage: state.receivedNewMessage,
     setReceivedNewMessage: state.setReceivedNewMessage,
     newMessageScrollDirection: state.newMessageScrollDirection,
+    setNewMessageScrollDirection: state.setNewMessageScrollDirection,
   }));
+
   if (!chatroomId) {
     return null;
   }

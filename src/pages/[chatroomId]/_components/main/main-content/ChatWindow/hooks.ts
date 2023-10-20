@@ -2,11 +2,7 @@ import { api } from '@/lib/api';
 import { type RouterOutput } from '@/server/api/root';
 import dayjs from 'dayjs';
 import { useMemo } from 'react';
-import useChatroomUpdateUtils from '@/pages/[chatroomId]/_components/useChatroomUpdateUtils';
 import { MESSAGES_PER_PAGE } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/constants';
-import { useChannel } from '@ably-labs/react-hooks';
-import { ablyChannelKeyStore, type AblyChannelMessage } from '@/lib/ably';
-import { useChatroomState } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/index';
 
 export const useChatroomMessages = ({
   chatroomId,
@@ -107,34 +103,4 @@ export const useChatroomMessages = ({
     groupedMessages,
     groupedMessagesCount,
   };
-};
-
-export const useMessageUpdate = ({ chatroomId }: { chatroomId?: string }) => {
-  const chatroomState = useChatroomState((state) => ({
-    setReceivedNewMessage: state.setReceivedNewMessage,
-  }));
-  const chatroomUpdateUtils = useChatroomUpdateUtils();
-  useChannel(
-    ablyChannelKeyStore.chatroom(chatroomId || ''),
-    // @ts-expect-error this is correct typing
-    async (message: AblyChannelMessage['chatroom']) => {
-      if (chatroomId) {
-        switch (message.name) {
-          case 'message': {
-            chatroomState.setReceivedNewMessage(chatroomId, true);
-            chatroomUpdateUtils.updateMessages({
-              chatroomId,
-              message: message.data,
-            });
-            break;
-          }
-
-          default:
-            throw new Error(
-              `Event ${message.name} not found in chatroom ${chatroomId}`
-            );
-        }
-      }
-    }
-  );
 };

@@ -153,11 +153,11 @@ const sendMessage = protectedProcedure
         await ablyRest.channels
           .get(ablyChannelKeyStore.user(a.user_id))
           .publish('get_chatroom', updatedChatroom);
-      }
 
-      await ablyRest.channels
-        .get(ablyChannelKeyStore.chatroom(input.chatroomId))
-        .publish('message', message);
+        await ablyRest.channels
+          .get(ablyChannelKeyStore.user(a.user_id))
+          .publish('message', message);
+      }
 
       return message;
     } catch (e) {
