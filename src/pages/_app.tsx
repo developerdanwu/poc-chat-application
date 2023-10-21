@@ -28,9 +28,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import {
   type PersistedClient,
   type Persister,
-  persistQueryClient,
 } from '@tanstack/react-query-persist-client';
 import { del, get, set } from 'idb-keyval';
+import GlobalLoadingSkeleton from '@/components/templates/GlobalLoadingSkeleton';
 
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
   getLayout?: (page: ReactElement) => ReactNode;
@@ -57,6 +57,33 @@ const AblyConfigWrapper = ({ children }: { children: React.ReactNode }) => {
   if (!configured) {
     return null;
   }
+  return <>{children}</>;
+};
+
+const UserCreation = () => {
+  const seedAuthor = api.auth.seedAuthor.useMutation({
+    onSuccess: () => {
+      window.location.href = window.location.href;
+    },
+  });
+  useEffect(() => {
+    seedAuthor.mutate();
+  }, []);
+
+  return <GlobalLoadingSkeleton />;
+};
+
+const AccessGuard = ({ children }: { children: React.ReactNode }) => {
+  const isUserInDatabase = api.auth.isUserInDatabase.useQuery();
+
+  if (isUserInDatabase.isLoading) {
+    return <GlobalLoadingSkeleton />;
+  }
+
+  if (!isUserInDatabase.data && !isUserInDatabase.isLoading) {
+    return <UserCreation />;
+  }
+
   return <>{children}</>;
 };
 
@@ -87,11 +114,11 @@ const GlobalConfigWrapper = ({ children }: { children: React.ReactNode }) => {
   const loaded = useRef(false);
 
   // TODO: fine tune indexDB persister
-  persistQueryClient({
-    queryClient,
-    persister,
-    maxAge: Infinity,
-  });
+  // persistQueryClient({
+  //   queryClient,
+  //   persister,
+  //   maxAge: Infinity,
+  // });
 
   useEffect(() => {
     if (!loaded.current) {
@@ -118,11 +145,13 @@ const MyApp = ({
       <ClerkProvider {...pageProps}>
         <SignedIn>
           {getLayout(
-            <AblyConfigWrapper>
-              <GlobalConfigWrapper>
-                <Component {...pageProps} />
-              </GlobalConfigWrapper>
-            </AblyConfigWrapper>
+            <AccessGuard>
+              <AblyConfigWrapper>
+                <GlobalConfigWrapper>
+                  <Component {...pageProps} />
+                </GlobalConfigWrapper>
+              </AblyConfigWrapper>
+            </AccessGuard>
           )}
         </SignedIn>
         <SignedOut>

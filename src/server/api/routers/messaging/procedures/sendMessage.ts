@@ -32,8 +32,12 @@ export const sendMessageMethod = async ({
       author_id: number;
     }[];
   };
-  ctx: { db: Kysely<DB>; auth: SignedInAuthObject };
+  ctx: {
+    db: Kysely<DB>;
+    auth: SignedInAuthObject;
+  };
 }) => {
+  console.log('AUTHORS', input.authors);
   const message = await ctx.db
     .insertInto('message')
     .values((eb) => {

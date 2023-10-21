@@ -22,7 +22,10 @@ export const getChatroomMethod = async ({
     chatroomId: string;
     authorId: number;
   };
-  ctx: { db: Kysely<DB>; auth: SignedInAuthObject };
+  ctx: {
+    db: Kysely<DB>;
+    auth: SignedInAuthObject;
+  };
 }) => {
   const chatroom = await ctx.db
     .selectFrom(`chatroom as ${dbConfig.tableAlias.chatroom}`)

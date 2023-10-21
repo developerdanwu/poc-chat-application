@@ -8,7 +8,7 @@ import {
 } from '@/server/api/routers/chatroom/procedures/guessChatroomFromAuthors';
 import { ChatroomType } from '@prisma-generated/generated/types';
 import { getChatroomMethod } from '@/server/api/routers/chatroom/procedures/getChatroom';
-import { dbConfig, withAuthors } from '@/server/api/routers/helpers';
+import { dbConfig } from '@/server/api/routers/helpers';
 import { sendMessageMethod } from '@/server/api/routers/messaging/procedures/sendMessage';
 import { getOwhAuthorMethod } from '@/server/api/routers/chatroom/procedures/getOwnAuthor';
 
@@ -29,6 +29,8 @@ const startNewChat = protectedProcedure
         authors: input.authors,
       },
       ctx,
+    }).catch(() => {
+      console.error('no chatroom found');
     });
 
     // if there is 1 element return the chatroom
@@ -62,7 +64,7 @@ const startNewChat = protectedProcedure
           type: ChatroomType.HUMAN_CHATROOM,
           updated_at: dayjs.utc().toISOString(),
         })
-        .returning((eb) => [...dbConfig.selectFields.chatroom, withAuthors(eb)])
+        .returning((eb) => [...dbConfig.selectFields.chatroom])
         .executeTakeFirstOrThrow();
 
       // add authors to chatroom
@@ -87,7 +89,7 @@ const startNewChat = protectedProcedure
           text: input.text,
           chatroomId: _newChatroom.id,
           content: input.content,
-          authors: _newChatroom.authors,
+          authors: input.authors,
         },
         ctx: {
           db: trx,

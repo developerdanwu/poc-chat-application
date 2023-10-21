@@ -5,6 +5,7 @@ import {messaging} from '@/server/api/routers/messaging/messaging';
 import {type inferRouterInputs, type inferRouterOutputs} from '@trpc/server';
 import {ably} from '@/server/api/routers/ably';
 import {chatroom} from '@/server/api/routers/chatroom/chatroom';
+import {auth} from '@/server/api/routers/auth/auth';
 
 /**
  * This is the primary router for your server.
@@ -17,6 +18,7 @@ export const appRouter = createTRPCRouter({
   openai,
   messaging,
   ably,
+  auth,
 });
 
 export type RouterInput = inferRouterInputs<AppRouter>;

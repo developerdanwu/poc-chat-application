@@ -37,16 +37,16 @@ const ChatSidebar = () => {
     typeof router.query.chatroomId === 'string' ? router.query.chatroomId : '';
 
   return (
-    <div className="flex h-full flex-[0_0_256px] flex-col overflow-hidden border-r border-slate-300 bg-slate-900">
+    <div className="flex h-full flex-[0_0_256px] flex-col overflow-hidden  border-slate-300 bg-slate-900">
       <div
         className={cn(
           'flex h-full w-full flex-[0_0_48px] items-center justify-between border-b border-slate-300 px-5'
         )}
       >
-        <div className="text-h4 text-white">{user.user?.firstName}</div>
+        <div className="text-lg text-white">{user.user?.firstName}</div>
         <Link href="/new-message">
-          <IconButton variant="white" className="rounded-full">
-            <PencilIcon size={16} />
+          <IconButton variant="ghost">
+            <PencilIcon className="text-white" size={16} />
           </IconButton>
         </Link>
       </div>

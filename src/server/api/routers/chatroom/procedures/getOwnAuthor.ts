@@ -7,12 +7,15 @@ import { type Kysely } from 'kysely';
 export const getOwhAuthorMethod = async ({
   ctx,
 }: {
-  ctx: { db: Kysely<DB>; auth: SignedInAuthObject };
+  ctx: {
+    db: Kysely<DB>;
+    auth: SignedInAuthObject;
+  };
 }) =>
   await ctx.db
     .selectFrom('author')
     .selectAll()
-    .where(({ cmpr }) => cmpr('author.user_id', '=', ctx.auth.userId))
+    .where((eb) => eb('author.user_id', '=', ctx.auth.userId))
     .executeTakeFirstOrThrow();
 
 const getOwnAuthor = protectedProcedure.query(async ({ ctx }) => {
