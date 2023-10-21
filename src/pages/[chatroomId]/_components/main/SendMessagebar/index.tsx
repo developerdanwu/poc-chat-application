@@ -12,7 +12,6 @@ import { v4 as uuid } from 'uuid';
 import { useBroadcastEvent } from '../../../../../../liveblocks.config';
 import SendMessageTextEditor from '@/pages/[chatroomId]/_components/main/SendMessagebar/SendMessageTextEditor';
 import { useAblyStore } from '@/lib/ably';
-import { MessageStatus } from '@prisma-generated/generated/types';
 import { EMPTY_RICH_TEXT } from '@/components/modules/rich-text/constants';
 
 export const getAuthorsTypingTranslation = (
@@ -97,9 +96,8 @@ const SendMessagebar = ({ chatroomId }: { chatroomId: string }) => {
 
       if (flatMapMessages && ownAuthor.data) {
         chatroomUpdateUtils.updateMessages({
-          chatroomId: variables.chatroomId,
           message: {
-            status: MessageStatus.QUEUED,
+            chatroom_id: variables.chatroomId,
             message_checksum: variables.messageChecksum,
             client_message_id:
               flatMapMessages.length > 0
