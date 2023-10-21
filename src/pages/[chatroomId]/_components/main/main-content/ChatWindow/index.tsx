@@ -1,21 +1,15 @@
 import React, { createRef, Fragment, useEffect, useRef, useState } from 'react';
 import { cn, useApiTransformUtils } from '@/lib/utils';
 import { type RouterOutput } from '@/server/api/root';
-import {
-  GroupedVirtuoso,
-  type GroupedVirtuosoHandle,
-  type ScrollerProps,
-  type TopItemListProps,
-} from 'react-virtuoso';
-import StartOfDirectMessage from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/StartOfDirectMessage';
-import { motion, type MotionValue, useMotionValue } from 'framer-motion';
-import { Skeleton } from '@/components/elements/skeleton';
+import { GroupedVirtuoso, type GroupedVirtuosoHandle } from 'react-virtuoso';
+import { type MotionValue, useMotionValue } from 'framer-motion';
 import { useChatroomMessages } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/hooks';
 import { useUser } from '@clerk/nextjs';
 import { api } from '@/lib/api';
 import {
   AiOutlineArrowDown,
   AiOutlineArrowUp,
+  AiOutlineClose,
   AiOutlineSync,
 } from 'react-icons/ai';
 import dayjs from 'dayjs';
@@ -23,6 +17,12 @@ import { create } from 'zustand';
 import { ChatWindowItem } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/chat-reply-item';
 import { useLatest } from 'react-use';
 import { createPortal } from 'react-dom';
+import {
+  ChatHeader,
+  ChatItemSkeleton,
+  ChatScroller,
+  TopItemList,
+} from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/virtual-list-components';
 
 const CHATWINDOW_TOP_THRESHOLD = 50;
 
@@ -79,98 +79,6 @@ export const useChatroomState = create<{
   },
 }));
 
-const ChatItemSkeleton = ({
-  variant = 'one',
-}: {
-  variant?: 'one' | 'two' | 'three' | 'four';
-}) => {
-  return (
-    <div className="flex space-x-3 py-2 px-6">
-      <Skeleton className={cn('h-10 w-10 flex-shrink-0 rounded-full')} />
-      <div className="mt-2 flex flex-shrink  flex-col space-y-3">
-        <div className="flex space-x-1">
-          <Skeleton className={cn(' h-2 w-20 rounded-full')} />
-          <Skeleton className={cn('h-2 w-12 rounded-full')} />
-        </div>
-        <Skeleton
-          className={cn('flex-shrink ', {
-            'h-2 w-72 rounded-full': variant === 'one',
-            'h-2 w-52 rounded-full': variant === 'two',
-            'h-2 w-16 rounded-full': variant === 'three',
-            'h-52 w-72': variant === 'four',
-          })}
-        />
-      </div>
-    </div>
-  );
-};
-
-const TopItemList = ({
-  children,
-  style,
-  context,
-}: TopItemListProps & {
-  context?: ChatWindowVirtualListContext;
-}) => {
-  if (context?.unreadCount && context.unreadCount > 0) {
-    return (
-      <div style={{ ...style, position: 'absolute' }} className="static ">
-        {children}
-      </div>
-    );
-  }
-  return <div style={style}>{children}</div>;
-};
-
-const ChatHeader = ({
-  context,
-}: {
-  context?: ChatWindowVirtualListContext;
-}) => {
-  if (!context?.filteredChatroomUsers || context?.hasNextPage) {
-    return (
-      <>
-        {Array(10)
-          .fill(true)
-          .map((_, index) => {
-            if (index % 4 === 0) {
-              return <ChatItemSkeleton key={index} variant="four" />;
-            }
-            if (index % 3 === 0) {
-              return <ChatItemSkeleton key={index} variant="three" />;
-            }
-            if (index % 2 === 0) {
-              return <ChatItemSkeleton key={index} variant="two" />;
-            }
-            return <ChatItemSkeleton key={index} variant="one" />;
-          })}
-      </>
-    );
-  }
-
-  return <StartOfDirectMessage authors={context.filteredChatroomUsers} />;
-};
-
-const ChatScroller = React.forwardRef<
-  HTMLDivElement,
-  ScrollerProps & {
-    context?: ChatWindowVirtualListContext;
-  }
->(({ style, ...props }, ref) => {
-  return (
-    <motion.div
-      ref={ref}
-      style={{
-        ...style,
-        y: props.context?.topHeight,
-      }}
-      {...props}
-    />
-  );
-});
-
-ChatScroller.displayName = 'ChatScroller';
-
 const ChatWindow = function <T>({
   chatroomId,
   chatroomState,
@@ -216,6 +124,16 @@ const ChatWindow = function <T>({
     startIndex: 0,
     endIndex: 0,
   });
+  const trpcContext = api.useContext();
+  const readAllMessages = api.messaging.readAllMessages.useMutation({
+    onSuccess: () => {
+      if (chatroomId) {
+        trpcContext.chatroom.getChatroom.invalidate({
+          chatroomId: chatroomId,
+        });
+      }
+    },
+  });
   const [firstItemIndex, setFirstItemIndex] = useState(10000000);
   const { filterAuthedUserFromChatroomAuthors } = useApiTransformUtils();
   const virtualListWrapperRef = useRef<HTMLDivElement>(null);
@@ -227,7 +145,6 @@ const ChatWindow = function <T>({
   const newMessageScrollDirection =
     chatroomState.newMessageScrollDirection[chatroomId!];
   const topHeight = useMotionValue(-1000);
-  const trpcContext = api.useContext();
   const latestSentNewMessage = useLatest(
     chatroomId ? chatroomState.sentNewMessage[chatroomId] : undefined
   );
@@ -366,7 +283,7 @@ const ChatWindow = function <T>({
           return;
         }
       }
-      // virtualListRef.current?.autoscrollToBottom();
+      virtualListRef.current?.autoscrollToBottom();
     }
   }, [chatroomId]);
 
@@ -405,39 +322,52 @@ const ChatWindow = function <T>({
         {unreadCount &&
         unreadCount > 0 &&
         newMessageScrollDirection !== 'in-view' ? (
-          <button
-            onClick={() => {
-              if (messages) {
-                const firstUnreadMessageIndex = messages.findIndex((m) => {
-                  return (
-                    m.client_message_id ===
-                    firstUnreadMessage?.client_message_id
-                  );
-                });
-
-                // TODO: work out edge cases like lastUnReadMessage not loaded yet*/}
-                if (firstUnreadMessageIndex !== -1) {
-                  virtualListRef.current?.scrollToIndex({
-                    index: firstUnreadMessageIndex,
+          <div className="absolute top-0 left-1/2 z-50 my-2 flex w-min -translate-x-1/2 justify-center bg-transparent">
+            <button
+              onClick={() => {
+                if (messages) {
+                  const firstUnreadMessageIndex = messages.findIndex((m) => {
+                    return (
+                      m.client_message_id ===
+                      firstUnreadMessage?.client_message_id
+                    );
                   });
+
+                  // TODO: work out edge cases like lastUnReadMessage not loaded yet*/}
+                  if (firstUnreadMessageIndex !== -1) {
+                    virtualListRef.current?.scrollToIndex({
+                      index: firstUnreadMessageIndex,
+                    });
+                  }
                 }
-              }
-            }}
-            className="absolute top-0 left-1/2 z-50 flex w-min -translate-x-1/2 justify-center bg-transparent "
-          >
-            <div
-              className={cn(
-                'left-[50%] z-50 my-2 flex w-max items-center justify-center space-x-1 self-center rounded-full  bg-red-500 py-0.5 px-3 text-white'
-              )}
+              }}
             >
-              {newMessageScrollDirection === 'up' ? (
-                <AiOutlineArrowUp size={12} />
-              ) : (
-                <AiOutlineArrowDown size={12} />
-              )}
-              <p className="text-detail">{unreadCount} new messages</p>
-            </div>
-          </button>
+              <div
+                className={cn(
+                  'z-50 flex  w-max items-center justify-center space-x-1 self-center rounded-tl-full rounded-bl-full bg-red-500 py-0.5  px-3 text-white hover:bg-red-600'
+                )}
+              >
+                {newMessageScrollDirection === 'up' ? (
+                  <AiOutlineArrowUp size={12} />
+                ) : (
+                  <AiOutlineArrowDown size={12} />
+                )}
+                <p className="text-detail">{unreadCount} new messages</p>
+              </div>
+            </button>
+            <button
+              onClick={() => {
+                if (chatroomId) {
+                  readAllMessages.mutate({ chatroomId });
+                }
+              }}
+              className="flex items-center justify-center rounded-br-full rounded-tr-full bg-red-500 px-3 text-white hover:bg-red-600"
+            >
+              <p className="text-detail">
+                <AiOutlineClose />
+              </p>
+            </button>
+          </div>
         ) : null}
 
         <GroupedVirtuoso<any, ChatWindowVirtualListContext | undefined>
@@ -481,7 +411,7 @@ const ChatWindow = function <T>({
                   return false;
                 }
 
-                return 'smooth';
+                return 'auto';
               }
             }
 
