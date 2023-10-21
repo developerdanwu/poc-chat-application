@@ -32,6 +32,7 @@ import {
 } from '@tanstack/react-query-persist-client';
 import { del, get, set } from 'idb-keyval';
 import GlobalLoadingSkeleton from '@/components/templates/GlobalLoadingSkeleton';
+import ErrorBoundaryWithQueryReset from '@/components/elements/ErrorBoundaryWithQueryReset';
 
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
   getLayout?: (page: ReactElement) => ReactNode;
@@ -142,7 +143,22 @@ const MyApp = ({
   const getLayout = Component.getLayout ?? ((page) => page);
 
   return (
-    <>
+    <ErrorBoundaryWithQueryReset
+      fallbackRender={(props) => {
+        return (
+          <div>
+            <div>Something went wrong</div>
+            <button
+              onClick={() => {
+                props.resetErrorBoundary();
+              }}
+            >
+              RESET
+            </button>
+          </div>
+        );
+      }}
+    >
       <ClerkProvider {...pageProps}>
         <SignedIn>
           {getLayout(
@@ -160,7 +176,7 @@ const MyApp = ({
         </SignedOut>
       </ClerkProvider>
       <ReactQueryDevtools position="top-right" panelPosition="right" />
-    </>
+    </ErrorBoundaryWithQueryReset>
   );
 };
 

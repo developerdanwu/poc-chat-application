@@ -37,7 +37,6 @@ export const sendMessageMethod = async ({
     auth: SignedInAuthObject;
   };
 }) => {
-  console.log('AUTHORS', input.authors);
   const message = await ctx.db
     .insertInto('message')
     .values((eb) => {

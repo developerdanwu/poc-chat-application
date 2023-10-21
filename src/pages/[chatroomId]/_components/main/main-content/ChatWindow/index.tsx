@@ -151,6 +151,7 @@ const ChatWindow = function <T>({
   const latestRecievedNewMessage = useLatest(
     chatroomId ? chatroomState.receivedNewMessage[chatroomId] : undefined
   );
+
   useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
