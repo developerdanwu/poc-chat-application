@@ -24,7 +24,10 @@ export const guessChatroomFromAuthorsMethod = async ({
   input: {
     authors: AuthorsInputSchema;
   };
-  ctx: { db: Kysely<DB>; auth: SignedInAuthObject };
+  ctx: {
+    db: Kysely<DB>;
+    auth: SignedInAuthObject;
+  };
 }) => {
   const test = await ctx.db
     .selectFrom(`author as ${dbConfig.tableAlias.author}`)
