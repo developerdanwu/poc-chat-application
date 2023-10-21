@@ -12,7 +12,7 @@ const MainChatLayout = ({ children }: { children: React.ReactNode }) => {
     >
       <div className={cn('flex h-full w-full flex-row')}>
         <ChatSidebar />
-        <div className="flex h-screen w-full flex-col items-center justify-center overflow-hidden ">
+        <div className="flex h-screen w-full min-w-[356px] flex-shrink flex-grow basis-[356px] flex-col items-center justify-center overflow-hidden ">
           <Suspense fallback={<MainContentLoading />}>{children}</Suspense>
         </div>
       </div>

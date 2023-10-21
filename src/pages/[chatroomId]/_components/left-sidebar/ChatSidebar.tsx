@@ -13,6 +13,12 @@ import {
   CollapsibleTrigger,
 } from '@/components/elements/collapsible';
 import ThreadListItem from '@/pages/[chatroomId]/_components/left-sidebar/ThreadListItem';
+import {
+  motion,
+  useDragControls,
+  useMotionTemplate,
+  useMotionValue,
+} from 'framer-motion';
 
 const ChatSidebar = () => {
   const router = useRouter();
@@ -21,7 +27,8 @@ const ChatSidebar = () => {
   const chatrooms = api.chatroom.getChatrooms.useQuery({
     searchKeyword: debouncedSearch,
   });
-
+  const motionValue = useMotionValue(256);
+  const dragControls = useDragControls();
   const user = useUser();
 
   const { filterAuthedUserFromChatroomAuthors } = useApiTransformUtils();
@@ -36,8 +43,21 @@ const ChatSidebar = () => {
   const chatroomId =
     typeof router.query.chatroomId === 'string' ? router.query.chatroomId : '';
 
+  // flex h-full flex-[0_0_256px] flex-col overflow-hidden
   return (
-    <div className="flex h-full flex-[0_0_256px] flex-col overflow-hidden  border-slate-300 bg-slate-900">
+    <motion.div
+      style={{
+        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+        height: 'full',
+        width: useMotionTemplate`${motionValue}px`,
+        overflow: 'visible',
+        flexShrink: 1,
+        flexGrow: 0,
+      }}
+      className="border-r border-slate-300 bg-slate-900"
+    >
       <div
         className={cn(
           'flex h-full w-full flex-[0_0_48px] items-center justify-between border-b border-slate-300 px-5'
@@ -92,7 +112,29 @@ const ChatSidebar = () => {
           </CollapsibleContent>
         </Collapsible>
       </div>
-    </div>
+      <motion.div
+        onPan={(event, info) => {
+          const nextValue = motionValue.get() + info.delta.x;
+          if (nextValue < 256 && info.offset.x < 0) {
+            return;
+          }
+          motionValue.set(motionValue.get() + info.delta.x);
+        }}
+        whileHover={{
+          opacity: 1,
+        }}
+        style={{
+          cursor: 'ew-resize',
+          position: 'absolute',
+          right: 0,
+          x: '50%',
+          background: '#60A5FA',
+          opacity: 0,
+          width: '4px',
+          height: '100%',
+        }}
+      />
+    </motion.div>
   );
 };
 
