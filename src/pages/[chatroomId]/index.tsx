@@ -17,6 +17,7 @@ const ChatroomId: NextPageWithLayout = () => {
       ? router.query.chatroomId
       : undefined;
   const chatroomState = useChatroomState((state) => ({
+    chatroomSyncRef: state.syncMessagesRef,
     sentNewMessage: state.sentNewMessage,
     setSentNewMessage: state.setSentNewMessage,
     receivedNewMessage: state.receivedNewMessage,

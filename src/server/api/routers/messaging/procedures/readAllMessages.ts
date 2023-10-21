@@ -4,7 +4,7 @@ import {MessageStatus} from '@prisma-generated/generated/types';
 import {cast, dbConfig} from '@/server/api/routers/helpers';
 import {ablyChannelKeyStore} from '@/lib/ably';
 import {getChatroomMethod} from '@/server/api/routers/chatroom/procedures/getChatroom';
-import {getOwhAuthorMethod} from '@/server/api/routers/chatroom/procedures/getOwnAuthor'; // TODO: read all messages
+import {getOwhAuthorMethod} from '@/server/api/routers/chatroom/procedures/getOwnAuthor';
 
 // TODO: read all messages
 const readAllMessages = protectedProcedure
@@ -96,9 +96,6 @@ const readAllMessages = protectedProcedure
         ...chatroom,
         ...unreadCount,
       });
-    await ablyRest.channels
-      .get(ablyChannelKeyStore.user(ownAuthor.user_id))
-      .publish('get_chatroom', chatroom);
 
     return chatroom;
   });

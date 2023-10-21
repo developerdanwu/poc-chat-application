@@ -82,6 +82,7 @@ const NewMessage: NextPageWithLayout = () => {
     setReceivedNewMessage: state.setReceivedNewMessage,
     newMessageScrollDirection: state.newMessageScrollDirection,
     setNewMessageScrollDirection: state.setNewMessageScrollDirection,
+    chatroomSyncRef: state.syncMessagesRef,
   }));
   const watchedAuthors = useWatch({
     control: newMessageForm.control,
