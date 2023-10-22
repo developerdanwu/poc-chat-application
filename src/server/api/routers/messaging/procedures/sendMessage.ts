@@ -63,6 +63,7 @@ export const sendMessageMethod = async ({
         recepient_id: author.author_id,
         message_id: message.client_message_id,
         status: MessageStatus.DELIVERED,
+        updated_at: dayjs.utc().toISOString(),
       }))
       .execute();
   });

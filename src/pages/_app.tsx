@@ -28,7 +28,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import {
   type PersistedClient,
   type Persister,
-  persistQueryClient,
 } from '@tanstack/react-query-persist-client';
 import { del, get, set } from 'idb-keyval';
 import GlobalLoadingSkeleton from '@/components/templates/GlobalLoadingSkeleton';
@@ -115,12 +114,12 @@ const GlobalConfigWrapper = ({ children }: { children: React.ReactNode }) => {
   const queryClient = useQueryClient();
   const loaded = useRef(false);
 
-  // TODO: fine tune indexDB persister
-  persistQueryClient({
-    queryClient,
-    persister,
-    maxAge: Infinity,
-  });
+  // // TODO: fine tune indexDB persister
+  // persistQueryClient({
+  //   queryClient,
+  //   persister,
+  //   maxAge: Infinity,
+  // });
 
   useEffect(() => {
     if (!loaded.current) {

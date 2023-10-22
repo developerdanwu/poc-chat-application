@@ -45,6 +45,8 @@ model MessageRecepient {
   messageId   Int           @map("message_id")
   message     Message       @relation(fields: [messageId], references: [clientMessageId])
   status      MessageStatus
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   @@map("message_recepient")
 }

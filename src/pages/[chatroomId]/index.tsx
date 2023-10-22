@@ -63,7 +63,8 @@ const ChatWindowErrorFallback = ({
             </div>
             <div className="relative flex flex-col space-y-4">
               <p className="text-small">
-                Somtthing went wrong or conversation cound not be found!
+                Yeeeett! Looks like I didn't understand the assignment.
+                Something went wrong or the conversation could not be found!
               </p>
               <Button
                 onClick={() => {
@@ -72,7 +73,7 @@ const ChatWindowErrorFallback = ({
                 size="sm"
                 className="w-max"
               >
-                Click here to reset
+                Click here to clapback
               </Button>
             </div>
           </div>

@@ -108,6 +108,8 @@ export type MessageRecepient = {
   recepient_id: number;
   message_id: number;
   status: MessageStatus;
+  created_at: Generated<Timestamp>;
+  updated_at: Timestamp;
 };
 export type OpenAiSettings = {
   id: Generated<number>;

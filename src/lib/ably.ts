@@ -10,6 +10,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { getQueryKey } from '@trpc/react-query';
 import useChatroomUpdateUtils from '@/pages/[chatroomId]/_components/useChatroomUpdateUtils';
 import { useChatroomState } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow';
+import { useRouter } from 'next/router';
 import PresenceMessage = Types.PresenceMessage;
 
 export type AblyChannelMessage = {
@@ -28,11 +29,6 @@ export type AblyChannelMessage = {
           data: RouterOutput['messaging']['getMessages']['messages'][number];
         }
     );
-  chatroom:
-    | Omit<Types.Message, 'name' | 'data'> & {
-        name: 'message';
-        data: RouterOutput['messaging']['getMessages']['messages'][number];
-      };
 };
 
 export const ablyChannelKeyStore = {
@@ -153,6 +149,8 @@ export const useSyncGlobalStore = () => {
   const chatroomState = useChatroomState((state) => ({
     setReceivedNewMessage: state.setReceivedNewMessage,
   }));
+  const router = useRouter();
+
   useChannel(
     {
       channelName: ablyChannelKeyStore.user(auth.userId!),
@@ -189,9 +187,31 @@ export const useSyncGlobalStore = () => {
           break;
         }
         case 'message': {
+          const showNotification = (
+            message: Extract<AblyChannelMessage['user'], { name: 'message' }>
+          ) => {
+            const n = new Notification(`New Message`, {
+              body: message.data.text,
+            });
+
+            n.addEventListener('click', () => {
+              router.push(`/${message.data.chatroom_id}`);
+              n.close();
+            });
+          };
+
+          if (Notification.permission === 'granted') {
+            showNotification(message);
+          } else {
+            Notification.requestPermission().then((result) => {
+              if (result === 'granted') {
+                showNotification(message);
+              }
+            });
+          }
+
           chatroomState.setReceivedNewMessage(message.data.chatroom_id, true);
           chatroomUpdateUtils.updateMessages({
-            chatroomId: message.data.chatroom_id,
             message: message.data,
           });
           break;

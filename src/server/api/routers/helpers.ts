@@ -1,10 +1,6 @@
 import type { AliasableExpression, ColumnDataType, Expression } from 'kysely';
 import { type ExpressionBuilder, sql } from 'kysely';
-import {
-  type Author,
-  type Chatroom,
-  type DB,
-} from '@prisma-generated/generated/types';
+import { type Chatroom, type DB } from '@prisma-generated/generated/types';
 import { jsonArrayFrom } from 'kysely/helpers/postgres';
 
 const TABLE_ALIAS = {
@@ -96,24 +92,4 @@ export const withAuthors = (
         `${dbConfig.tableAlias.chatroom}.id`
       )
   ).as('authors');
-};
-
-export const withChatrooms = (
-  eb: ExpressionBuilder<DB & { [dbConfig.tableAlias.author]: Author }, 'au'>
-) => {
-  return jsonArrayFrom(
-    eb
-      .selectFrom(`chatroom as ${dbConfig.tableAlias.chatroom}`)
-      .innerJoin(
-        `_authors_on_chatrooms as ${dbConfig.tableAlias._authors_on_chatrooms}`,
-        `${dbConfig.tableAlias._authors_on_chatrooms}.chatroom_id`,
-        `${dbConfig.tableAlias.chatroom}.id`
-      )
-      .select((eb) => [...dbConfig.selectFields.chatroom, withAuthors(eb)])
-      .whereRef(
-        `${dbConfig.tableAlias._authors_on_chatrooms}.author_id`,
-        '=',
-        `${dbConfig.tableAlias.author}.author_id`
-      )
-  ).as('chatrooms');
 };
