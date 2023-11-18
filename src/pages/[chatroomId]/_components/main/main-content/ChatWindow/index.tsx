@@ -10,13 +10,11 @@ import {
   AiOutlineArrowDown,
   AiOutlineArrowUp,
   AiOutlineClose,
-  AiOutlineSync,
 } from 'react-icons/ai';
 import dayjs from 'dayjs';
 import { create } from 'zustand';
 import { ChatWindowItem } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/chat-reply-item';
 import { useLatest } from 'react-use';
-import { createPortal } from 'react-dom';
 import {
   ChatHeader,
   ChatItemSkeleton,
@@ -305,17 +303,6 @@ const ChatWindow = function <T>({
 
   return (
     <>
-      {chatroomState.chatroomSyncRef.current &&
-      (chatroom.isFetching ||
-        messagesQuery.isFetching ||
-        messagesCountQuery.isFetching)
-        ? createPortal(
-            <div>
-              <AiOutlineSync className="animate-spin" />
-            </div>,
-            chatroomState.chatroomSyncRef.current
-          )
-        : null}
       <div
         className="relative h-0 w-full flex-[1_1_0px]"
         ref={virtualListWrapperRef}
@@ -475,7 +462,6 @@ const ChatWindow = function <T>({
           }}
           itemContent={(_index, _groupIndex, _data, context) => {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-
             const originalIndex = _index - context!.firstItemIndex!;
             const accumulatedIndex = groupedMessagesCount?.reduce(
               (prevVal, nextVal, index) => {

@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 // @ts-ignore
-const extendedTheme = require('./src/lib/extended-theme.cjs')
+const extendedTheme = require('@/lib/extendedTheme.cjs')
 module.exports = {
     darkMode: ["class"],
     content: [

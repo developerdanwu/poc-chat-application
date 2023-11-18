@@ -1,13 +1,12 @@
-import {ablyRest, protectedProcedure} from '@/server/api/trpc';
-import {z} from 'zod';
-import {MessageStatus} from '@prisma-generated/generated/types';
-import {cast, dbConfig} from '@/server/api/routers/helpers';
-import {ablyChannelKeyStore} from '@/lib/ably';
-import {getChatroomMethod} from '@/server/api/routers/chatroom/procedures/getChatroom';
-import {getOwhAuthorMethod} from '@/server/api/routers/chatroom/procedures/getOwnAuthor';
-import {readAllMessagesMethod} from '@/server/api/routers/messaging/procedures/readAllMessages';
+import { ablyRest, protectedProcedure } from '@/server/api/trpc';
+import { z } from 'zod';
+import { MessageStatus } from '@prisma-generated/generated/types';
+import { cast, dbConfig } from '@/server/api/routers/helpers';
+import { ablyChannelKeyStore } from '@/lib/ably';
+import { getChatroomMethod } from '@/server/api/routers/chatroom/procedures/getChatroom';
+import { getOwhAuthorMethod } from '@/server/api/routers/chatroom/procedures/getOwnAuthor';
+import { readAllMessagesMethod } from '@/server/api/routers/messaging/procedures/readAllMessages';
 
-// TODO: read all messages
 const unreadMessages = protectedProcedure
   .input(
     z.object({
