@@ -23,6 +23,7 @@ import {type RouterOutput} from '@/server/api/root';
 import RadialProgress from '@/components/RadialProgress';
 import StartOfDirectMessage from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/StartOfDirectMessage';
 
+
 const ChatHeader = ({
                         context,
                     }: {
@@ -162,7 +163,6 @@ const NewMessage: NextPageWithLayout = () => {
                         },
                     }}
                 />
-
                 <RoomProvider
                     id={guessChatroomFromAuthors.data?.id || 'new-message'}
                     initialPresence={{}}
