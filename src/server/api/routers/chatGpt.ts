@@ -1,7 +1,7 @@
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { ChatGPTAPI } from "@/server/api/routers/chatGpt";
 import { z } from "zod";
 import { env } from "@/env.mjs";
+import { ChatGPTAPI } from "chatgpt";
 
 const gpt = new ChatGPTAPI({
   apiKey: env.OPENAI_ACCESS_TOKEN as string,
