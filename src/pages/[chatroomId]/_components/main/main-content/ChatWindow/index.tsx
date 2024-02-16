@@ -1,26 +1,26 @@
-import React, { createRef, Fragment, useEffect, useRef, useState } from 'react';
-import { cn, useApiTransformUtils } from '@/lib/utils';
-import { type RouterOutput } from '@/server/api/root';
-import { GroupedVirtuoso, type GroupedVirtuosoHandle } from 'react-virtuoso';
-import { type MotionValue, useMotionValue } from 'framer-motion';
-import { useChatroomMessages } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/hooks';
-import { useUser } from '@clerk/nextjs';
-import { api } from '@/lib/api';
+import React, { createRef, Fragment, useEffect, useRef, useState } from "react";
+import { cn, useApiTransformUtils } from "@/lib/utils";
+import { type RouterOutput } from "@/server/api/root";
+import { GroupedVirtuoso, type GroupedVirtuosoHandle } from "react-virtuoso";
+import { type MotionValue, useMotionValue } from "framer-motion";
+import { useChatroomMessages } from "@/pages/[chatroomId]/_components/main/main-content/ChatWindow/hooks";
+import { useUser } from "@clerk/nextjs";
+import { api } from "@/lib/api";
 import {
   AiOutlineArrowDown,
   AiOutlineArrowUp,
   AiOutlineClose,
-} from 'react-icons/ai';
-import dayjs from 'dayjs';
-import { create } from 'zustand';
-import { ChatWindowItem } from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/chat-reply-item';
-import { useLatest } from 'react-use';
+} from "react-icons/ai";
+import dayjs from "dayjs";
+import { create } from "zustand";
+import { ChatWindowItem } from "@/pages/[chatroomId]/_components/main/main-content/ChatWindow/chat-reply-item";
+import { useLatest } from "react-use";
 import {
   ChatHeader,
   ChatItemSkeleton,
   ChatScroller,
   TopItemList,
-} from '@/pages/[chatroomId]/_components/main/main-content/ChatWindow/virtual-list-components';
+} from "@/pages/[chatroomId]/_components/main/main-content/ChatWindow/virtual-list-components";
 
 const CHATWINDOW_TOP_THRESHOLD = 50;
 
@@ -36,17 +36,17 @@ export type ChatWindowVirtualListContext = {
   firstItemIndex?: number;
   chatroomId?: string;
   hasNextPage?: boolean;
-  filteredChatroomUsers?: RouterOutput['chatroom']['getChatroom']['authors'];
+  filteredChatroomUsers?: RouterOutput["chatroom"]["getChatroom"]["authors"];
   groupedMessagesKeys: string[];
   topHeight: MotionValue<number>;
 };
 
 export const useChatroomState = create<{
-  newMessageScrollDirection: Record<string, 'up' | 'down' | 'in-view'>;
+  newMessageScrollDirection: Record<string, "up" | "down" | "in-view">;
   syncMessagesRef: React.RefObject<HTMLDivElement>;
   setNewMessageScrollDirection: (
     chatroomId: string,
-    value: 'up' | 'down' | 'in-view'
+    value: "up" | "down" | "in-view"
   ) => void;
   setSentNewMessage: (chatroomId: string, value: boolean) => void;
   sentNewMessage: Record<string, boolean>;
@@ -86,9 +86,9 @@ const ChatWindow = function <T>({
     chatroomSyncRef: React.RefObject<HTMLDivElement>;
     setNewMessageScrollDirection: (
       chatroomId: string,
-      value: 'up' | 'down' | 'in-view'
+      value: "up" | "down" | "in-view"
     ) => void;
-    newMessageScrollDirection: Record<string, 'up' | 'down' | 'in-view'>;
+    newMessageScrollDirection: Record<string, "up" | "down" | "in-view">;
     setSentNewMessage: (chatroomId: string, value: boolean) => void;
     sentNewMessage: Record<string, boolean>;
     setReceivedNewMessage: (chatroomId: string, value: boolean) => void;
@@ -122,6 +122,7 @@ const ChatWindow = function <T>({
     startIndex: 0,
     endIndex: 0,
   });
+  console.log("RENDERED");
   const trpcContext = api.useContext();
   const readAllMessages = api.messaging.readAllMessages.useMutation({
     onSuccess: () => {
@@ -180,7 +181,7 @@ const ChatWindow = function <T>({
         return data.authors.reduce<
           Record<
             string,
-            RouterOutput['chatroom']['getChatroom']['authors'][number]
+            RouterOutput["chatroom"]["getChatroom"]["authors"][number]
           >
         >((prevVal, author) => {
           prevVal[author.author_id] = author;
@@ -234,18 +235,18 @@ const ChatWindow = function <T>({
         chatroomId
       ) {
         timeout = setTimeout(() => {
-          chatroomState.setNewMessageScrollDirection(chatroomId, 'in-view');
+          chatroomState.setNewMessageScrollDirection(chatroomId, "in-view");
         }, 300);
       } else if (
         firstUnreadMessageIndex < renderedRange.startIndex &&
         chatroomId
       ) {
-        chatroomState.setNewMessageScrollDirection(chatroomId, 'up');
+        chatroomState.setNewMessageScrollDirection(chatroomId, "up");
       } else if (
         firstUnreadMessageIndex > renderedRange.endIndex &&
         chatroomId
       ) {
-        chatroomState.setNewMessageScrollDirection(chatroomId, 'down');
+        chatroomState.setNewMessageScrollDirection(chatroomId, "down");
       }
     }
 
@@ -309,7 +310,7 @@ const ChatWindow = function <T>({
       >
         {unreadCount &&
         unreadCount > 0 &&
-        newMessageScrollDirection !== 'in-view' ? (
+        newMessageScrollDirection !== "in-view" ? (
           <div className="absolute top-0 left-1/2 z-50 my-2 flex w-min -translate-x-1/2 justify-center bg-transparent">
             <button
               onClick={() => {
@@ -332,10 +333,10 @@ const ChatWindow = function <T>({
             >
               <div
                 className={cn(
-                  'z-50 flex  w-max items-center justify-center space-x-1 self-center rounded-tl-full rounded-bl-full bg-red-500 py-0.5  px-3 text-white hover:bg-red-600'
+                  "z-50 flex  w-max items-center justify-center space-x-1 self-center rounded-tl-full rounded-bl-full bg-red-500 py-0.5  px-3 text-white hover:bg-red-600"
                 )}
               >
-                {newMessageScrollDirection === 'up' ? (
+                {newMessageScrollDirection === "up" ? (
                   <AiOutlineArrowUp size={12} />
                 ) : (
                   <AiOutlineArrowDown size={12} />
@@ -382,7 +383,7 @@ const ChatWindow = function <T>({
                 if (isScrollingLatest.current) {
                   return false;
                 }
-                return 'auto';
+                return "auto";
               }
               // sent new message scroll to bottom auto
               if (latestSentNewMessage.current) {
@@ -390,7 +391,7 @@ const ChatWindow = function <T>({
                 if (isScrollingLatest.current) {
                   return false;
                 }
-                return 'auto';
+                return "auto";
               }
               // TODO: receive new message && at bottom then scroll to bottom
               if (isAtBottom && latestRecievedNewMessage.current) {
@@ -399,7 +400,7 @@ const ChatWindow = function <T>({
                   return false;
                 }
 
-                return 'auto';
+                return "auto";
               }
             }
 
@@ -442,18 +443,18 @@ const ChatWindow = function <T>({
               endIndex: originalEndIndex,
             });
           }}
-          style={{ height: '100%', position: 'relative' }}
+          style={{ height: "100%", position: "relative" }}
           groupContent={(index, context) => {
             return (
               <div className="relative flex w-full justify-center bg-transparent ">
                 <div
                   className={cn(
-                    'left-[50%] z-50 my-2 w-max self-center rounded-full border border-slate-300 bg-white px-4 py-0.5 text-slate-700'
+                    "left-[50%] z-50 my-2 w-max self-center rounded-full border border-slate-300 bg-white px-4 py-0.5 text-slate-700"
                   )}
                 >
                   <p className="text-detail">
                     {dayjs(context?.groupedMessagesKeys[index]).format(
-                      'dddd, MMMM Do'
+                      "dddd, MMMM Do"
                     )}
                   </p>
                 </div>
@@ -515,6 +516,6 @@ const ChatWindow = function <T>({
   );
 };
 
-ChatWindow.displayName = 'ChatWindow';
+ChatWindow.displayName = "ChatWindow";
 
 export default ChatWindow;
