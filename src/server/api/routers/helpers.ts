@@ -1,14 +1,14 @@
-import type { AliasableExpression, ColumnDataType, Expression } from 'kysely';
-import { type ExpressionBuilder, sql } from 'kysely';
-import { type Chatroom, type DB } from '@prisma-generated/generated/types';
-import { jsonArrayFrom } from 'kysely/helpers/postgres';
+import type { AliasableExpression, ColumnDataType, Expression } from "kysely";
+import { expressionBuilder, sql } from "kysely";
+import { type DB } from "@prisma-generated/generated/types";
+import { jsonArrayFrom } from "kysely/helpers/postgres";
 
 const TABLE_ALIAS = {
-  chatroom: 'chatroom',
-  author: 'author',
-  _authors_on_chatrooms: '_authors_on_chatrooms',
-  message: 'message',
-  message_recepient: 'message_recepient',
+  chatroom: "chatroom",
+  author: "author",
+  _authors_on_chatrooms: "_authors_on_chatrooms",
+  message: "message",
+  message_recepient: "message_recepient",
 } as const;
 
 const SELECT_FIELDS = {
@@ -56,11 +56,11 @@ type CastExpression<From, To> = AliasableExpression<
 
 export function cast<T extends string | null>(
   expr: Expression<T>,
-  type: 'bytea'
+  type: "bytea"
 ): CastExpression<T, Buffer>;
 export function cast<T extends Int8 | null>(
   expr: Expression<T>,
-  type: 'int4'
+  type: "int4"
 ): CastExpression<T, number>;
 // ... add any other casts you need
 
@@ -71,14 +71,13 @@ export function cast(
   return sql`cast(${expr} as ${sql.raw(type)})`;
 }
 
-export const withAuthors = (
-  eb: ExpressionBuilder<
-    DB & { [dbConfig.tableAlias.chatroom]: Chatroom },
-    'chatroom'
-  >
-) => {
+export const withAuthors = () => {
+  const e = expressionBuilder<
+    DB & { [dbConfig.tableAlias.chatroom]: DB["chatroom"] },
+    "chatroom"
+  >();
   return jsonArrayFrom(
-    eb
+    e
       .selectFrom(`author as ${dbConfig.tableAlias.author}`)
       .innerJoin(
         `_authors_on_chatrooms as ${dbConfig.tableAlias._authors_on_chatrooms}`,
@@ -88,8 +87,8 @@ export const withAuthors = (
       .select([...dbConfig.selectFields.author])
       .whereRef(
         `${dbConfig.tableAlias._authors_on_chatrooms}.chatroom_id`,
-        '=',
+        "=",
         `${dbConfig.tableAlias.chatroom}.id`
       )
-  ).as('authors');
+  ).as("authors");
 };
