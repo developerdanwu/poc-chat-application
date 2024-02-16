@@ -1,11 +1,11 @@
-import { protectedProcedure } from '@/server/api/trpc';
-import { z } from 'zod';
-import { TRPCError } from '@trpc/server';
-import { type Kysely } from 'kysely';
-import { type DB, MessageStatus } from '@prisma-generated/generated/types';
-import { type SignedInAuthObject } from '@clerk/backend';
-import { cast, dbConfig, withAuthors } from '@/server/api/routers/helpers';
-import { jsonObjectFrom } from 'kysely/helpers/postgres';
+import { protectedProcedure } from "@/server/api/trpc";
+import { z } from "zod";
+import { TRPCError } from "@trpc/server";
+import { type Kysely } from "kysely";
+import { type DB, MessageStatus } from "@prisma-generated/generated/types";
+import { type SignedInAuthObject } from "@clerk/backend";
+import { cast, dbConfig, withAuthors } from "@/server/api/routers/helpers";
+import { jsonObjectFrom } from "kysely/helpers/postgres";
 
 const chatroomInputSchema = z.object({
   chatroomId: z.string().min(1),
@@ -46,8 +46,8 @@ export const getChatroomMethod = async ({
     )
     .select((eb) => [
       ...dbConfig.selectFields.chatroom,
-      'chatroom.id',
-      withAuthors(eb),
+      "chatroom.id",
+      withAuthors(),
       cast(
         eb.fn
           .count(`${dbConfig.tableAlias.message}.client_message_id`)
@@ -55,24 +55,24 @@ export const getChatroomMethod = async ({
             eb.and([
               eb(
                 `${dbConfig.tableAlias.message}.author_id`,
-                '!=',
+                "!=",
                 input.authorId
               ),
               eb(
                 `${dbConfig.tableAlias.message_recepient}.status`,
-                '=',
+                "=",
                 MessageStatus.DELIVERED
               ),
               eb(
                 `${dbConfig.tableAlias.message_recepient}.recepient_id`,
-                '=',
+                "=",
                 input.authorId
               ),
             ])
           )
           .distinct(),
-        'int4'
-      ).as('unread_count'),
+        "int4"
+      ).as("unread_count"),
       jsonObjectFrom(
         eb
           .selectFrom(`message as ${dbConfig.tableAlias.message}`)
@@ -84,48 +84,48 @@ export const getChatroomMethod = async ({
           )
           .whereRef(
             `${dbConfig.tableAlias.chatroom}.id`,
-            '=',
+            "=",
             `${dbConfig.tableAlias.message}.chatroom_id`
           )
           .where((eb) =>
             eb.and([
               eb(
                 `${dbConfig.tableAlias.message}.author_id`,
-                '!=',
+                "!=",
                 input.authorId
               ),
               eb(
                 `${dbConfig.tableAlias.message_recepient}.status`,
-                '=',
+                "=",
                 MessageStatus.DELIVERED
               ),
               eb(
                 `${dbConfig.tableAlias.message_recepient}.recepient_id`,
-                '=',
+                "=",
                 input.authorId
               ),
             ])
           )
-          .orderBy(`${dbConfig.tableAlias.message}.created_at`, 'asc')
+          .orderBy(`${dbConfig.tableAlias.message}.created_at`, "asc")
           .limit(1)
-      ).as('first_unread_message'),
+      ).as("first_unread_message"),
     ])
-    .groupBy('chatroom.id')
+    .groupBy("chatroom.id")
     .where((eb) =>
-      eb(`${dbConfig.tableAlias.chatroom}.id`, '=', input.chatroomId)
+      eb(`${dbConfig.tableAlias.chatroom}.id`, "=", input.chatroomId)
     )
     .execute();
 
   if (chatroom.length === 0) {
     throw new TRPCError({
-      code: 'NOT_FOUND',
-      message: 'Chatroom not found',
+      code: "NOT_FOUND",
+      message: "Chatroom not found",
     });
   }
   if (chatroom.length > 1) {
     throw new TRPCError({
-      code: 'INTERNAL_SERVER_ERROR',
-      message: 'More than one chatroom found',
+      code: "INTERNAL_SERVER_ERROR",
+      message: "More than one chatroom found",
     });
   }
 
@@ -141,9 +141,9 @@ const getChatroom = protectedProcedure
   )
   .query(async ({ ctx, input }) => {
     const ownAuthor = await ctx.db
-      .selectFrom('author')
-      .select('author_id')
-      .where('author.user_id', '=', ctx.auth.userId)
+      .selectFrom("author")
+      .select("author_id")
+      .where("author.user_id", "=", ctx.auth.userId)
       .executeTakeFirstOrThrow();
 
     return getChatroomMethod({
