@@ -16,12 +16,12 @@ jobs:
           fetch-depth: 0
 
       - name: List branches
-        run: git branch -a
+        run: git branch
 
       - name: Check for phrase-translations merge
         id: check-merge
         run: |
-          if git merge-base --is-ancestor HEAD remotes/origin/phrase-translations; then
+          if git merge-base --is-ancestor HEAD phrase-translations; then
             echo "merged=true" >> $GITHUB_OUTPUT
           else
             echo "merged=false" >> $GITHUB_OUTPUT
