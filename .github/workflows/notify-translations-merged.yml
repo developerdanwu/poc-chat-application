@@ -26,6 +26,9 @@ jobs:
           else
             echo "merged=false" >> $GITHUB_OUTPUT
           fi
+          
+          echo "GITHUB_OUTPUT:"
+          cat $GITHUB_OUTPUT
 
       - name: Get branch name
         id: get-branch-name
