@@ -1,0 +1,39 @@
+name: Notify on Phrase Translations Merge
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  notify-phrase-translations-merge:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Check for phrase-translations merge
+        id: check-merge
+        run: |
+          if git merge-base --is-ancestor HEAD phrase-translations; then
+            echo "merged=true" >> $GITHUB_OUTPUT
+          else
+            echo "merged=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Get branch name
+        id: get-branch-name
+        if: steps.check-merge.outputs.merged == 'true'
+        run: echo "branch=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Post to Slack channel
+        if: steps.check-merge.outputs.merged == 'true'
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          channel-id: ${{ secrets.SLACK_PHRASE_CHANNEL_ID }}
+          slack-message: "<!here> The `phrase-translations` branch has been merged into the `${{ steps.get-branch-name.outputs.branch }}` branch."
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_PHRASE_TOKEN }}
