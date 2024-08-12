@@ -32,7 +32,7 @@ jobs:
 
       - name: Get branch name
         id: get-branch-name
-        if: steps.check-merge.outputs.merged == 'true'
+        #        if: steps.check-merge.outputs.merged == 'true'
         run: echo "branch=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_OUTPUT
 
       - name: Post to Slack channel
