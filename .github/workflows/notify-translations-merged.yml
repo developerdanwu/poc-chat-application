@@ -1,12 +1,14 @@
 name: Notify on Phrase Translations Merge
 
 on:
-  push:
+  pull_request:
+    types: [ closed ]
     branches:
       - main
 
 jobs:
   notify-phrase-translations-merge:
+    if: github.event.pull_request.merged == true && github.head_ref == 'phrase-translations'
     runs-on: ubuntu-latest
 
     steps:
@@ -15,34 +17,14 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup master branch locally without switching current branch
-        run: git fetch origin main:main
-
-      - name: List branches
-        run: git branch
-
-      - name: Check for phrase-translations merge
-        id: check-merge
-        run: |
-          if git merge-base --is-ancestor HEAD phrase-translations; then
-            echo "merged=true" >> $GITHUB_OUTPUT
-          else
-            echo "merged=false" >> $GITHUB_OUTPUT
-          fi
-          
-          echo "GITHUB_OUTPUT:"
-          cat $GITHUB_OUTPUT
-
       - name: Get branch name
         id: get-branch-name
-        #        if: steps.check-merge.outputs.merged == 'true'
         run: echo "branch=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_OUTPUT
 
       - name: Print branch name
         run: echo "Current branch is ${{ steps.get-branch-name.outputs.branch }}"
 
       - name: Post to Slack channel
-        if: steps.check-merge.outputs.merged == 'true'
         uses: slackapi/slack-github-action@v1.26.0
         with:
           channel-id: ${{ secrets.SLACK_PHRASE_CHANNEL_ID }}
