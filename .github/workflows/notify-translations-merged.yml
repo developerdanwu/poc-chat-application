@@ -16,7 +16,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup master branch locally without switching current branch
-        run: git fetch origin master:master
+        run: git fetch origin main:main
 
       - name: List branches
         run: git branch
